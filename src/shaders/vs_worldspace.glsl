@@ -1,6 +1,6 @@
 #version 450 core
 
-layout(location = 0) in vec2 a_pos;
+layout(location = 0) in vec3 a_pos;
 
 out gl_PerVertex
 {

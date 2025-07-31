@@ -33,7 +33,6 @@ function b32     string8_contains(String8 str, String8 substring);
 function b32     string8_find_first(String8 str, String8 substring, u64* index);
 function b32     string8_find_last(String8 str, String8 substring, u64* index); 
 function b32     string8_match(String8 a, String8 b, b32 case_sensitive);
-function void    string8_printf(String8 str);
 function String8 string8_from_format(Arena* arena, char const* fmt, ...);
 
 function String8_List string8_split(Arena* arena, String8 str, String8 split_character);

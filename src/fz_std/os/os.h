@@ -123,7 +123,7 @@ function String8 os_directory_push(String8 path, String8 directory);   /* Change
 
 ///////////////////////////////////////////////////////
 // @Section: Cursor
-typedef enum Cursor_Type
+typedef enum
 {
   CURSOR_ARROW,
   CURSOR_HAND,
@@ -142,7 +142,7 @@ function void os_cursor_hide(b32 hide);             /* Hides/shows the cursor */
 
 ///////////////////////////////////////////////////////
 // @Section: Input
-typedef enum Keyboard_Key
+typedef enum
 {
   Keyboard_Key_BACKSPACE,
   Keyboard_Key_ENTER,
@@ -279,7 +279,7 @@ typedef enum Keyboard_Key
 function u32          _native_key_from_os_key(Keyboard_Key key); /* Converts os key to native key */
 function Keyboard_Key _os_key_from_native_key(u32 native_key);   /* Converts native key to os key */
 
-typedef enum Mouse_Button
+typedef enum
 {
   MouseButton_Left,
   MouseButton_Right,

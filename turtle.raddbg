@@ -1,4 +1,4 @@
-// raddbg 0.9.20 project file
+// raddbg 0.9.21 project file
 
 recent_file: path: "src/renderer.c"
 recent_file: path: "src/main.c"
@@ -14,4 +14,9 @@ target:
   enabled: 1
   entry_point: entry_point
   label: Turtle
+}
+breakpoint:
+{
+  source_location: "src/renderer.c:63:18"
+  hit_count: 3
 }
