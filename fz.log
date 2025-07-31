@@ -1,0 +1,81 @@
+INFO :: 2025-July-31 14:03:59.339 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:04:54.656 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:05:12.227 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:11:12.711 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:19:30.097 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+ERROR :: 2025-July-31 14:19:30.357 :: C:\Personal\turtle\src\renderer.c:31: Vertex shader failed to link: Vertex info
+-----------
+(0) : error C5145: must write to gl_Position
+
+ERROR :: 2025-July-31 14:19:30.361 :: C:\Personal\turtle\src\fz_std\opengl\opengl.c:61: OpenGL Debug Triggered (Severity: High, Type: Error, Source: API)
+OpenGL Debug Message
+  Source: API
+  Type: Error
+  Severity: High
+  ID: 1282
+  Message: GL_INVALID_OPERATION error generated. <program> object is not successfully linked.
+
+INFO :: 2025-July-31 14:22:53.184 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+ERROR :: 2025-July-31 14:22:55.640 :: C:\Personal\turtle\src\renderer.c:31: Vertex shader failed to link: Vertex info
+-----------
+(0) : error C5145: must write to gl_Position
+
+ERROR :: 2025-July-31 14:22:55.644 :: C:\Personal\turtle\src\fz_std\opengl\opengl.c:61: OpenGL Debug Triggered (Severity: High, Type: Error, Source: API)
+OpenGL Debug Message
+  Source: API
+  Type: Error
+  Severity: High
+  ID: 1282
+  Message: GL_INVALID_OPERATION error generated. <program> object is not successfully linked.
+
+INFO :: 2025-July-31 14:22:59.617 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:23:58.782 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:24:14.412 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:24:32.848 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:28:48.886 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+ERROR :: 2025-July-31 14:28:49.118 :: C:\Personal\turtle\src\renderer.c:31: Vertex shader failed to link: Vertex info
+-----------
+(0) : error C5145: must write to gl_Position
+
+ERROR :: 2025-July-31 14:28:49.125 :: C:\Personal\turtle\src\fz_std\opengl\opengl.c:61: OpenGL Debug Triggered (Severity: High, Type: Error, Source: API)
+OpenGL Debug Message
+  Source: API
+  Type: Error
+  Severity: High
+  ID: 1282
+  Message: GL_INVALID_OPERATION error generated. <program> object is not successfully linked.
+
+INFO :: 2025-July-31 14:32:00.309 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:33:02.568 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:36:06.136 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:36:34.301 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:36:59.312 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:37:07.786 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:37:29.148 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:37:41.239 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:37:48.405 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:37:57.005 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:38:22.207 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:38:35.068 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:38:52.203 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:39:08.840 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:39:22.095 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:39:48.674 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:39:56.454 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:40:59.949 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:41:22.241 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:41:52.685 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:41:58.643 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:42:06.972 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:42:21.565 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:42:35.875 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:43:06.896 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:43:30.730 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:43:53.931 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:44:09.736 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:44:12.969 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:44:47.304 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:45:07.934 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:45:10.273 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:45:17.010 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<
+INFO :: 2025-July-31 14:45:27.335 :: C:\Personal\turtle\src\fz_std\base\entry_point.c:13: >>>> Entry point <<<<

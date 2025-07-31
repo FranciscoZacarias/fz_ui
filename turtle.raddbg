@@ -1,0 +1,17 @@
+// raddbg 0.9.20 project file
+
+recent_file: path: "src/renderer.c"
+recent_file: path: "src/main.c"
+type_view:
+{
+  type: String8
+  expr: "str, size"
+}
+target:
+{
+  executable: "build/turtle.exe"
+  working_directory: build
+  enabled: 1
+  entry_point: entry_point
+  label: Turtle
+}
