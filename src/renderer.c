@@ -7,50 +7,58 @@ renderer_init()
   project_path = os_directory_pop(project_path);
   
   g_renderer.arena = arena_alloc();
-  g_renderer.vs = renderer_compile_shader(VertexShader_Screenspace, GL_VERTEX_SHADER);
-  g_renderer.fs = renderer_compile_shader(FragmentShader, GL_FRAGMENT_SHADER);
-  g_renderer.quads2d = push_array(g_renderer.arena, Quad2D, TotalQuads2D);
+  g_renderer.shaders.v_screenspace_quad = renderer_compile_shader(VertexShader_Screenspace, GL_VERTEX_SHADER);
+  g_renderer.shaders.f_default = renderer_compile_shader(FragmentShader, GL_FRAGMENT_SHADER);
+  g_renderer.screenspace.quads2d = push_array(g_renderer.arena, Quad2D, TotalQuads2D);
   
-  // Create pipeline
-  glCreateProgramPipelines(1, &g_renderer.pipeline);
-  glUseProgramStages(g_renderer.pipeline, GL_VERTEX_SHADER_BIT, g_renderer.vs);
-  glUseProgramStages(g_renderer.pipeline, GL_FRAGMENT_SHADER_BIT, g_renderer.fs);
+  // Screenspace
+  {
+    // Create pipeline
+    glCreateProgramPipelines(1, &g_renderer.screenspace.pipeline);
+    glUseProgramStages(g_renderer.screenspace.pipeline, GL_VERTEX_SHADER_BIT, g_renderer.shaders.v_screenspace_quad);
+    glUseProgramStages(g_renderer.screenspace.pipeline, GL_FRAGMENT_SHADER_BIT, g_renderer.shaders.f_default);
   
-  // Unit quad vertex buffer
-  glCreateBuffers(1, &g_renderer.unit_quad_vbo);
-  glNamedBufferStorage(g_renderer.unit_quad_vbo, sizeof(unit_quad), unit_quad, 0);
+    // Unit quad vertex buffer
+    glCreateBuffers(1, &g_renderer.unit_quad_vbo);
+    glNamedBufferStorage(g_renderer.unit_quad_vbo, sizeof(unit_quad), unit_quad, 0);
   
-  // Instance data buffer
-  glCreateBuffers(1, &g_renderer.instance_vbo);
-  glNamedBufferStorage(g_renderer.instance_vbo, sizeof(Quad2D) * TotalQuads2D, NULL, GL_DYNAMIC_STORAGE_BIT);
+    // Instance data buffer
+    glCreateBuffers(1, &g_renderer.screenspace.instance_vbo);
+    glNamedBufferStorage(g_renderer.screenspace.instance_vbo, sizeof(Quad2D) * TotalQuads2D, NULL, GL_DYNAMIC_STORAGE_BIT);
   
-  // VAO setup
-  glCreateVertexArrays(1, &g_renderer.vao);
+    // VAO setup
+    glCreateVertexArrays(1, &g_renderer.screenspace.vao);
   
-  // Unit quad positions (per-vertex)
-  glVertexArrayVertexBuffer(g_renderer.vao, 0, g_renderer.unit_quad_vbo, 0, sizeof(Vec2f32));
-  glEnableVertexArrayAttrib(g_renderer.vao, 0);
-  glVertexArrayAttribFormat(g_renderer.vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
-  glVertexArrayAttribBinding(g_renderer.vao, 0, 0);
+    // Unit quad positions (per-vertex)
+    glVertexArrayVertexBuffer(g_renderer.screenspace.vao, 0, g_renderer.unit_quad_vbo, 0, sizeof(Vec2f32));
+    glEnableVertexArrayAttrib(g_renderer.screenspace.vao, 0);
+    glVertexArrayAttribFormat(g_renderer.screenspace.vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(g_renderer.screenspace.vao, 0, 0);
   
-  // Instance data (per-instance)
-  glVertexArrayVertexBuffer(g_renderer.vao, 1, g_renderer.instance_vbo, 0, sizeof(Quad2D));
+    // Instance data (per-instance)
+    glVertexArrayVertexBuffer(g_renderer.screenspace.vao, 1, g_renderer.screenspace.instance_vbo, 0, sizeof(Quad2D));
   
-  glEnableVertexArrayAttrib(g_renderer.vao, 1); // position
-  glVertexArrayAttribFormat(g_renderer.vao, 1, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad2D, position));
-  glVertexArrayAttribBinding(g_renderer.vao, 1, 1);
-  glVertexArrayBindingDivisor(g_renderer.vao, 1, 1);
+    glEnableVertexArrayAttrib(g_renderer.screenspace.vao, 1); // position
+    glVertexArrayAttribFormat(g_renderer.screenspace.vao, 1, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad2D, position));
+    glVertexArrayAttribBinding(g_renderer.screenspace.vao, 1, 1);
+    glVertexArrayBindingDivisor(g_renderer.screenspace.vao, 1, 1);
   
-  glEnableVertexArrayAttrib(g_renderer.vao, 2); // scale
-  glVertexArrayAttribFormat(g_renderer.vao, 2, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad2D, scale));
-  glVertexArrayAttribBinding(g_renderer.vao, 2, 1);
-  glVertexArrayBindingDivisor(g_renderer.vao, 2, 1);
+    glEnableVertexArrayAttrib(g_renderer.screenspace.vao, 2); // scale
+    glVertexArrayAttribFormat(g_renderer.screenspace.vao, 2, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad2D, scale));
+    glVertexArrayAttribBinding(g_renderer.screenspace.vao, 2, 1);
+    glVertexArrayBindingDivisor(g_renderer.screenspace.vao, 2, 1);
   
-  glEnableVertexArrayAttrib(g_renderer.vao, 3); // color
-  glVertexArrayAttribFormat(g_renderer.vao, 3, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad2D, color));
-  glVertexArrayAttribBinding(g_renderer.vao, 3, 1);
-  glVertexArrayBindingDivisor(g_renderer.vao, 3, 1);
-  
+    glEnableVertexArrayAttrib(g_renderer.screenspace.vao, 3); // color
+    glVertexArrayAttribFormat(g_renderer.screenspace.vao, 3, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad2D, color));
+    glVertexArrayAttribBinding(g_renderer.screenspace.vao, 3, 1);
+    glVertexArrayBindingDivisor(g_renderer.screenspace.vao, 3, 1);
+  }
+
+  // Worldspace
+  {
+    
+  }
+
   scratch_end(&scratch);
 }
 
@@ -60,33 +68,33 @@ renderer_begin_frame()
   glClearColor(0.5, 0.96, 1.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-  glBindProgramPipeline(g_renderer.pipeline);
-  glBindVertexArray(g_renderer.vao);
-  g_renderer.quads2d_count = 0;
+  glBindProgramPipeline(g_renderer.screenspace.pipeline);
+  glBindVertexArray(g_renderer.screenspace.vao);
+  g_renderer.screenspace.quads2d_count = 0;
 
   // TODO(fz): We can just cache the value glGetUniformLocation
-  glProgramUniform2f(g_renderer.vs, glGetUniformLocation(g_renderer.vs, "u_screen_size"), (f32)g_os_window->dimensions.x, (f32)g_os_window->dimensions.y);
+  glProgramUniform2f(g_renderer.shaders.v_screenspace_quad, glGetUniformLocation(g_renderer.shaders.v_screenspace_quad, "u_screen_size"), (f32)g_os_window->dimensions.x, (f32)g_os_window->dimensions.y);
 }
 
 function void
 renderer_end_frame()
 {
-  glNamedBufferSubData(g_renderer.instance_vbo, 0, sizeof(Quad2D) * g_renderer.quads2d_count, g_renderer.quads2d);
-  glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.quads2d_count);
+  glNamedBufferSubData(g_renderer.screenspace.instance_vbo, 0, sizeof(Quad2D) * g_renderer.screenspace.quads2d_count, g_renderer.screenspace.quads2d);
+  glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.screenspace.quads2d_count);
 }
 
 function void
 renderer_draw_quad(Vec2f32 position, Vec2f32 scale, Vec4f32 color)
 {
-  if (g_renderer.quads2d_count >= TotalQuads2D)
+  if (g_renderer.screenspace.quads2d_count >= TotalQuads2D)
   {
     emit_fatal(S("Tried to render more quads than TotalQuads2D"));
   }
 
-  g_renderer.quads2d[g_renderer.quads2d_count].position = position;
-  g_renderer.quads2d[g_renderer.quads2d_count].scale    = scale;
-  g_renderer.quads2d[g_renderer.quads2d_count].color    = color;
-  g_renderer.quads2d_count += 1;
+  g_renderer.screenspace.quads2d[g_renderer.screenspace.quads2d_count].position = position;
+  g_renderer.screenspace.quads2d[g_renderer.screenspace.quads2d_count].scale    = scale;
+  g_renderer.screenspace.quads2d[g_renderer.screenspace.quads2d_count].color    = color;
+  g_renderer.screenspace.quads2d_count += 1;
 }
 
 function u32

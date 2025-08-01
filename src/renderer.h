@@ -6,7 +6,7 @@
 
 
 ///////////////////////////////////////////////////////
-// @Section: Renderer Primitives
+// @Section: Screenspace primitives
 typedef struct Quad2D Quad2D;
 struct Quad2D
 {
@@ -21,22 +21,41 @@ global const Vec2f32 unit_quad[6] = {
 };
 
 ///////////////////////////////////////////////////////
+// @Section: Worldspace primitives
+typedef struct Quad3D Quad3D;
+struct Quad3D
+{
+  Vec3f32 position;
+  Vec3f32 scale;
+  Vec4f32 color;
+};
+
+///////////////////////////////////////////////////////
 // @Section: Renderer
 typedef struct Renderer Renderer;
 struct Renderer
 {
   Arena* arena;
   
-  u32 vao;
-  u32 unit_quad_vbo;
-  u32 instance_vbo;
-  u32 vs;
-  u32 fs;
-  u32 pipeline;
+  struct
+  {
+    u32 v_screenspace_quad;
+    u32 f_default;
+  } shaders;
 
-  #define TotalQuads2D Thousand(10)
-  Quad2D* quads2d;
-  u32 quads2d_count;
+  u32 unit_quad_vbo;
+
+  struct
+  {
+    u32 pipeline;
+
+    u32 vao;
+    u32 instance_vbo;
+
+    #define TotalQuads2D Thousand(10)
+    Quad2D* quads2d;
+    u32 quads2d_count;
+  } screenspace;
 };
 
 global Renderer g_renderer;

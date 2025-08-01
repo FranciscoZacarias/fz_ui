@@ -71,11 +71,11 @@ os_cursor_lock(b32 lock)
     _g_is_cursor_locked       = true;
 
     // Reset deltas to avoid cursor jump
-    _g_input_state.mouse_current.delta.x  = 0.0f;
-    _g_input_state.mouse_current.delta.y  = 0.0f;
-    _g_input_state.mouse_previous.delta.x = 0.0f;
-    _g_input_state.mouse_previous.delta.y = 0.0f;
-    MemoryCopyStruct(&_g_input_state.mouse_previous, &_g_input_state.mouse_current);
+    g_input_state.mouse_current.delta.x  = 0.0f;
+    g_input_state.mouse_current.delta.y  = 0.0f;
+    g_input_state.mouse_previous.delta.x = 0.0f;
+    g_input_state.mouse_previous.delta.y = 0.0f;
+    MemoryCopyStruct(&g_input_state.mouse_previous, &g_input_state.mouse_current);
   }
   else
   {
@@ -324,6 +324,24 @@ function OS_Window*
 os_window_get()
 {
   return g_os_window;
+}
+
+function Vec2s32
+os_window_get_client_dimensions()
+{
+  RECT rect;
+  GetClientRect(g_os_window_win32.window_handle, &rect);
+  Vec2s32 result = vec2s32((rect.right - rect.left), (rect.bottom - rect.top));
+  return result;
+}
+
+function Vec2s32
+os_window_client_to_screen(Vec2s32 client_point)
+{
+  POINT point = { client_point.x, client_point.y };
+  ClientToScreen(g_os_window_win32.window_handle, &point);
+  Vec2s32 result = vec2s32(point.x, point.y);
+  return result;
 }
 
 ///////////////////////////////////////////////////////

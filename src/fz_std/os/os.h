@@ -312,7 +312,7 @@ struct Input_State
   Mouse_State   mouse_previous;
 };
 
-global Input_State _g_input_state;
+global Input_State g_input_state;
 
 global b32 _g_ignore_next_mouse_move = false;
 global b32 _g_is_cursor_locked       = false;

@@ -18,8 +18,10 @@ global OS_Window* g_os_window;
 function b32        os_window_init(s32 width, s32 height, String8 title); /* Creates a window */
 function void       os_window_open();                                     /* Shows a window */
 function void       os_window_close();                                    /* Closes and destroys a window */
-function b32        os_is_application_running();                             /* Swaps buffers for the only existing window */
+function b32        os_is_application_running();                          /* Swaps buffers for the only existing window */
 function OS_Window* os_window_get();                                      /* Returns the window handle */
+function Vec2s32    os_window_get_client_dimensions();                    /* Returns screen dimensions. X is width, Y is height */
+function Vec2s32    os_window_client_to_screen(Vec2s32 client_point);     /* Converts client (window area) coordinates to screen (display) coordinates */
 
 ///////////////////////////////////////////////////////
 // @Section: Window Flags
