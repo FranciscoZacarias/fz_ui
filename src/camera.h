@@ -20,12 +20,14 @@ typedef enum Camera_Movement {
   CameraMovement_Down
 } Camera_Movement;
 
-typedef struct Camera {
+typedef struct Camera Camera;
+struct Camera
+{
   Vec3f32 position;
   Quatf32 orientation;
   f32 fov;
   Camera_Mode mode;
-} Camera;
+};
 
 function void    camera_init(Camera* camera);
 function void    camera_update(Camera* camera, f32 delta_time);

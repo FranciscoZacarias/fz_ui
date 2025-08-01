@@ -22,6 +22,11 @@
 #include "camera.c"
 #include "renderer.c"
 
+global Camera g_camera;
+
+OS_Timer g_frame_timer;
+f32      g_delta_time;
+
 function void input_update();
 
 #endif // MAIN_H

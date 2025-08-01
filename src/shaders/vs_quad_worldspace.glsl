@@ -17,7 +17,7 @@ out gl_PerVertex
 
 void main()
 {
-  vec2 world_pos = a_pos + a_unit_quad_pos * a_scale;
-  gl_Position = u_mvp * vec4(world_pos, 0.0, 1.0);
-  v_color = a_color;
+  vec3 world_pos = a_pos + a_unit_quad_pos * a_scale;
+  gl_Position    = u_projection * u_view * vec4(world_pos, 1.0);
+  v_color        = a_color;
 }

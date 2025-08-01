@@ -1,17 +1,23 @@
-function void camera_init(Camera* camera) {
+function void
+camera_init(Camera* camera)
+{
   AssertNoReentry();
-    
+  MemoryZeroStruct(camera);
   camera->position    = vec3f32(0.0f, 0.0f, 5.0f);
   camera->orientation = quatf32_identity();
   camera->fov         = 90.0f;
   camera->mode        = CameraMode_Select;
 }
 
-function void camera_update(Camera* camera, f32 delta_time) {
+function void
+camera_update(Camera* camera, f32 delta_time)
+{
   local_persist b32 was_right_mouse_button_down = 0;
 
-  if (input_is_button_down(MouseButton_Right)) {
-    if (!was_right_mouse_button_down) {
+  if (input_is_button_down(MouseButton_Right))
+  {
+    if (!was_right_mouse_button_down)
+    {
       g_input_state.mouse_previous.screen_space.x = g_input_state.mouse_current.screen_space.x;
       g_input_state.mouse_previous.screen_space.y = g_input_state.mouse_current.screen_space.y;
       was_right_mouse_button_down = 1;
@@ -65,7 +71,9 @@ function void camera_update(Camera* camera, f32 delta_time) {
     // Manually set current mouse position to center (so next frame delta is correct)
     g_input_state.mouse_current.screen_space.x = (f32)((dimensions.x) / 2);
     g_input_state.mouse_current.screen_space.y = (f32)((dimensions.y) / 2);
-  } else {
+  }
+  else
+  {
     camera->mode = CameraMode_Select;
     was_right_mouse_button_down = 0;
     os_cursor_lock(false);
@@ -73,25 +81,33 @@ function void camera_update(Camera* camera, f32 delta_time) {
   }
 }
 
-function Vec3f32 camera_get_forward(Camera* camera) {
+function Vec3f32
+camera_get_forward(Camera* camera)
+{
   Mat4f32 rot     = mat4f32_from_quatf32(camera->orientation);
   Vec3f32 forward = {0.0f, 0.0f, -1.0f};
   return vec3f32_normalize(mat4f32_transform_vec3f32(rot, forward));
 }
 
-function Vec3f32 camera_get_right(Camera* camera) {
+function Vec3f32
+camera_get_right(Camera* camera)
+{
   Mat4f32 rot   = mat4f32_from_quatf32(camera->orientation);
   Vec3f32 right = {1.0f, 0.0f, 0.0f};
   return vec3f32_normalize(mat4f32_transform_vec3f32(rot, right));
 }
 
-function Vec3f32 camera_get_up(Camera* camera) {
+function Vec3f32
+camera_get_up(Camera* camera)
+{
   Mat4f32 rot = mat4f32_from_quatf32(camera->orientation);
   Vec3f32 up  = {0.0f, 1.0f, 0.0f};
   return vec3f32_normalize(mat4f32_transform_vec3f32(rot, up));
 }
 
-function Mat4f32 camera_get_view_matrix(Camera* camera) {
+function Mat4f32
+camera_get_view_matrix(Camera* camera)
+{
   Vec3f32 forward = camera_get_forward(camera);
   Vec3f32 up      = camera_get_up(camera);
   Vec3f32 target  = vec3f32_add(camera->position, forward);
@@ -99,12 +115,37 @@ function Mat4f32 camera_get_view_matrix(Camera* camera) {
   return result;
 }
 
-function void camera_look_at(Camera* camera, Vec3f32 target) {
+function void
+camera_look_at(Camera* camera, Vec3f32 target)
+{
   Vec3f32 direction   = vec3f32_normalize(vec3f32_sub(target, camera->position));
   Vec3f32 forward     = {0.0f, 0.0f, -1.0f};
   camera->orientation = quatf32_from_vec3f32_to_vec3f32(forward, direction);
 }
 
-function void camera_set_euler(Camera* camera, f32 pitch, f32 yaw, f32 roll) {
+function void
+camera_set_euler(Camera* camera, f32 pitch, f32 yaw, f32 roll)
+{
   camera->orientation = quatf32_from_euler(pitch, yaw, roll);
+}
+
+function void
+camera_print(Camera* cam)
+{
+  printf("Camera:\n");
+  printf("  Position: (%.3f, %.3f, %.3f)\n",
+         cam->position.x, cam->position.y, cam->position.z);
+  printf("  Orientation (quat): (%.3f, %.3f, %.3f, %.3f)\n",
+         cam->orientation.x, cam->orientation.y,
+         cam->orientation.z, cam->orientation.w);
+  printf("  FOV: %.3f\n", cam->fov);
+
+  const char* mode_str = "Unknown";
+  switch (cam->mode)
+  {
+    case CameraMode_Select:   mode_str = "Select";   break;
+    case CameraMode_Fly:      mode_str = "Fly";      break;
+    case CameraMode_Disabled: mode_str = "Disabled"; break;
+  }
+  printf("  Mode: %s\n", mode_str);
 }
