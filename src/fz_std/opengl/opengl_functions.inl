@@ -40,6 +40,8 @@ GL_FUNC(void,   glVertexArrayAttribFormat, (GLuint vaobj, GLuint attribindex, GL
 GL_FUNC(void,   glVertexArrayAttribBinding, (GLuint vaobj, GLuint attribindex, GLuint bindingindex))
 GL_FUNC(void,   glBindVertexArray,       (GLuint array))
 GL_FUNC(void,   glDeleteVertexArrays,    (GLsizei n, const GLuint *arrays))
+GL_FUNC(void,   glVertexArrayBindingDivisor, (GLuint vaobj, GLuint bindingindex, GLuint divisor))
+
 
 // Textures (DSA)
 GL_FUNC(void,   glCreateTextures,        (GLenum target, GLsizei n, GLuint *textures))

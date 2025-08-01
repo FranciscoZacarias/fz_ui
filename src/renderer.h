@@ -1,47 +1,42 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
-#define VertexShader_Screenspace S("\\src\\shaders\\vs_screenspace.glsl")
+#define VertexShader_Screenspace S("\\src\\shaders\\vs_quad_screenspace.glsl")
 #define FragmentShader           S("\\src\\shaders\\fs.glsl")
+
 
 ///////////////////////////////////////////////////////
 // @Section: Renderer Primitives
-
-typedef enum
-{
-  Entity_Kind_Quad2D,
-
-  Entity_Kind_Count
-} Entity_Kind;
-
-typedef struct Vertex Vertex;
-struct Vertex
-{
-  Vec2f32 position;
-  Vec4f32 color;
-};
-
 typedef struct Quad2D Quad2D;
 struct Quad2D
 {
+  Vec2f32 position;
   Vec2f32 scale;
-  Vertex  p0;
+  Vec4f32 color;
+};
+global const Vec2f32 unit_quad[6] = {
+  {0.0f, 0.0f}, {1.0f, 0.0f},
+  {1.0f, 1.0f}, {0.0f, 0.0f},
+  {1.0f, 1.0f}, {0.0f, 1.0f}
 };
 
 ///////////////////////////////////////////////////////
 // @Section: Renderer
-
 typedef struct Renderer Renderer;
 struct Renderer
 {
   Arena* arena;
-
+  
   u32 vao;
-  u32 vbo;
-
+  u32 unit_quad_vbo;
+  u32 instance_vbo;
   u32 vs;
   u32 fs;
   u32 pipeline;
+
+  #define TotalQuads2D Thousand(10)
+  Quad2D* quads2d;
+  u32 quads2d_count;
 };
 
 global Renderer g_renderer;

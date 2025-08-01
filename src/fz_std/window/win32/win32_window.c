@@ -255,6 +255,8 @@ os_window_init(s32 width, s32 height, String8 title)
   MemoryZeroStruct(&g_os_window_win32);
   b32 result = true;
 
+  g_os_window = &g_os_window_win32.state;
+
   g_os_window_win32.window_handle = _win32_window_create(_g_hInstance, width, height, title);
   if (!IsWindow(g_os_window_win32.window_handle))
   {
@@ -271,7 +273,7 @@ os_window_init(s32 width, s32 height, String8 title)
 
   g_os_window_win32.state.dimensions = (Vec2s32){width, height};
   g_os_window_win32.state.title      = S("FZ_Window_Title");
-  
+
   _input_init();
   g_os_resize_callback = _win32_window_resize_callback;
 
@@ -318,7 +320,7 @@ os_is_application_running()
   return result;
 }
 
-function OS_Window
+function OS_Window*
 os_window_get()
 {
   return g_os_window;

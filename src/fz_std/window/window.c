@@ -6,11 +6,11 @@ _input_init()
   AssertNoReentry();
   MemoryZeroStruct(&_g_input_state);
 
-  _g_input_state.mouse_current.screen_space.x = g_os_window.dimensions.x/2;
-  _g_input_state.mouse_current.screen_space.y = g_os_window.dimensions.y/2;
+  _g_input_state.mouse_current.screen_space.x = g_os_window->dimensions.x/2;
+  _g_input_state.mouse_current.screen_space.y = g_os_window->dimensions.y/2;
   
-  _g_input_state.mouse_previous.screen_space.x = g_os_window.dimensions.x/2;
-  _g_input_state.mouse_previous.screen_space.y = g_os_window.dimensions.y/2;
+  _g_input_state.mouse_previous.screen_space.x = g_os_window->dimensions.x/2;
+  _g_input_state.mouse_previous.screen_space.y = g_os_window->dimensions.y/2;
 }
 
 function void

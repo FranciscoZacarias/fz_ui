@@ -16,18 +16,13 @@ entry_point(Command_Line* command_line)
     input_update();
     renderer_begin_frame();
 
-    glClearColor(0.5, 0.96, 1.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-    renderer_draw_quad(vec2f32(-0.85f, 0.70f), vec2f32(0.1f, 0.15f), vec4f32(1.0f, 0.0f, 0.0f, 1.0f));
-    renderer_draw_quad(vec2f32(-0.65f, 0.70f), vec2f32(0.1f, 0.15f), vec4f32(0.0f, 1.0f, 0.0f, 1.0f));
-    renderer_draw_quad(vec2f32(-0.45f, 0.70f), vec2f32(0.1f, 0.15f), vec4f32(0.0f, 0.0f, 1.0f, 1.0f));
+    renderer_draw_quad(vec2f32(50.f, 100.f), vec2f32(15.f, 20.f), vec4f32(1.0f, 0.0f, 0.0f, 1.0f));
+    renderer_draw_quad(vec2f32(70.f, 100.f), vec2f32(15.f, 20.f), vec4f32(0.0f, 1.0f, 0.0f, 1.0f));
+    renderer_draw_quad(vec2f32(90.f, 100.f), vec2f32(15.f, 20.f), vec4f32(0.0f, 0.0f, 1.0f, 1.0f));
     
     renderer_end_frame();
     os_swap_buffers();
   }
-
-  system("pause");
 }
 
 function void

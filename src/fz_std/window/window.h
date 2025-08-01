@@ -11,15 +11,15 @@ struct OS_Window
   Vec2s32 dimensions;
   String8 title;
 };
-global OS_Window g_os_window;
+global OS_Window* g_os_window;
 
 ///////////////////////////////////////////////////////
 // @Section: Window Lifecycle
-function b32       os_window_init(s32 width, s32 height, String8 title); /* Creates a window */
-function void      os_window_open();                                     /* Shows a window */
-function void      os_window_close();                                    /* Closes and destroys a window */
-function b32       os_is_application_running();                             /* Swaps buffers for the only existing window */
-function OS_Window os_window_get();                                      /* Returns the window handle */
+function b32        os_window_init(s32 width, s32 height, String8 title); /* Creates a window */
+function void       os_window_open();                                     /* Shows a window */
+function void       os_window_close();                                    /* Closes and destroys a window */
+function b32        os_is_application_running();                             /* Swaps buffers for the only existing window */
+function OS_Window* os_window_get();                                      /* Returns the window handle */
 
 ///////////////////////////////////////////////////////
 // @Section: Window Flags
