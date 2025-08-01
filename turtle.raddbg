@@ -1,7 +1,7 @@
 // raddbg 0.9.21 project file
 
-recent_file: path: "src/renderer.c"
 recent_file: path: "src/main.c"
+recent_file: path: "src/renderer.c"
 type_view:
 {
   type: String8
