@@ -1,12 +1,9 @@
 // raddbg 0.9.21 project file
 
-recent_file: path: "src/main.c"
 recent_file: path: "src/renderer.c"
-type_view:
-{
-  type: String8
-  expr: "str, size"
-}
+recent_file: path: "src/main.c"
+recent_file: path: "src/fz_std/base/string.c"
+type_view:{ String8 }
 target:
 {
   executable: "build/turtle.exe"
@@ -20,9 +17,18 @@ type_view:
   type: Mat4f32
   expr: "columns(data, $[0], $[1], $[2], $[3])"
 }
-type_view
+type_view:
+{
+  type: Vec3f32
+  expr: "rows(data, x, y,z)"
+}
 breakpoint:
 {
-  source_location: "src/main.c:45:17"
+  source_location: "src/main.c:52:25"
   hit_count: 1
+}
+type_view:
+{
+  type: Vec4f32
+  expr: "rows(data, x, y, z, w)"
 }

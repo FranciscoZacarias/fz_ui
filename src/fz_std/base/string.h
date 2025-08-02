@@ -8,6 +8,7 @@ struct String8 {
   u8* str;
 };
 #define S(s) (String8){sizeof(s)-1, (u8*)(s)}
+#define Sf(arena,fmt,...) string8_from_format(arena, fmt, __VA_ARGS__)
 
 typedef struct String8_Node String8_Node;
 struct String8_Node {

@@ -1,8 +1,9 @@
 #version 450 core
 
-layout(location = 0) in vec3 a_start;
-layout(location = 1) in vec3 a_end;
-layout(location = 2) in vec4 a_color;
+layout(location = 0) in vec3 a_unit_line_pos; // (0,0,0) or (1,0,0)
+layout(location = 1) in vec3 a_p0;
+layout(location = 2) in vec3 a_p1;
+layout(location = 3) in vec4 a_color;
 
 uniform mat4 u_view;
 uniform mat4 u_projection;
@@ -16,7 +17,7 @@ out gl_PerVertex
 
 void main()
 {
-  vec3 pos    = (gl_VertexID == 0) ? a_start : a_end;
-  gl_Position = u_projection * u_view * vec4(pos, 1.0);
-  v_color     = a_color;
+  vec3 world_pos = mix(a_p0, a_p1, a_unit_line_pos.x); // interpolate based on unit_line
+  gl_Position = u_projection * u_view * vec4(world_pos, 1.0);
+  v_color = a_color;
 }
