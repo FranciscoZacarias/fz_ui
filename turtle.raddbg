@@ -1,7 +1,7 @@
 // raddbg 0.9.21 project file
 
-recent_file: path: "src/renderer.c"
 recent_file: path: "src/main.c"
+recent_file: path: "src/renderer.c"
 type_view:
 {
   type: String8
@@ -18,6 +18,11 @@ target:
 type_view:
 {
   type: Mat4f32
-  expr: "columns(data, $[0], $[1], $[2], $[3])\r\n"
+  expr: "columns(data, $[0], $[1], $[2], $[3])"
 }
 type_view
+breakpoint:
+{
+  source_location: "src/main.c:45:17"
+  hit_count: 1
+}

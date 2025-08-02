@@ -135,8 +135,8 @@ renderer_end_frame(Mat4f32 view, Mat4f32 projection)
     glBindProgramPipeline(g_renderer.worldspace.pipeline);
     glBindVertexArray(g_renderer.worldspace.vao);
 
-    glProgramUniformMatrix4fv(g_renderer.shaders.v_worldspace_quad, g_renderer.worldspace.u_view_location, 1, GL_FALSE, &view.data[0][0]);
-    glProgramUniformMatrix4fv(g_renderer.shaders.v_worldspace_quad, g_renderer.worldspace.u_projection_location, 1, GL_FALSE, &projection.data[0][0]);
+    glProgramUniformMatrix4fv(g_renderer.shaders.v_worldspace_quad, g_renderer.worldspace.u_view_location, 1, GL_TRUE, &view.data[0][0]);
+    glProgramUniformMatrix4fv(g_renderer.shaders.v_worldspace_quad, g_renderer.worldspace.u_projection_location, 1, GL_TRUE, &projection.data[0][0]);
 
     glNamedBufferSubData(g_renderer.worldspace.instance_vbo, 0, sizeof(Quad3D) * g_renderer.worldspace.quads3d_count, g_renderer.worldspace.quads3d);
     glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.worldspace.quads3d_count);
