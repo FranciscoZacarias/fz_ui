@@ -27,9 +27,9 @@ entry_point(Command_Line* command_line)
 
     renderer_begin_frame();
 
-     renderer_draw_2dquad(vec2f32(50.f, 100.f), vec2f32(15.f, 20.f), vec4f32(1.0f, 0.0f, 0.0f, 1.0f));
-     renderer_draw_2dquad(vec2f32(70.f, 100.f), vec2f32(15.f, 20.f), vec4f32(0.0f, 1.0f, 0.0f, 1.0f));
-     renderer_draw_2dquad(vec2f32(90.f, 100.f), vec2f32(15.f, 20.f), vec4f32(0.0f, 0.0f, 1.0f, 1.0f));
+    renderer_draw_2dquad(vec2f32(50.f, 100.f), vec2f32(15.f, 20.f), vec4f32(1.0f, 0.0f, 0.0f, 1.0f));
+    renderer_draw_2dquad(vec2f32(70.f, 100.f), vec2f32(15.f, 20.f), vec4f32(0.0f, 1.0f, 0.0f, 1.0f));
+    renderer_draw_2dquad(vec2f32(90.f, 100.f), vec2f32(15.f, 20.f), vec4f32(0.0f, 0.0f, 1.0f, 1.0f));
 
     Vec3f32 quad_position = vec3f32(1.0f, 1.0f, 0.9f);
     Vec3f32 quad_scale    = vec3f32(2.0f, 2.0f, 1.0f);
