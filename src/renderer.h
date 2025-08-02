@@ -156,6 +156,7 @@ function void renderer_end_frame(Mat4f32 view, Mat4f32 projection);
 
 function void renderer_draw_2dquad(Vec2f32 position, Vec2f32 scale, Vec4f32 color);
 function void renderer_draw_3dquad(Vec3f32 position, Vec3f32 scale, Vec4f32 color);
+function void renderer_draw_3dline(Vec3f32 p0, Vec3f32 p1, Vec4f32 color);
 
 function u32 renderer_load_texture(String8 path);
 function u32 renderer_load_font(String8 path, f32 font_height);

@@ -115,7 +115,7 @@ renderer_init()
 
     g_renderer.worldspace.u_quad_projection_location = glGetUniformLocation(g_renderer.shaders.v_worldspace_quad, "u_projection");
     g_renderer.worldspace.u_quad_view_location       = glGetUniformLocation(g_renderer.shaders.v_worldspace_quad, "u_view");
-
+    
     //
     // Lines
     //
@@ -185,6 +185,7 @@ renderer_begin_frame()
 
   g_renderer.screenspace.quads2d_count = 0;
   g_renderer.worldspace.quads3d_count  = 0;
+  g_renderer.worldspace.lines3d_count  = 0;
 }
 
 function void
@@ -235,6 +236,7 @@ renderer_draw_2dquad(Vec2f32 position, Vec2f32 scale, Vec4f32 color)
   if (g_renderer.screenspace.quads2d_count >= Max2DQuads)
   {
     emit_fatal(S("Tried to render more quads than Max2DQuads"));
+    return;
   }
 
   g_renderer.screenspace.quads2d[g_renderer.screenspace.quads2d_count].position = position;
@@ -248,13 +250,29 @@ renderer_draw_3dquad(Vec3f32 position, Vec3f32 scale, Vec4f32 color)
 {
   if (g_renderer.worldspace.quads3d_count >= Max3DQuads)
   {
-    emit_fatal(S("Tried to render more quads than Max23Quads"));
+    emit_fatal(S("Tried to render more quads than Max3DQuads"));
+    return;
   }
 
   g_renderer.worldspace.quads3d[g_renderer.worldspace.quads3d_count].position = position;
   g_renderer.worldspace.quads3d[g_renderer.worldspace.quads3d_count].scale    = scale;
   g_renderer.worldspace.quads3d[g_renderer.worldspace.quads3d_count].color    = color;
   g_renderer.worldspace.quads3d_count += 1;
+}
+
+function void
+renderer_draw_3dline(Vec3f32 p0, Vec3f32 p1, Vec4f32 color)
+{
+  if (g_renderer.worldspace.lines3d_count >= Max3DLines)
+  {
+    emit_fatal(S("Tried to render more lines than Max3DLines"));
+    return;
+  }
+
+  g_renderer.worldspace.lines3d[g_renderer.worldspace.lines3d_count].p0    = p0;
+  g_renderer.worldspace.lines3d[g_renderer.worldspace.lines3d_count].p1    = p1;
+  g_renderer.worldspace.lines3d[g_renderer.worldspace.lines3d_count].color = color;
+  g_renderer.worldspace.lines3d_count += 1;
 }
 
 function u32

@@ -1,7 +1,9 @@
 #version 450 core
 
-layout(location = 0) in vec3 a_pos;
-layout(location = 1) in vec4 a_color;
+layout(location = 0) in vec3 a_unit_pos;
+layout(location = 1) in vec3 a_instance_pos;
+layout(location = 2) in vec3 a_instance_scale;
+layout(location = 3) in vec4 a_instance_color;
 
 uniform mat4 u_view;
 uniform mat4 u_projection;
@@ -15,6 +17,7 @@ out gl_PerVertex
 
 void main()
 {
-  gl_Position = u_projection * u_view * vec4(a_pos, 1.0);
-  v_color     = a_color;
+  vec3 world_pos = a_instance_pos + a_unit_pos * a_instance_scale;
+  gl_Position = u_projection * u_view * vec4(world_pos, 1.0);
+  v_color = a_instance_color;
 }
