@@ -21,8 +21,8 @@ struct Arena {
 function Arena* arena_alloc();
 function Arena* arena_alloc_sized(u64 reserve, u64 commit);
 
-function void* _arena_push(Arena* arena, u64 size);
-function void* _arena_push_no_zero(Arena* arena, u64 size);
+function void*  arena_push(Arena* arena, u64 size);
+function void*  arena_push_no_zero(Arena* arena, u64 size);
 function void   arena_pop(Arena* arena, u64 size);
 function void   arena_pop_to(Arena* arena, u64 pos);
 function void   arena_clear(Arena* arena);
@@ -30,8 +30,8 @@ function void   arena_free(Arena* arena);
 
 function void print_arena(Arena *arena, const u8* label);
 
-#define push_array(arena, type, count)         (type*)_arena_push((arena), sizeof(type)*(count))
-#define push_array_no_zero(arena, type, count) (type*)_arena_push_no_zero((arena), sizeof(type)*(count))
+#define push_array(arena, type, count)         (type*) arena_push((arena), sizeof(type)*(count))
+#define push_array_no_zero(arena, type, count) (type*) arena_push_no_zero((arena), sizeof(type)*(count))
 
 typedef struct Scratch {
   Arena* arena;

@@ -1,8 +1,8 @@
 // raddbg 0.9.21 project file
 
+recent_file: path: "src/renderer.c"
 recent_file: path: "src/camera.c"
 recent_file: path: "src/main.c"
-recent_file: path: "src/renderer.c"
 recent_file: path: "src/fz_std/base/string.c"
 type_view: String8
 target:
@@ -27,4 +27,24 @@ type_view:
 {
   type: Vec4f32
   expr: "rows(data, x, y, z, w)"
+}
+watch_pin:
+{
+  expression: "g_renderer.ss_quad.vao"
+  source_location: "src/renderer.c:293:1"
+}
+breakpoint:
+{
+  source_location: "src/renderer.c:60:1"
+  hit_count: 1
+}
+breakpoint:
+{
+  source_location: "src/renderer.c:24:20"
+  hit_count: 1
+}
+breakpoint:
+{
+  source_location: "src/renderer.c:202:27"
+  hit_count: 1
 }

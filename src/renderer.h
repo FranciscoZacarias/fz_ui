@@ -5,10 +5,23 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "fz_std\\external\\stb_image.h"
 
-#define V_Quad_Screenspace S("\\src\\shaders\\vs_quad_screenspace.glsl")
-#define V_Quad_Worldspace  S("\\src\\shaders\\vs_quad_worldspace.glsl")
-#define V_Line_Worldspace  S("\\src\\shaders\\vs_line_worldspace.glsl")
-#define F_Default          S("\\src\\shaders\\fs.glsl")
+#define V_Quad_Screenspace         S("\\src\\shaders\\vs_quad_screenspace.glsl")
+#define V_Quad_Worldspace          S("\\src\\shaders\\vs_quad_worldspace.glsl")
+#define V_Quad_Texture_Worldspace  S("\\src\\shaders\\vs_quad_texture_worldspace.glsl")
+#define V_Line_Worldspace          S("\\src\\shaders\\vs_line_worldspace.glsl")
+#define F_Default                  S("\\src\\shaders\\fs.glsl")
+#define F_Texture                  S("\\src\\shaders\\fs_texture.glsl")
+
+///////////////////////////////////////////////////////
+// @Section: Texture
+typedef struct Texture_Info Texture_Info;
+struct Texture_Info
+{
+  u32 handle;
+  u32 index;
+  u32 width;
+  u32 height;
+};
 
 ///////////////////////////////////////////////////////
 // @Section: Screenspace primitives
@@ -32,6 +45,14 @@ global Vec2f32 unit_2dquad_uv[6] = {
 
 ///////////////////////////////////////////////////////
 // @Section: Worldspace primitives
+typedef struct TexturedQuad3D TexturedQuad3D;
+struct TexturedQuad3D
+{
+  Vec3f32 position;
+  Vec3f32 scale;
+  Vec4f32 color;
+  u32 texture_id;
+};
 typedef struct Quad3D Quad3D;
 struct Quad3D
 {
@@ -40,9 +61,9 @@ struct Quad3D
   Vec4f32 color;
 };
 global Vec3f32 unit_3dquad[6] = {
-  { -0.5f, -0.5f, 0.0f }, {  0.5f, -0.5f, 0.0f },
-  {  0.5f,  0.5f, 0.0f }, { -0.5f, -0.5f, 0.0f },
   {  0.5f,  0.5f, 0.0f }, { -0.5f,  0.5f, 0.0f },
+  { -0.5f, -0.5f, 0.0f }, {  0.5f, -0.5f, 0.0f },
+  {  0.5f,  0.5f, 0.0f }, { -0.5f, -0.5f, 0.0f }
 };
 
 typedef struct Line3D Line3D;
@@ -79,65 +100,63 @@ struct Font
 };
 
 ///////////////////////////////////////////////////////
+// @Section: Instanced Target
+typedef enum
+{
+  IT_Kind_Screenspace_quad,
+  IT_Kind_Worldspace_quad,
+  IT_Kind_Worldspace_quad_texture,
+  IT_Kind_Worldspace_line,
+} Instanced_Target_Kind;
+
+typedef struct Instanced_Target Instanced_Target;
+struct Instanced_Target
+{
+  Instanced_Target_Kind kind;
+
+  u32 pipeline;
+
+  // Buffers
+  u32 vao;
+  u32 unit_vbo;
+  u32 instance_vbo;
+
+  // Uniforms
+  u32 u_screen_size_location;
+  u32 u_view_location;
+  u32 u_projection_location;
+
+  // Instanced data
+  void* data;   
+  u32   stride; /* Size of data type used in data */
+  u32   max;    /* Max allocated instances */
+  u32   count;  /* Current instances count */
+};
+
+///////////////////////////////////////////////////////
 // @Section: Renderer
 typedef struct Renderer Renderer;
 struct Renderer
 {
   Arena* arena;
-  
+
   struct
   {
     u32 v_screenspace_quad;
     u32 v_worldspace_quad;
+    u32 v_worldspace_quad_texture;
     u32 v_worldspace_line;
     u32 f_default;
+    u32 f_texture;
   } shaders;
 
-  struct
-  {
-    u32 pipeline;
+  // Screenspace
+  Instanced_Target* ss_quad;
 
-    u32 vao;
-    u32 instance_vbo;
-    u32 unit_quad_vbo;
-
-    u32 u_screen_size_location;
-
-    #define Max2DQuads Thousand(10)
-    Quad2D* quads2d;
-    u32 quads2d_count;
-  } screenspace;
-
-  struct
-  {
-    // Quads
-    u32 quads3d_pipeline;
-
-    u32 vao;
-    u32 instance_vbo;
-    u32 unit_quad_vbo;
-
-    u32 u_quad_view_location;
-    u32 u_quad_projection_location;
-
-    #define Max3DQuads Thousand(1)
-    Quad3D* quads3d;
-    u32 quads3d_count;
-
-    // Lines
-    u32 lines3d_pipeline;
-
-    u32 lines_vao;
-    u32 lines_instance_vbo;
-    u32 unit_line_vbo;
-
-    u32 u_line_view_location;
-    u32 u_line_projection_location;
-
-    #define Max3DLines Thousand(1)
-    Line3D* lines3d;
-    u32 lines3d_count;
-  } worldspace;
+  // Worldspace
+  Instanced_Target* ws_quad;
+  Instanced_Target* ws_quad_texture;
+  Instanced_Target* ws_line;
 
   // Textures
   u32* textures;
@@ -154,11 +173,14 @@ function void renderer_init();
 function void renderer_begin_frame();
 function void renderer_end_frame(Mat4f32 view, Mat4f32 projection);
 
+function Instanced_Target* renderer_allocate_instanced_target(Arena* arena, Instanced_Target_Kind kind, u32 max_instances, void* unit_geometry_data, u32 unit_geometry_size, u32 unit_vertex_stride);
+
 function void renderer_draw_2dquad(Vec2f32 position, Vec2f32 scale, Vec4f32 color);
 function void renderer_draw_3dquad(Vec3f32 position, Vec3f32 scale, Vec4f32 color);
+function void renderer_draw_3dquad_textured(Vec3f32 position, Vec3f32 scale, Vec4f32 color, u32 texture_id);
 function void renderer_draw_3dline(Vec3f32 p0, Vec3f32 p1, Vec4f32 color);
 
-function u32 renderer_load_texture(String8 path);
+function Texture_Info renderer_load_texture(String8 path);
 function u32 renderer_load_font(String8 path, f32 font_height);
 
 function u32 renderer_compile_shader(String8 relative_path, GLenum shader_type);

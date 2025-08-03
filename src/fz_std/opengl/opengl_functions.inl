@@ -53,4 +53,5 @@ GL_FUNC(void,   glClearColor,            (GLfloat red, GLfloat green, GLfloat bl
 GL_FUNC(void,            glDebugMessageCallback, (GLDEBUGPROC callback, const void *userParam))
 GL_FUNC(void,            glEnable,               (GLenum cap)) // e.g., GL_DEBUG_OUTPUT
 GL_FUNC(const GLubyte *, glGetString,            (GLenum name))
-GL_FUNC(void,   glGetIntegerv,           (GLenum pname, GLint *data))
+GL_FUNC(void,   glGetIntegerv,              (GLenum pname, GLint *data))
+GL_FUNC(void,   glVertexArrayAttribIFormat, (GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset))
