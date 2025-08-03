@@ -55,3 +55,5 @@ GL_FUNC(void,            glEnable,               (GLenum cap)) // e.g., GL_DEBUG
 GL_FUNC(const GLubyte *, glGetString,            (GLenum name))
 GL_FUNC(void,   glGetIntegerv,              (GLenum pname, GLint *data))
 GL_FUNC(void,   glVertexArrayAttribIFormat, (GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset))
+GL_FUNC(void,   glUniform1iv,               (GLint location, GLsizei count, const GLint *value))
+GL_FUNC(void, glUseProgram,                 (GLuint program))

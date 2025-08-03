@@ -282,9 +282,9 @@ renderer_end_frame(Mat4f32 view, Mat4f32 projection)
     glProgramUniformMatrix4fv(g_renderer.shaders.v_worldspace_quad_texture, g_renderer.ws_quad_texture->u_projection_location, 1, GL_TRUE, &projection.data[0][0]);
 
     // Bind textures
-    for (u32 i = 0; i < g_renderer.texture_count; ++i)
+    for (u32 idx = 0; idx < g_renderer.texture_count; idx += 1)
     {
-      glBindTextureUnit(i, g_renderer.textures[i]);
+      glBindTextureUnit(idx, g_renderer.textures[idx]);
     }
 
     glNamedBufferSubData(g_renderer.ws_quad_texture->instance_vbo, 0, sizeof(TexturedQuad3D) * g_renderer.ws_quad_texture->count, g_renderer.ws_quad_texture->data);
@@ -466,9 +466,13 @@ renderer_load_texture(String8 path)
 
   s32 width, height, channels;
   u8 *data = stbi_load(path.str, &width, &height, &channels, 4); // force 4 channels
-  if (!data)
+  if (!data || width <= 0 || height <= 0)
   {
-    emit_error(Sf(scratch.arena, "Failed to load texture: %s\n", path.str));
+    emit_error(Sf(scratch.arena, "Failed to load texture or invalid dimensions: %s\n", path.str));
+    if (data)
+    {
+      stbi_image_free(data);
+    }
     return result;
   }
 
@@ -485,13 +489,14 @@ renderer_load_texture(String8 path)
   stbi_image_free(data);
 
   g_renderer.textures[g_renderer.texture_count] = texture;
+
   result.handle = texture;
+  result.index  = g_renderer.texture_count;
   result.width  = width;
   result.height = height;
   g_renderer.texture_count += 1;
-  
-  scratch_end(&scratch);
 
+  scratch_end(&scratch);
   return result;
 }
 

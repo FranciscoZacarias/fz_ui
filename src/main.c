@@ -19,6 +19,9 @@ entry_point(Command_Line* command_line)
   // Renderer
   renderer_init();
   Texture_Info black = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\black.png")));
+  Texture_Info red   = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\red.png")));
+  Texture_Info pink   = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\pink.png")));
+  Texture_Info yelow   = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\yelow.png")));
 
   // Camera
   camera_init(&g_camera);
@@ -41,13 +44,12 @@ entry_point(Command_Line* command_line)
     renderer_draw_3dline(vec3f32(  0.0f,   0.0f, -64.0f), vec3f32(0.0f,  0.0f, 64.0), Color_Blue);
 
     renderer_draw_3dquad(vec3f32(0.0f, 0.0f, 0.0f), vec3f32(2.0f, 2.0f, 1.0f), Color_Brown);
-    renderer_draw_3dquad_textured(vec3f32(2.0f, 2.0f, -2.0f), vec3f32(2.0f, 2.0f, 1.0f), vec4f32(1.0f, 1.0f, 1.0f, 0.5f), black.index);
-    renderer_draw_3dquad_textured(vec3f32(2.0f, 2.0f, -2.0f), vec3f32(2.0f, 2.0f, 1.0f), vec4f32(1.0f, 1.0f, 1.0f, 0.5f), black.index);
+    renderer_draw_3dquad_textured(vec3f32( 2.0f, 2.0f, -2.0f), vec3f32(2.0f, 2.0f, 1.0f), vec4f32(1.0f, 1.0f, 1.0f, 1.0f), black.index);
+    renderer_draw_3dquad_textured(vec3f32(-2.0f, 2.0f, -2.0f), vec3f32(2.0f, 2.0f, 1.0f), vec4f32(1.0f, 1.0f, 1.0f, 1.0f), red.index);
 
     renderer_draw_2dquad(vec2f32(50.f, 100.f), vec2f32(15.f, 20.f), vec4f32(1.0f, 0.0f, 0.0f, 1.0f));
     renderer_draw_2dquad(vec2f32(70.f, 100.f), vec2f32(15.f, 20.f), vec4f32(0.0f, 1.0f, 0.0f, 1.0f));
     renderer_draw_2dquad(vec2f32(90.f, 100.f), vec2f32(15.f, 20.f), vec4f32(0.0f, 0.0f, 1.0f, 1.0f));
-
 
     Mat4f32 view       = camera_get_view_matrix(&g_camera);
     Mat4f32 projection = mat4f32_perspective(g_camera.fov, g_os_window->dimensions.x, g_os_window->dimensions.y, 0.1f, 100.0f);
