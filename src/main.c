@@ -22,7 +22,7 @@ entry_point(Command_Line* command_line)
 
   // Camera
   camera_init(&g_camera);
-  g_camera.position = vec3f32(0.0f, 1.0f, 5.0f);
+  g_camera.position = vec3f32(-1.0f, 1.0f, 5.0f);
   camera_look_at(&g_camera, vec3f32(0.0f, 0.0f, 0.0f));
 
   // Time
@@ -34,6 +34,8 @@ entry_point(Command_Line* command_line)
     input_update();
     camera_update(&g_camera, g_delta_time);
 
+    camera_print(&g_camera);
+    
     {
       renderer_begin_frame();
 

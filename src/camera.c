@@ -6,6 +6,10 @@ camera_init(Camera* camera)
   camera->position    = vec3f32(0.0f, 0.0f, 5.0f);
   camera->orientation = quatf32_identity();
   camera->fov         = 90.0f;
+  camera->speed       = 8.0f;
+  camera->sensitivity = 0.0015f;
+  camera->pitch       = 0.0f;
+  camera->yaw         = 0.0f;
   camera->mode        = CameraMode_Select;
 }
 
@@ -27,50 +31,65 @@ camera_update(Camera* camera, f32 delta_time)
 
     camera->mode = CameraMode_Fly;
 
-#ifdef FZ_CAMERA_SPEED
-    f32 camera_speed = (f32)(FZ_CAMERA_SPEED * delta_time);
-#else
-    f32 camera_speed = (f32)(8.0f * delta_time);
-#endif
+    f32 dx = g_input_state.mouse_current.delta.x;
+    f32 dy = g_input_state.mouse_current.delta.y;
+
+    camera->yaw   += -dx * camera->sensitivity * 180.0f / PI;
+    camera->pitch += -dy * camera->sensitivity * 180.0f / PI;
+
+    if (camera->pitch > 89.0f)
+    {
+      camera->pitch = 89.0f;
+    }
+    if (camera->pitch < -89.0f)
+    {
+      camera->pitch = -89.0f;
+    }
+
+    Quatf32 yaw_q   = quatf32_from_axis_angle((Vec3f32){0.0f, 1.0f, 0.0f}, Radians(camera->yaw));
+    Quatf32 pitch_q = quatf32_from_axis_angle((Vec3f32){1.0f, 0.0f, 0.0f}, Radians(camera->pitch));
+
+    camera->orientation = quatf32_multiply(yaw_q, pitch_q);
+    camera->orientation = quatf32_normalize(camera->orientation);
 
     Vec3f32 forward = camera_get_forward(camera);
     Vec3f32 right   = camera_get_right(camera);
     Vec3f32 up      = camera_get_up(camera);
 
-    if (input_is_key_down(Keyboard_Key_W)) camera->position = vec3f32_add(camera->position, vec3f32_scale(forward, camera_speed));
-    if (input_is_key_down(Keyboard_Key_S)) camera->position = vec3f32_sub(camera->position, vec3f32_scale(forward, camera_speed));
-    if (input_is_key_down(Keyboard_Key_D)) camera->position = vec3f32_add(camera->position, vec3f32_scale(right, camera_speed));
-    if (input_is_key_down(Keyboard_Key_A)) camera->position = vec3f32_sub(camera->position, vec3f32_scale(right, camera_speed));
-    if (input_is_key_down(Keyboard_Key_E)) camera->position = vec3f32_add(camera->position, vec3f32_scale(up, camera_speed));
-    if (input_is_key_down(Keyboard_Key_Q)) camera->position = vec3f32_sub(camera->position, vec3f32_scale(up, camera_speed));
+    f32 speed = camera->speed * delta_time;
 
-    // Mouse look
-    f32 sensitivity = 0.0015f;
-#ifdef FZ_CAMERA_SENSITIVITY
-    sensitivity *= FZ_CAMERA_SENSITIVITY;
-#endif
+    if (input_is_key_down(Keyboard_Key_W))
+    {
+      camera->position = vec3f32_add(camera->position, vec3f32_scale(forward, speed));
+    }
+    if (input_is_key_down(Keyboard_Key_S))
+    {
+      camera->position = vec3f32_sub(camera->position, vec3f32_scale(forward, speed));
+    }
+    if (input_is_key_down(Keyboard_Key_D))
+    {
+      camera->position = vec3f32_add(camera->position, vec3f32_scale(right, speed));
+    }
+    if (input_is_key_down(Keyboard_Key_A))
+    {
+      camera->position = vec3f32_sub(camera->position, vec3f32_scale(right, speed));
+    }
+    if (input_is_key_down(Keyboard_Key_E))
+    {
+      camera->position = vec3f32_add(camera->position, vec3f32_scale(WORLD_UP, speed));
+    }
+    if (input_is_key_down(Keyboard_Key_Q))
+    {
+      camera->position = vec3f32_sub(camera->position, vec3f32_scale(WORLD_UP, speed));
+    }
 
-    f32 dx = g_input_state.mouse_current.delta.x;
-    f32 dy = g_input_state.mouse_current.delta.y;
+    Vec2s32 dimensions = os_window_get_client_dimensions();
+    Vec2s32 center = vec2s32(dimensions.x / 2, dimensions.y / 2);
+    Vec2s32 center_screen = os_window_client_to_screen(center);
+    os_cursor_set_position(center_screen.x, center_screen.y);
 
-    f32 yaw   = -dx * sensitivity;
-    f32 pitch = -dy * sensitivity;
-
-    Quatf32 yaw_rotation   = quatf32_from_axis_angle((Vec3f32){0.0f, 1.0f, 0.0f}, yaw);
-    Vec3f32 camera_right   = camera_get_right(camera);
-    Quatf32 pitch_rotation = quatf32_from_axis_angle(camera_right, pitch);
-
-    camera->orientation = quatf32_multiply(yaw_rotation, quatf32_multiply(pitch_rotation, camera->orientation));
-    camera->orientation = quatf32_normalize(camera->orientation);
-
-    Vec2s32 dimensions = os_window_get_client_dimensions(); // SPEED(fz): Can be cached and updates on resize
-    Vec2s32 relative_client_center = vec2s32(dimensions.x/2, dimensions.y/2);
-    Vec2s32 absolute_client_center = os_window_client_to_screen(relative_client_center);
-    os_cursor_set_position(absolute_client_center.x, absolute_client_center.y);
-
-    // Manually set current mouse position to center (so next frame delta is correct)
-    g_input_state.mouse_current.screen_space.x = (f32)((dimensions.x) / 2);
-    g_input_state.mouse_current.screen_space.y = (f32)((dimensions.y) / 2);
+    g_input_state.mouse_current.screen_space.x = (f32)(dimensions.x / 2);
+    g_input_state.mouse_current.screen_space.y = (f32)(dimensions.y / 2);
   }
   else
   {
@@ -118,9 +137,17 @@ camera_get_view_matrix(Camera* camera)
 function void
 camera_look_at(Camera* camera, Vec3f32 target)
 {
-  Vec3f32 direction   = vec3f32_normalize(vec3f32_sub(target, camera->position));
-  Vec3f32 forward     = {0.0f, 0.0f, -1.0f};
-  camera->orientation = quatf32_from_vec3f32_to_vec3f32(forward, direction);
+  Vec3f32 direction = vec3f32_normalize(vec3f32_sub(target, camera->position));
+  
+  // Calculate pitch and yaw from direction vector
+  camera->pitch = asinf(direction.y) * 180.0f / PI;
+  camera->yaw = atan2f(-direction.x, -direction.z) * 180.0f / PI;
+  
+  // Set quaternion from calculated angles
+  Quatf32 yaw_q = quatf32_from_axis_angle((Vec3f32){0.0f, 1.0f, 0.0f}, Radians(camera->yaw));
+  Quatf32 pitch_q = quatf32_from_axis_angle((Vec3f32){1.0f, 0.0f, 0.0f}, Radians(camera->pitch));
+  camera->orientation = quatf32_multiply(yaw_q, pitch_q);
+  camera->orientation = quatf32_normalize(camera->orientation);
 }
 
 function void

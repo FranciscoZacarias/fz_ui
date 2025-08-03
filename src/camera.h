@@ -26,6 +26,10 @@ struct Camera
   Vec3f32 position;
   Quatf32 orientation;
   f32 fov;
+  f32 speed;
+  f32 sensitivity;
+  f32 pitch;
+  f32 yaw;
   Camera_Mode mode;
 };
 
