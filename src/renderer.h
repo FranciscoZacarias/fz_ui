@@ -12,13 +12,18 @@
 // Fonts
 #define Font_ProggyClean S("\\assets\\fonts\\ProggyClean.ttf")
 
-// Shaders
-#define V_Quad_Screenspace         S("\\src\\shaders\\vs_quad_screenspace.glsl")
-#define V_Quad_Worldspace          S("\\src\\shaders\\vs_quad_worldspace.glsl")
-#define V_Quad_Texture_Worldspace  S("\\src\\shaders\\vs_quad_texture_worldspace.glsl")
-#define V_Line_Worldspace          S("\\src\\shaders\\vs_line_worldspace.glsl")
-#define F_Default                  S("\\src\\shaders\\fs.glsl")
-#define F_Texture                  S("\\src\\shaders\\fs_texture.glsl")
+///////////////////////////////////////////////////////
+// @Section: Screenspace primitives
+
+// Vertex Shaders
+#define V_SS_Quad_Path         S("\\src\\shaders\\vs_ss_quad.glsl")
+#define V_WS_Quad_Path         S("\\src\\shaders\\vs_ws_quad.glsl")
+#define V_WS_Quad_Texture_Path S("\\src\\shaders\\vs_ws_quad_texture.glsl")
+#define V_WS_Line_Path         S("\\src\\shaders\\vs_ws_line.glsl")
+
+// Fragment Shaders
+#define F_Default_Path         S("\\src\\shaders\\fs.glsl")
+#define F_Texture_Path         S("\\src\\shaders\\fs_texture.glsl")
 
 ///////////////////////////////////////////////////////
 // @Section: Texture

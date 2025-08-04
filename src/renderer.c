@@ -17,13 +17,13 @@ renderer_init()
   MemoryZeroStruct(&g_renderer);
   g_renderer.arena = arena_alloc();
 
-  g_renderer.shaders.v_screenspace_quad         = renderer_compile_shader(V_Quad_Screenspace,         GL_VERTEX_SHADER);
-  g_renderer.shaders.v_worldspace_quad          = renderer_compile_shader(V_Quad_Worldspace,          GL_VERTEX_SHADER);
-  g_renderer.shaders.v_worldspace_quad_texture  = renderer_compile_shader(V_Quad_Texture_Worldspace,  GL_VERTEX_SHADER);
-  g_renderer.shaders.v_worldspace_line          = renderer_compile_shader(V_Line_Worldspace,          GL_VERTEX_SHADER);
+  g_renderer.shaders.v_screenspace_quad         = renderer_compile_shader(V_SS_Quad_Path,         GL_VERTEX_SHADER);
+  g_renderer.shaders.v_worldspace_quad          = renderer_compile_shader(V_WS_Quad_Path,          GL_VERTEX_SHADER);
+  g_renderer.shaders.v_worldspace_quad_texture  = renderer_compile_shader(V_WS_Quad_Texture_Path,  GL_VERTEX_SHADER);
+  g_renderer.shaders.v_worldspace_line          = renderer_compile_shader(V_WS_Line_Path,          GL_VERTEX_SHADER);
 
-  g_renderer.shaders.f_default                  = renderer_compile_shader(F_Default, GL_FRAGMENT_SHADER);
-  g_renderer.shaders.f_texture                  = renderer_compile_shader(F_Texture, GL_FRAGMENT_SHADER);
+  g_renderer.shaders.f_default                  = renderer_compile_shader(F_Default_Path, GL_FRAGMENT_SHADER);
+  g_renderer.shaders.f_texture                  = renderer_compile_shader(F_Texture_Path, GL_FRAGMENT_SHADER);
   
   // Set texture sampler
   GLint sampler_locations[32];
