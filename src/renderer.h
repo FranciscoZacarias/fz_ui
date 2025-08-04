@@ -91,11 +91,7 @@ struct Line3D
   Vec3f32 p1;
   Vec4f32 color;
 };
-global Vec3f32 unit_line[] = {
-  {0.0f, 0.0f, 0.0f},
-  {1.0f, 0.0f, 0.0f},
-};
- 
+
 ///////////////////////////////////////////////////////
 // @Section: Fonts
 typedef struct Glyph Glyph;
@@ -194,7 +190,7 @@ function void renderer_init();
 function void renderer_begin_frame();
 function void renderer_end_frame(Mat4f32 view, Mat4f32 projection);
 
-function Instanced_Target* renderer_allocate_instanced_target(Arena* arena, Instanced_Target_Kind kind, u32 max_instances, void* unit_geometry_data, u32 unit_geometry_size, u32 unit_vertex_stride);
+function Instanced_Target* renderer_new_instanced_target(Arena* arena, Instanced_Target_Kind kind, u32 max_instances);
 
 function void renderer_draw_2dquad(Vec2f32 position, Vec2f32 scale, Vec4f32 color);
 function void renderer_draw_3dquad(Vec3f32 position, Vec3f32 scale, Vec4f32 color);

@@ -1,9 +1,8 @@
 #version 450 core
 
-layout(location = 0) in vec3 a_unit_line_pos; // (0,0,0) or (1,0,0)
-layout(location = 1) in vec3 a_p0;
-layout(location = 2) in vec3 a_p1;
-layout(location = 3) in vec4 a_color;
+layout(location = 0) in vec3 a_p0;
+layout(location = 1) in vec3 a_p1;
+layout(location = 2) in vec4 a_color;
 
 uniform mat4 u_view;
 uniform mat4 u_projection;

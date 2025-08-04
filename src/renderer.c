@@ -38,7 +38,24 @@ renderer_init()
     //
     // Quads
     //
-    g_renderer.ss_quad = renderer_allocate_instanced_target(g_renderer.arena, IT_Kind_Screenspace_quad, Thousand(1), unit_2dquad, sizeof(unit_2dquad), sizeof(Vec2f32));
+    g_renderer.ss_quad = renderer_new_instanced_target(g_renderer.arena, IT_Kind_Screenspace_quad, Thousand(1));
+
+    // Unit geometry buffer
+    glCreateBuffers(1, &g_renderer.ss_quad->unit_vbo);
+    glNamedBufferStorage(g_renderer.ss_quad->unit_vbo, sizeof(unit_2dquad), unit_2dquad, 0);
+    
+    // Instance data buffer
+    glCreateBuffers(1, &g_renderer.ss_quad->instance_vbo);
+    glNamedBufferStorage(g_renderer.ss_quad->instance_vbo, sizeof(Quad2D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
+    
+    // VAO
+    glCreateVertexArrays(1, &g_renderer.ss_quad->vao);
+    
+    // Unit geometry binding (binding 0)
+    glVertexArrayVertexBuffer(g_renderer.ss_quad->vao, 0, g_renderer.ss_quad->unit_vbo, 0, sizeof(Vec2f32));
+    
+    // Instance data binding (binding 1)
+    glVertexArrayVertexBuffer(g_renderer.ss_quad->vao, 1, g_renderer.ss_quad->instance_vbo, 0, sizeof(Quad2D));
 
     // Pipeline
     glCreateProgramPipelines(1, &g_renderer.ss_quad->pipeline);
@@ -75,7 +92,24 @@ renderer_init()
     //
     // Quads
     //
-    g_renderer.ws_quad = renderer_allocate_instanced_target(g_renderer.arena, IT_Kind_Worldspace_quad, Thousand(1), unit_3dquad, sizeof(unit_3dquad), sizeof(Vec3f32));
+    g_renderer.ws_quad = renderer_new_instanced_target(g_renderer.arena, IT_Kind_Worldspace_quad, Thousand(1));
+
+    // Unit geometry buffer
+    glCreateBuffers(1, &g_renderer.ws_quad->unit_vbo);
+    glNamedBufferStorage(g_renderer.ws_quad->unit_vbo, sizeof(unit_3dquad), unit_3dquad, 0);
+    
+    // Instance data buffer
+    glCreateBuffers(1, &g_renderer.ws_quad->instance_vbo);
+    glNamedBufferStorage(g_renderer.ws_quad->instance_vbo, sizeof(Quad3D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
+    
+    // VAO
+    glCreateVertexArrays(1, &g_renderer.ws_quad->vao);
+    
+    // Unit geometry binding (binding 0)
+    glVertexArrayVertexBuffer(g_renderer.ws_quad->vao, 0, g_renderer.ws_quad->unit_vbo, 0, sizeof(Vec3f32));
+    
+    // Instance data binding (binding 1)
+    glVertexArrayVertexBuffer(g_renderer.ws_quad->vao, 1, g_renderer.ws_quad->instance_vbo, 0, sizeof(Quad3D));
 
     // Pipeline
     glCreateProgramPipelines(1, &g_renderer.ws_quad->pipeline);
@@ -109,7 +143,24 @@ renderer_init()
     //
     // Textured Quads
     //
-    g_renderer.ws_quad_texture = renderer_allocate_instanced_target(g_renderer.arena, IT_Kind_Worldspace_quad_texture, Thousand(1), unit_3dquad, sizeof(unit_3dquad), sizeof(Vec3f32));
+    g_renderer.ws_quad_texture = renderer_new_instanced_target(g_renderer.arena, IT_Kind_Worldspace_quad_texture, Thousand(1));
+
+    // Unit geometry buffer
+    glCreateBuffers(1, &g_renderer.ws_quad_texture->unit_vbo);
+    glNamedBufferStorage(g_renderer.ws_quad_texture->unit_vbo, sizeof(unit_3dquad), unit_3dquad, 0);
+    
+    // Instance data buffer
+    glCreateBuffers(1, &g_renderer.ws_quad_texture->instance_vbo);
+    glNamedBufferStorage(g_renderer.ws_quad_texture->instance_vbo, sizeof(TexturedQuad3D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
+    
+    // VAO
+    glCreateVertexArrays(1, &g_renderer.ws_quad_texture->vao);
+    
+    // Unit geometry binding (binding 0)
+    glVertexArrayVertexBuffer(g_renderer.ws_quad_texture->vao, 0, g_renderer.ws_quad_texture->unit_vbo, 0, sizeof(Vec3f32));
+    
+    // Instance data binding (binding 1)
+    glVertexArrayVertexBuffer(g_renderer.ws_quad_texture->vao, 1, g_renderer.ws_quad_texture->instance_vbo, 0, sizeof(TexturedQuad3D));
 
     // Pipeline
     glCreateProgramPipelines(1, &g_renderer.ws_quad_texture->pipeline);
@@ -147,33 +198,40 @@ renderer_init()
     //
     // Lines
     //
-    g_renderer.ws_line = renderer_allocate_instanced_target(g_renderer.arena, IT_Kind_Worldspace_line, Thousand(1), unit_3dquad, sizeof(unit_3dquad), sizeof(Vec3f32));
+    g_renderer.ws_line = renderer_new_instanced_target(g_renderer.arena, IT_Kind_Worldspace_line, Thousand(1));
+
+    // Instance data buffer
+    glCreateBuffers(1, &g_renderer.ws_line->instance_vbo);
+    glNamedBufferStorage(g_renderer.ws_line->instance_vbo, sizeof(Line3D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
+    
+    // VAO
+    glCreateVertexArrays(1, &g_renderer.ws_line->vao);
+    
+    // Instance data (per-instance)
+    glVertexArrayVertexBuffer(g_renderer.ws_line->vao, 1, g_renderer.ws_line->instance_vbo, 0, sizeof(Line3D));
 
     // Pipeline
     glCreateProgramPipelines(1, &g_renderer.ws_line->pipeline);
     glUseProgramStages(g_renderer.ws_line->pipeline, GL_VERTEX_SHADER_BIT, g_renderer.shaders.v_worldspace_line);
     glUseProgramStages(g_renderer.ws_line->pipeline, GL_FRAGMENT_SHADER_BIT, g_renderer.shaders.f_default);
 
-    // Unit quad positions (per-vertex)
-    glEnableVertexArrayAttrib(g_renderer.ws_line->vao, 0); // Unit
-    glVertexArrayAttribFormat(g_renderer.ws_line->vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
-    glVertexArrayAttribBinding(g_renderer.ws_line->vao, 0, 0);
 
-    // Instance data (per-instance)
-    glEnableVertexArrayAttrib(g_renderer.ws_line->vao, 1); // p0
-    glVertexArrayAttribFormat(g_renderer.ws_line->vao, 1, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Line3D, p0));
-    glVertexArrayAttribBinding(g_renderer.ws_line->vao, 1, 1);
-    glVertexArrayBindingDivisor(g_renderer.ws_line->vao, 1, 1);
+    // Instance data (per-instance) - use binding 1 and divisor 1
+    glEnableVertexArrayAttrib(g_renderer.ws_line->vao, 0); // p0
+    glVertexArrayAttribFormat(g_renderer.ws_line->vao, 0, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Line3D, p0));
+    glVertexArrayAttribBinding(g_renderer.ws_line->vao, 0, 1);  // binding 1
+    glVertexArrayBindingDivisor(g_renderer.ws_line->vao, 0, 1); // divisor 1
 
-    glEnableVertexArrayAttrib(g_renderer.ws_line->vao, 2); // p1
-    glVertexArrayAttribFormat(g_renderer.ws_line->vao, 2, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Line3D, p1));
-    glVertexArrayAttribBinding(g_renderer.ws_line->vao, 2, 1);
-    glVertexArrayBindingDivisor(g_renderer.ws_line->vao, 2, 1);
+    glEnableVertexArrayAttrib(g_renderer.ws_line->vao, 1); // p1
+    glVertexArrayAttribFormat(g_renderer.ws_line->vao, 1, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Line3D, p1));
+    glVertexArrayAttribBinding(g_renderer.ws_line->vao, 1, 1);  // binding 1
+    glVertexArrayBindingDivisor(g_renderer.ws_line->vao, 1, 1); // divisor 1
 
-    glEnableVertexArrayAttrib(g_renderer.ws_line->vao, 3); // color
-    glVertexArrayAttribFormat(g_renderer.ws_line->vao, 3, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Line3D, color));
-    glVertexArrayAttribBinding(g_renderer.ws_line->vao, 3, 1);
-    glVertexArrayBindingDivisor(g_renderer.ws_line->vao, 3, 1);
+    glEnableVertexArrayAttrib(g_renderer.ws_line->vao, 2); // color
+    glVertexArrayAttribFormat(g_renderer.ws_line->vao, 2, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Line3D, color));
+    glVertexArrayAttribBinding(g_renderer.ws_line->vao, 2, 1);  // binding 1
+    glVertexArrayBindingDivisor(g_renderer.ws_line->vao, 2, 1); // divisor 1
+
 
     g_renderer.ws_line->u_projection_location = glGetUniformLocation(g_renderer.shaders.v_worldspace_line, "u_projection");
     g_renderer.ws_line->u_view_location = glGetUniformLocation(g_renderer.shaders.v_worldspace_line, "u_view");
@@ -198,9 +256,8 @@ renderer_init()
 
   scratch_end(&scratch);
 }
-
 function Instanced_Target*
-renderer_allocate_instanced_target(Arena* arena, Instanced_Target_Kind kind, u32 max_instances, void* unit_geometry_data, u32 unit_geometry_size, u32 unit_vertex_stride)
+renderer_new_instanced_target(Arena* arena, Instanced_Target_Kind kind, u32 max_instances)
 {
   Instanced_Target* result = push_array(arena, Instanced_Target, 1);
 
@@ -234,24 +291,7 @@ renderer_allocate_instanced_target(Arena* arena, Instanced_Target_Kind kind, u32
   result->data   = arena_push(arena, stride * max_instances);
   result->stride = stride;
   result->max    = max_instances;
-  
-  // Unit geometry buffer
-  glCreateBuffers(1, &result->unit_vbo);
-  glNamedBufferStorage(result->unit_vbo, unit_geometry_size, unit_geometry_data, 0);
-  
-  // Instance data buffer
-  glCreateBuffers(1, &result->instance_vbo);
-  glNamedBufferStorage(result->instance_vbo, stride * max_instances, NULL, GL_DYNAMIC_STORAGE_BIT);
-  
-  // VAO
-  glCreateVertexArrays(1, &result->vao);
-  
-  // Unit geometry binding (binding 0)
-  glVertexArrayVertexBuffer(result->vao, 0, result->unit_vbo, 0, unit_vertex_stride);
-  
-  // Instance data binding (binding 1)
-  glVertexArrayVertexBuffer(result->vao, 1, result->instance_vbo, 0, stride);
-  
+    
   return result;
 }
 
@@ -270,9 +310,8 @@ renderer_begin_frame()
 function void
 renderer_end_frame(Mat4f32 view, Mat4f32 projection)
 {
-  //
-  // Worldspace
-  //
+  ///////////////////////////////////////////////////////
+  // @Section: Worldspace
   if (g_renderer.ws_quad->count > 0)
   {
     // Quads
@@ -313,14 +352,13 @@ renderer_end_frame(Mat4f32 view, Mat4f32 projection)
 
     glProgramUniformMatrix4fv(g_renderer.shaders.v_worldspace_line, g_renderer.ws_line->u_view_location, 1, GL_TRUE, (f32*)&view);
     glProgramUniformMatrix4fv(g_renderer.shaders.v_worldspace_line, g_renderer.ws_line->u_projection_location, 1, GL_TRUE, (f32*)&projection);
-
-    glNamedBufferSubData(g_renderer.ws_line->instance_vbo, 0, sizeof(Quad3D) * g_renderer.ws_line->count, g_renderer.ws_line->data);
+    
+    glNamedBufferSubData(g_renderer.ws_line->instance_vbo, 0, sizeof(Line3D) * g_renderer.ws_line->count, g_renderer.ws_line->data);
     glDrawArraysInstanced(GL_LINES, 0, 2, g_renderer.ws_line->count);
   }
 
-  //
-  // Screenspace
-  //
+  ///////////////////////////////////////////////////////
+  // @Section: Screenspace
   if (g_renderer.ss_quad->count > 0)
   {
     glBindProgramPipeline(g_renderer.ss_quad->pipeline);
