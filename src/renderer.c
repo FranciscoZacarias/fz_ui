@@ -28,6 +28,14 @@ renderer_init()
   g_renderer.shaders.f_default                  = renderer_compile_shader(F_Default, GL_FRAGMENT_SHADER);
   g_renderer.shaders.f_texture                  = renderer_compile_shader(F_Texture, GL_FRAGMENT_SHADER);
   
+  // Set texture sampler
+  GLint sampler_locations[32];
+  for (u32 idx = 0; idx < 32; idx++)
+  {
+    sampler_locations[idx] = idx;
+  }
+  glProgramUniform1iv(g_renderer.shaders.f_texture, glGetUniformLocation(g_renderer.shaders.f_texture, "u_textures"), 32, sampler_locations);
+
   // Screenspace
   {
     //
