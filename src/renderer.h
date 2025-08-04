@@ -14,7 +14,6 @@
 
 // Shaders
 #define V_Quad_Screenspace         S("\\src\\shaders\\vs_quad_screenspace.glsl")
-#define V_Quad_Texture_Screenspace S("\\src\\shaders\\vs_quad_texture_screenspace.glsl")
 #define V_Quad_Worldspace          S("\\src\\shaders\\vs_quad_worldspace.glsl")
 #define V_Quad_Texture_Worldspace  S("\\src\\shaders\\vs_quad_texture_worldspace.glsl")
 #define V_Line_Worldspace          S("\\src\\shaders\\vs_line_worldspace.glsl")
@@ -55,11 +54,6 @@ global Vec2f32 unit_2dquad[6] = {
   { -0.5f, -0.5f }, {  0.5f, -0.5f },
   {  0.5f,  0.5f }, { -0.5f, -0.5f },
   {  0.5f,  0.5f }, { -0.5f,  0.5f }
-};
-global Vec2f32 unit_2dquad_uv[6] = {
-  { 0.0f, 0.0f }, { 1.0f, 0.0f },
-  { 1.0f, 1.0f }, { 0.0f, 0.0f },
-  { 1.0f, 1.0f }, { 0.0f, 1.0f }
 };
 
 ///////////////////////////////////////////////////////
@@ -124,7 +118,6 @@ struct Font
 typedef enum
 {
   IT_Kind_Screenspace_quad,
-  IT_Kind_Screenspace_quad_texture,
   IT_Kind_Worldspace_quad,
   IT_Kind_Worldspace_quad_texture,
   IT_Kind_Worldspace_line,
@@ -164,7 +157,6 @@ struct Renderer
   struct
   {
     u32 v_screenspace_quad;
-    u32 v_screenspace_quad_texture;
     u32 v_worldspace_quad;
     u32 v_worldspace_quad_texture;
     u32 v_worldspace_line;
@@ -174,7 +166,6 @@ struct Renderer
 
   // Screenspace
   Instanced_Target* ss_quad;
-  Instanced_Target* ss_quad_texture;
 
   // Worldspace
   Instanced_Target* ws_quad;
@@ -205,7 +196,6 @@ function void renderer_draw_3dquad(Vec3f32 position, Vec3f32 scale, Vec4f32 colo
 function void renderer_draw_3dquad_textured(Vec3f32 position, Vec3f32 scale, Vec4f32 color, u32 texture_id);
 function void renderer_draw_3dline(Vec3f32 p0, Vec3f32 p1, Vec4f32 color);
 function void renderer_draw_3darrow(Vec3f32 start, Vec3f32 end, Vec4f32 color);
-function f32  renderer_push_text_screenspace(String8 text, Vec2f32 position, Vec4f32 color, f32 scale);
 
 function Texture_Info renderer_load_texture(String8 path);
 function u32          renderer_load_font(String8 relative_path, f32 font_height);

@@ -18,7 +18,6 @@ renderer_init()
   g_renderer.arena = arena_alloc();
 
   g_renderer.shaders.v_screenspace_quad         = renderer_compile_shader(V_Quad_Screenspace,         GL_VERTEX_SHADER);
-  g_renderer.shaders.v_screenspace_quad_texture = renderer_compile_shader(V_Quad_Texture_Screenspace, GL_VERTEX_SHADER);
   g_renderer.shaders.v_worldspace_quad          = renderer_compile_shader(V_Quad_Worldspace,          GL_VERTEX_SHADER);
   g_renderer.shaders.v_worldspace_quad_texture  = renderer_compile_shader(V_Quad_Texture_Worldspace,  GL_VERTEX_SHADER);
   g_renderer.shaders.v_worldspace_line          = renderer_compile_shader(V_Line_Worldspace,          GL_VERTEX_SHADER);
@@ -69,57 +68,6 @@ renderer_init()
 
     g_renderer.ss_quad->u_screen_size_location = glGetUniformLocation(g_renderer.shaders.v_screenspace_quad, "u_screen_size");
 
-    //
-    // Textured Quads
-    //
-    g_renderer.ss_quad_texture = renderer_allocate_instanced_target(g_renderer.arena, IT_Kind_Screenspace_quad_texture, Thousand(4), unit_2dquad, sizeof(unit_2dquad), sizeof(Vec2f32));
-
-    // Pipeline
-    glCreateProgramPipelines(1, &g_renderer.ss_quad_texture->pipeline);
-    glUseProgramStages(g_renderer.ss_quad_texture->pipeline, GL_VERTEX_SHADER_BIT, g_renderer.shaders.v_screenspace_quad_texture);
-    glUseProgramStages(g_renderer.ss_quad_texture->pipeline, GL_FRAGMENT_SHADER_BIT, g_renderer.shaders.f_texture);
-    
-    // Unit quad positions (per-vertex)
-    glEnableVertexArrayAttrib(g_renderer.ss_quad_texture->vao, 0); // Unit
-    glVertexArrayAttribFormat(g_renderer.ss_quad_texture->vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
-    glVertexArrayAttribBinding(g_renderer.ss_quad_texture->vao, 0, 0);
-
-    glEnableVertexArrayAttrib(g_renderer.ss_quad_texture->vao, 1); // UVs
-    glVertexArrayAttribFormat(g_renderer.ss_quad_texture->vao, 1, 2, GL_FLOAT, GL_FALSE, 0);
-    glVertexArrayAttribBinding(g_renderer.ss_quad_texture->vao, 1, 0);
-
-    // Instance data (per-instance)
-    glEnableVertexArrayAttrib(g_renderer.ss_quad_texture->vao, 1); // Position
-    glVertexArrayAttribFormat(g_renderer.ss_quad_texture->vao, 1, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(TexturedQuad2D, position));
-    glVertexArrayAttribBinding(g_renderer.ss_quad_texture->vao, 1, 1);
-    glVertexArrayBindingDivisor(g_renderer.ss_quad_texture->vao, 1, 1);
-
-    glEnableVertexArrayAttrib(g_renderer.ss_quad_texture->vao, 2); // Scale
-    glVertexArrayAttribFormat(g_renderer.ss_quad_texture->vao, 2, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(TexturedQuad2D, scale));
-    glVertexArrayAttribBinding(g_renderer.ss_quad_texture->vao, 2, 1);
-    glVertexArrayBindingDivisor(g_renderer.ss_quad_texture->vao, 2, 1);
-
-    glEnableVertexArrayAttrib(g_renderer.ss_quad_texture->vao, 3); // Color
-    glVertexArrayAttribFormat(g_renderer.ss_quad_texture->vao, 3, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(TexturedQuad2D, color));
-    glVertexArrayAttribBinding(g_renderer.ss_quad_texture->vao, 3, 1);
-    glVertexArrayBindingDivisor(g_renderer.ss_quad_texture->vao, 3, 1);
-
-    glEnableVertexArrayAttrib(g_renderer.ss_quad_texture->vao, 4); // uv_min
-    glVertexArrayAttribFormat(g_renderer.ss_quad_texture->vao, 4, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(TexturedQuad2D, uv_min));
-    glVertexArrayAttribBinding(g_renderer.ss_quad_texture->vao, 4, 1);
-    glVertexArrayBindingDivisor(g_renderer.ss_quad_texture->vao, 4, 1);
-
-    glEnableVertexArrayAttrib(g_renderer.ss_quad_texture->vao, 5); // uv_max
-    glVertexArrayAttribFormat(g_renderer.ss_quad_texture->vao, 5, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(TexturedQuad2D, uv_max));
-    glVertexArrayAttribBinding(g_renderer.ss_quad_texture->vao, 5, 1);
-    glVertexArrayBindingDivisor(g_renderer.ss_quad_texture->vao, 5, 1);
-
-    glEnableVertexArrayAttrib(g_renderer.ss_quad_texture->vao, 6); // texture_id
-    glVertexArrayAttribIFormat(g_renderer.ss_quad_texture->vao, 6, 1, GL_UNSIGNED_INT, OffsetOfMember(TexturedQuad2D, texture_id));
-    glVertexArrayAttribBinding(g_renderer.ss_quad_texture->vao, 6, 1);
-    glVertexArrayBindingDivisor(g_renderer.ss_quad_texture->vao, 6, 1);
-
-    g_renderer.ss_quad_texture->u_screen_size_location = glGetUniformLocation(g_renderer.shaders.v_screenspace_quad_texture, "u_screen_size");
   }
 
   // Worldspace
@@ -204,7 +152,7 @@ renderer_init()
     // Pipeline
     glCreateProgramPipelines(1, &g_renderer.ws_line->pipeline);
     glUseProgramStages(g_renderer.ws_line->pipeline, GL_VERTEX_SHADER_BIT, g_renderer.shaders.v_worldspace_line);
-    glUseProgramStages(g_renderer.ws_line->pipeline, GL_FRAGMENT_SHADER_BIT, g_renderer.shaders.f_texture);
+    glUseProgramStages(g_renderer.ws_line->pipeline, GL_FRAGMENT_SHADER_BIT, g_renderer.shaders.f_default);
 
     // Unit quad positions (per-vertex)
     glEnableVertexArrayAttrib(g_renderer.ws_line->vao, 0); // Unit
@@ -314,7 +262,6 @@ renderer_begin_frame()
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
   g_renderer.ss_quad->count         = 0;
-  g_renderer.ss_quad_texture->count = 0;
   g_renderer.ws_quad->count         = 0;
   g_renderer.ws_quad_texture->count = 0;
   g_renderer.ws_line->count         = 0;
