@@ -39,9 +39,9 @@ entry_point(Command_Line* command_line)
 
     renderer_begin_frame();
 
-    renderer_draw_3dline(vec3f32(-64.0f,   0.0f,   0.0f), vec3f32(64.0f, 0.0f,  0.0), Color_Red);
-    renderer_draw_3dline(vec3f32(  0.0f, -64.0f,   0.0f), vec3f32(0.0f, 64.0f,  0.0), Color_Green);
-    renderer_draw_3dline(vec3f32(  0.0f,   0.0f, -64.0f), vec3f32(0.0f,  0.0f, 64.0), Color_Blue);
+    renderer_draw_3darrow(vec3f32(-4.0f,   0.0f,   0.0f), vec3f32(4.0f, 0.0f,  0.0), Color_Red);
+    renderer_draw_3darrow(vec3f32(  0.0f, -4.0f,   0.0f), vec3f32(0.0f, 4.0f,  0.0), Color_Green);
+    renderer_draw_3darrow(vec3f32(  0.0f,   0.0f, -4.0f), vec3f32(0.0f,  0.0f, 4.0), Color_Blue);
 
     renderer_draw_3dquad(vec3f32(0.0f, 0.0f, 0.0f), vec3f32(2.0f, 2.0f, 1.0f), Color_Brown);
     renderer_draw_3dquad_textured(vec3f32( 2.0f,  2.0f, -2.0f), vec3f32(2.0f, 2.0f, 1.0f), vec4f32(1.0f, 1.0f, 1.0f, 1.0f), black.index);

@@ -390,20 +390,61 @@ renderer_draw_3dline(Vec3f32 p0, Vec3f32 p1, Vec4f32 color)
   g_renderer.ws_line->count += 1;
 }
 
-#if 0
+function void
+renderer_draw_3darrow(Vec3f32 start, Vec3f32 end, Vec4f32 color)
+{
+  renderer_draw_3dline(start, end, color);
+
+  Vec3f32 dir = vec3f32_sub(end, start);
+  f32 len = vec3f32_length(dir);
+  if (len < 0.0001f) return;
+
+  dir = vec3f32_normalize(dir);
+
+  Vec3f32 up = fabsf(dir.y) < 0.99f ? vec3f32(0,1,0) : vec3f32(1,0,0);
+
+  Vec3f32 right   = vec3f32_normalize(vec3f32_cross(up, dir));
+  Vec3f32 forward = vec3f32_cross(dir, right);
+
+  f32 head_length = 0.2f;
+  right   = vec3f32_scale(right, head_length);
+  forward = vec3f32_scale(forward, head_length);
+  Vec3f32 tip  = end;
+  Vec3f32 base = vec3f32_sub(tip, vec3f32_scale(dir, head_length));
+
+  // Two arrowhead lines
+  renderer_draw_3dline(tip, vec3f32_add(base, right),   color);
+  renderer_draw_3dline(tip, vec3f32_sub(base, right),   color);
+  renderer_draw_3dline(tip, vec3f32_add(base, forward), color);
+  renderer_draw_3dline(tip, vec3f32_sub(base, forward), color);
+}
+
+
 function u32
 renderer_load_font(String8 path, f32 font_height) 
 {
   Scratch scratch = scratch_begin(0, 0);
   u32 result = 0;
 
-  if (g_renderer.texture_count >= g_renderer.texture_max) return 0;
+  if (g_renderer.texture_count >= g_renderer.texture_max)
+  {
+    emit_error(S("Error loading font. More textures than g_renderer.texture_max"));
+    return 0;
+  }
 
-  File_Data file_data = file_load(scratch.arena, path);
-  if (!file_data.data.str || file_data.data.size == 0) return 0;
+  File_Data file_data = os_file_load(scratch.arena, path);
+  if (!file_data.data.str || file_data.data.size == 0)
+  {
+    emit_error(Sf(scratch.arena, "Error loading font. Failed toload file: %.*s", path.size, path.str));
+    return 0;
+  }
 
   stbtt_fontinfo font_info;
-  if (!stbtt_InitFont(&font_info, (u8*)file_data.data.str, 0)) return 0;
+  if (!stbtt_InitFont(&font_info, (u8*)file_data.data.str, 0))
+  {
+    emit_error(S("Error initializing font with stbtt_InitFont. "));
+    return 0;
+  }
 
   s32 atlas_width = 512, atlas_height = 512;
   u8* atlas_bitmap = push_array(scratch.arena, u8, atlas_width * atlas_height);
@@ -431,7 +472,8 @@ renderer_load_font(String8 path, f32 font_height)
   f32 max_height = 0.0f;
   f32 min_y = 0.0f;
 
-  for (s32 i = 0; i < 95; i++) {
+  for (s32 i = 0; i < 95; i++)
+  {
     Glyph* glyph = &g_renderer.font.glyphs[i];
     stbtt_packedchar* ch = &char_data[i];
 
@@ -444,8 +486,14 @@ renderer_load_font(String8 path, f32 font_height)
     f32 y_top    = ch->yoff;
     f32 y_bottom = ch->yoff + (ch->y1 - ch->y0);
 
-    if (y_top < min_y) min_y = y_top;
-    if (y_bottom > max_height) max_height = y_bottom;
+    if (y_top < min_y)
+    {
+      min_y = y_top;
+    }
+    if (y_bottom > max_height)
+    {
+      max_height = y_bottom;
+    }
   }
 
   scratch_end(&scratch);
@@ -456,7 +504,6 @@ renderer_load_font(String8 path, f32 font_height)
 
   return result;
 }
-#endif
 
 function Texture_Info
 renderer_load_texture(String8 path)

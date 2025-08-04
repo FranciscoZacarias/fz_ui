@@ -1,6 +1,10 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
+#define STBTT_STATIC
+#define STB_TRUETYPE_IMPLEMENTATION
+#include "external/stb_truetype.h"
+
 #define STB_IMAGE_STATIC
 #define STB_IMAGE_IMPLEMENTATION
 #include "fz_std\\external\\stb_image.h"
@@ -179,6 +183,7 @@ function void renderer_draw_2dquad(Vec2f32 position, Vec2f32 scale, Vec4f32 colo
 function void renderer_draw_3dquad(Vec3f32 position, Vec3f32 scale, Vec4f32 color);
 function void renderer_draw_3dquad_textured(Vec3f32 position, Vec3f32 scale, Vec4f32 color, u32 texture_id);
 function void renderer_draw_3dline(Vec3f32 p0, Vec3f32 p1, Vec4f32 color);
+function void renderer_draw_3darrow(Vec3f32 start, Vec3f32 end, Vec4f32 color);
 
 function Texture_Info renderer_load_texture(String8 path);
 function u32 renderer_load_font(String8 path, f32 font_height);
