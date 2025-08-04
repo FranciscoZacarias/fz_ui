@@ -17,6 +17,7 @@
 
 // Vertex Shaders
 #define V_SS_Quad_Path         S("\\src\\shaders\\vs_ss_quad.glsl")
+#define V_SS_Quad_Texture_Path S("\\src\\shaders\\vs_ss_quad_texture.glsl")
 #define V_WS_Quad_Path         S("\\src\\shaders\\vs_ws_quad.glsl")
 #define V_WS_Quad_Texture_Path S("\\src\\shaders\\vs_ws_quad_texture.glsl")
 #define V_WS_Line_Path         S("\\src\\shaders\\vs_ws_line.glsl")
@@ -119,6 +120,7 @@ struct Font
 typedef enum
 {
   IT_Kind_Screenspace_quad,
+  IT_Kind_Screenspace_quad_texture,
   IT_Kind_Worldspace_quad,
   IT_Kind_Worldspace_quad_texture,
   IT_Kind_Worldspace_line,
@@ -195,6 +197,7 @@ function void renderer_end_frame(Mat4f32 view, Mat4f32 projection);
 function Instanced_Target* renderer_new_instanced_target(Arena* arena, Instanced_Target_Kind kind, u32 max_instances);
 
 function void renderer_draw_2dquad(Vec2f32 position, Vec2f32 scale, Vec4f32 color);
+function void renderer_draw_2dquad_textured(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
 function void renderer_draw_3dquad(Vec3f32 position, Vec3f32 scale, Vec4f32 color);
 function void renderer_draw_3dquad_textured(Vec3f32 position, Vec3f32 scale, Vec4f32 color, u32 texture_id);
 function void renderer_draw_3dline(Vec3f32 p0, Vec3f32 p1, Vec4f32 color);

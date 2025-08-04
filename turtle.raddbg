@@ -1,7 +1,7 @@
-// raddbg 0.9.20 project file
+// raddbg 0.9.21 project file
 
-recent_file: path: "src/main.c"
 recent_file: path: "src/renderer.c"
+recent_file: path: "src/main.c"
 recent_file: path: "src/fz_std/os/win32/os_win32.c"
 recent_file: path: "src/fz_std/base/string.c"
 recent_file: path: "src/camera.c"
@@ -41,11 +41,6 @@ watch_pin:
 }
 breakpoint:
 {
-  source_location: "src/renderer.c:195:11"
-  hit_count: 1
-}
-breakpoint:
-{
-  source_location: "src/renderer.c:566:19"
+  source_location: "src/renderer.c:442:35"
   hit_count: 1
 }
