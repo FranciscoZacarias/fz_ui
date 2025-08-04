@@ -2,9 +2,6 @@ function void
 renderer_init()
 {
   Scratch scratch = scratch_begin(0,0);
-  String8 project_path = os_executable_path(scratch.arena);
-  project_path = os_directory_pop(project_path);
-  project_path = os_directory_pop(project_path);
 
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -20,10 +17,11 @@ renderer_init()
   MemoryZeroStruct(&g_renderer);
   g_renderer.arena = arena_alloc();
 
-  g_renderer.shaders.v_screenspace_quad         = renderer_compile_shader(V_Quad_Screenspace, GL_VERTEX_SHADER);
-  g_renderer.shaders.v_worldspace_quad          = renderer_compile_shader(V_Quad_Worldspace,  GL_VERTEX_SHADER);
+  g_renderer.shaders.v_screenspace_quad         = renderer_compile_shader(V_Quad_Screenspace,         GL_VERTEX_SHADER);
+  g_renderer.shaders.v_screenspace_quad_texture = renderer_compile_shader(V_Quad_Texture_Screenspace, GL_VERTEX_SHADER);
+  g_renderer.shaders.v_worldspace_quad          = renderer_compile_shader(V_Quad_Worldspace,          GL_VERTEX_SHADER);
   g_renderer.shaders.v_worldspace_quad_texture  = renderer_compile_shader(V_Quad_Texture_Worldspace,  GL_VERTEX_SHADER);
-  g_renderer.shaders.v_worldspace_line          = renderer_compile_shader(V_Line_Worldspace,  GL_VERTEX_SHADER);
+  g_renderer.shaders.v_worldspace_line          = renderer_compile_shader(V_Line_Worldspace,          GL_VERTEX_SHADER);
 
   g_renderer.shaders.f_default                  = renderer_compile_shader(F_Default, GL_FRAGMENT_SHADER);
   g_renderer.shaders.f_texture                  = renderer_compile_shader(F_Texture, GL_FRAGMENT_SHADER);
@@ -70,6 +68,58 @@ renderer_init()
     glVertexArrayBindingDivisor(g_renderer.ss_quad->vao, 3, 1);
 
     g_renderer.ss_quad->u_screen_size_location = glGetUniformLocation(g_renderer.shaders.v_screenspace_quad, "u_screen_size");
+
+    //
+    // Textured Quads
+    //
+    g_renderer.ss_quad_texture = renderer_allocate_instanced_target(g_renderer.arena, IT_Kind_Screenspace_quad_texture, Thousand(4), unit_2dquad, sizeof(unit_2dquad), sizeof(Vec2f32));
+
+    // Pipeline
+    glCreateProgramPipelines(1, &g_renderer.ss_quad_texture->pipeline);
+    glUseProgramStages(g_renderer.ss_quad_texture->pipeline, GL_VERTEX_SHADER_BIT, g_renderer.shaders.v_screenspace_quad_texture);
+    glUseProgramStages(g_renderer.ss_quad_texture->pipeline, GL_FRAGMENT_SHADER_BIT, g_renderer.shaders.f_texture);
+    
+    // Unit quad positions (per-vertex)
+    glEnableVertexArrayAttrib(g_renderer.ss_quad_texture->vao, 0); // Unit
+    glVertexArrayAttribFormat(g_renderer.ss_quad_texture->vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(g_renderer.ss_quad_texture->vao, 0, 0);
+
+    glEnableVertexArrayAttrib(g_renderer.ss_quad_texture->vao, 1); // UVs
+    glVertexArrayAttribFormat(g_renderer.ss_quad_texture->vao, 1, 2, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(g_renderer.ss_quad_texture->vao, 1, 0);
+
+    // Instance data (per-instance)
+    glEnableVertexArrayAttrib(g_renderer.ss_quad_texture->vao, 1); // Position
+    glVertexArrayAttribFormat(g_renderer.ss_quad_texture->vao, 1, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(TexturedQuad2D, position));
+    glVertexArrayAttribBinding(g_renderer.ss_quad_texture->vao, 1, 1);
+    glVertexArrayBindingDivisor(g_renderer.ss_quad_texture->vao, 1, 1);
+
+    glEnableVertexArrayAttrib(g_renderer.ss_quad_texture->vao, 2); // Scale
+    glVertexArrayAttribFormat(g_renderer.ss_quad_texture->vao, 2, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(TexturedQuad2D, scale));
+    glVertexArrayAttribBinding(g_renderer.ss_quad_texture->vao, 2, 1);
+    glVertexArrayBindingDivisor(g_renderer.ss_quad_texture->vao, 2, 1);
+
+    glEnableVertexArrayAttrib(g_renderer.ss_quad_texture->vao, 3); // Color
+    glVertexArrayAttribFormat(g_renderer.ss_quad_texture->vao, 3, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(TexturedQuad2D, color));
+    glVertexArrayAttribBinding(g_renderer.ss_quad_texture->vao, 3, 1);
+    glVertexArrayBindingDivisor(g_renderer.ss_quad_texture->vao, 3, 1);
+
+    glEnableVertexArrayAttrib(g_renderer.ss_quad_texture->vao, 4); // uv_min
+    glVertexArrayAttribFormat(g_renderer.ss_quad_texture->vao, 4, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(TexturedQuad2D, uv_min));
+    glVertexArrayAttribBinding(g_renderer.ss_quad_texture->vao, 4, 1);
+    glVertexArrayBindingDivisor(g_renderer.ss_quad_texture->vao, 4, 1);
+
+    glEnableVertexArrayAttrib(g_renderer.ss_quad_texture->vao, 5); // uv_max
+    glVertexArrayAttribFormat(g_renderer.ss_quad_texture->vao, 5, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(TexturedQuad2D, uv_max));
+    glVertexArrayAttribBinding(g_renderer.ss_quad_texture->vao, 5, 1);
+    glVertexArrayBindingDivisor(g_renderer.ss_quad_texture->vao, 5, 1);
+
+    glEnableVertexArrayAttrib(g_renderer.ss_quad_texture->vao, 6); // texture_id
+    glVertexArrayAttribIFormat(g_renderer.ss_quad_texture->vao, 6, 1, GL_UNSIGNED_INT, OffsetOfMember(TexturedQuad2D, texture_id));
+    glVertexArrayAttribBinding(g_renderer.ss_quad_texture->vao, 6, 1);
+    glVertexArrayBindingDivisor(g_renderer.ss_quad_texture->vao, 6, 1);
+
+    g_renderer.ss_quad_texture->u_screen_size_location = glGetUniformLocation(g_renderer.shaders.v_screenspace_quad_texture, "u_screen_size");
   }
 
   // Worldspace
@@ -190,6 +240,14 @@ renderer_init()
     g_renderer.texture_count = 0;
   }
 
+  // Font
+  {
+    g_renderer.fonts_max   = 4;
+    g_renderer.fonts       = push_array(g_renderer.arena, Font, g_renderer.fonts_max);
+    g_renderer.fonts_count = 0;
+    renderer_load_font(Font_ProggyClean, 32.0f);
+  }
+
   scratch_end(&scratch);
 }
 
@@ -256,6 +314,7 @@ renderer_begin_frame()
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
   g_renderer.ss_quad->count         = 0;
+  g_renderer.ss_quad_texture->count = 0;
   g_renderer.ws_quad->count         = 0;
   g_renderer.ws_quad_texture->count = 0;
   g_renderer.ws_line->count         = 0;
@@ -419,9 +478,8 @@ renderer_draw_3darrow(Vec3f32 start, Vec3f32 end, Vec4f32 color)
   renderer_draw_3dline(tip, vec3f32_sub(base, forward), color);
 }
 
-
 function u32
-renderer_load_font(String8 path, f32 font_height) 
+renderer_load_font(String8 relative_path, f32 font_height) 
 {
   Scratch scratch = scratch_begin(0, 0);
   u32 result = 0;
@@ -432,10 +490,15 @@ renderer_load_font(String8 path, f32 font_height)
     return 0;
   }
 
-  File_Data file_data = os_file_load(scratch.arena, path);
+  String8 project_path = os_executable_path(scratch.arena);
+  project_path = os_directory_pop(project_path); // Pop *.exe
+  project_path = os_directory_pop(project_path); // Pop from build/
+
+  String8 font_path = string8_concat(scratch.arena, project_path, relative_path);
+  File_Data file_data = os_file_load(scratch.arena, font_path);
   if (!file_data.data.str || file_data.data.size == 0)
   {
-    emit_error(Sf(scratch.arena, "Error loading font. Failed toload file: %.*s", path.size, path.str));
+    emit_error(Sf(scratch.arena, "Error loading font. Failed toload file: %.*s", font_path.size, font_path.str));
     return 0;
   }
 
@@ -449,11 +512,11 @@ renderer_load_font(String8 path, f32 font_height)
   s32 atlas_width = 512, atlas_height = 512;
   u8* atlas_bitmap = push_array(scratch.arena, u8, atlas_width * atlas_height);
 
-  stbtt_packedchar char_data[95];
+  stbtt_packedchar char_data[MaxFontGlyphs];
   stbtt_pack_context pack;
   stbtt_PackBegin(&pack, atlas_bitmap, atlas_width, atlas_height, atlas_width, 1, NULL);
   stbtt_PackSetOversampling(&pack, 1, 1);
-  stbtt_PackFontRange(&pack, (u8*)file_data.data.str, 0, font_height, 32, 95, char_data);
+  stbtt_PackFontRange(&pack, (u8*)file_data.data.str, 0, font_height, 32, MaxFontGlyphs, char_data);
   stbtt_PackEnd(&pack);
 
   GLuint texture;
@@ -472,9 +535,9 @@ renderer_load_font(String8 path, f32 font_height)
   f32 max_height = 0.0f;
   f32 min_y = 0.0f;
 
-  for (s32 i = 0; i < 95; i++)
+  for (s32 i = 0; i < MaxFontGlyphs; i++)
   {
-    Glyph* glyph = &g_renderer.font.glyphs[i];
+    Glyph* glyph = &g_renderer.fonts[g_renderer.fonts_count].glyphs[i];
     stbtt_packedchar* ch = &char_data[i];
 
     glyph->uv_min  = vec2f32((f32)ch->x0 / atlas_width, (f32)ch->y0 / atlas_height);
@@ -498,9 +561,10 @@ renderer_load_font(String8 path, f32 font_height)
 
   scratch_end(&scratch);
 
-  g_renderer.font.line_height = max_height - min_y;
-  g_renderer.font.height      = font_height;
-  g_renderer.font.texture_id  = result;
+  g_renderer.fonts[g_renderer.fonts_count].line_height = max_height - min_y;
+  g_renderer.fonts[g_renderer.fonts_count].height      = font_height;
+  g_renderer.fonts[g_renderer.fonts_count].texture_id  = result;
+  g_renderer.fonts_count += 1;
 
   return result;
 }
