@@ -323,7 +323,6 @@ renderer_end_frame(Mat4f32 view, Mat4f32 projection)
 
     glNamedBufferSubData(g_renderer.ws_quad->instance_vbo, 0, sizeof(Quad3D) * g_renderer.ws_quad->count, g_renderer.ws_quad->data);
     glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.ws_quad->count);
-
   }
 
   if (g_renderer.ws_quad_texture->count > 0)
@@ -369,6 +368,19 @@ renderer_end_frame(Mat4f32 view, Mat4f32 projection)
     glNamedBufferSubData(g_renderer.ss_quad->instance_vbo, 0, sizeof(Quad2D) * g_renderer.ss_quad->count, g_renderer.ss_quad->data);
     glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.ss_quad->count);
   }
+
+  if (g_renderer.ss_quad_texture->count > 0)
+  {
+    // Quads
+    glBindProgramPipeline(g_renderer.ss_quad_texture->pipeline);
+    glBindVertexArray(g_renderer.ss_quad_texture->vao);
+
+    glProgramUniform2f(g_renderer.shaders.v_screenspace_quad_texture, g_renderer.ss_quad_texture->u_screen_size_location, (f32)g_os_window->dimensions.x, (f32)g_os_window->dimensions.y);
+
+    glNamedBufferSubData(g_renderer.ss_quad_texture->instance_vbo, 0, sizeof(TexturedQuad2D) * g_renderer.ss_quad_texture->count, g_renderer.ss_quad_texture->data);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.ss_quad_texture->count);
+  }
+
 
   os_swap_buffers();
 }

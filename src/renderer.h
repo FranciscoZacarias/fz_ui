@@ -158,6 +158,7 @@ struct Renderer
   struct
   {
     u32 v_screenspace_quad;
+    u32 v_screenspace_quad_texture;
     u32 v_worldspace_quad;
     u32 v_worldspace_quad_texture;
     u32 v_worldspace_line;
@@ -167,6 +168,7 @@ struct Renderer
 
   // Screenspace
   Instanced_Target* ss_quad;
+  Instanced_Target* ss_quad_texture;
 
   // Worldspace
   Instanced_Target* ws_quad;
