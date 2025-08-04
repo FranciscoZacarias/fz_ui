@@ -347,7 +347,6 @@ function void _input_process_mouse_cursor(s32 x, s32 y);                        
 function String8 os_executable_path(Arena* arena);
 function String8 os_get_appdata_dir(Arena* arena, String8 project_name);
 function void    os_exit_process(u32 code);
-function f32     os_get_fps(); /* Returns current fps */
 
 ///////////////////////////////////////////////////////
 // @Section: Timer
@@ -379,21 +378,6 @@ function u64      os_timer_microseconds(OS_Timer *timer); /* Returns timer's ela
 function u64      os_timer_milliseconds(OS_Timer *timer); /* Returns timer's elapsed time in milliseconds */
 function f64      os_timer_seconds(OS_Timer *timer);      /* Returns timer's elapsed time in seconds */
 function void     os_timer_reset(OS_Timer *timer);        /* Resets a timer */
-
-///////////////////////////////////////////////////////
-// @Section: Frame Info
-typedef struct OS_Frame_Info OS_Frame_Info;
-struct OS_Frame_Info
-{
-  u64 frame_start; /* absolute time at the start of this frame */
-  u64 frame_time;  /* delta between current and previous frame start */
-  u64 frame_count; /* how many frames have passed */
-};
-
-global OS_Frame_Info g_os_frame_info_previous = {0};
-global OS_Frame_Info g_os_frame_info_current  = {0};
-
-function void _update_frame_info(); /* Updates both g_os_frame_info_previous and g_os_frame_info_current */
 
 ///////////////////////////////////////////////////////
 // @Section: OS Global State

@@ -25,6 +25,7 @@ renderer_init()
 
   g_renderer.shaders.f_default                  = renderer_compile_shader(F_Default_Path, GL_FRAGMENT_SHADER);
   g_renderer.shaders.f_texture                  = renderer_compile_shader(F_Texture_Path, GL_FRAGMENT_SHADER);
+  g_renderer.shaders.f_text                     = renderer_compile_shader(F_Text_Path,    GL_FRAGMENT_SHADER);
   
   // Set texture sampler
   GLint sampler_locations[32];
@@ -111,7 +112,7 @@ renderer_init()
     // Pipeline
     glCreateProgramPipelines(1, &g_renderer.ss_quad_texture->pipeline);
     glUseProgramStages(g_renderer.ss_quad_texture->pipeline, GL_VERTEX_SHADER_BIT, g_renderer.shaders.v_screenspace_quad_texture);
-    glUseProgramStages(g_renderer.ss_quad_texture->pipeline, GL_FRAGMENT_SHADER_BIT, g_renderer.shaders.f_texture);
+    glUseProgramStages(g_renderer.ss_quad_texture->pipeline, GL_FRAGMENT_SHADER_BIT, g_renderer.shaders.f_text);
 
     // Unit quad positions (per-vertex)
     glEnableVertexArrayAttrib(g_renderer.ss_quad_texture->vao, 0);
@@ -488,6 +489,44 @@ renderer_draw_2dquad_textured(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, V
   g_renderer.ss_quad_texture->count += 1;
 }
 
+function f32 
+renderer_draw_text_screenspace(Vec2f32 position, Vec4f32 color, f32 scale, String8 text) 
+{
+  f32 x_start = position.x;
+  f32 y_cursor = position.y;
+  Font* font = &g_renderer.fonts[0]; // TODO(fz): Hardcoded first font
+  f32 line_height = font->line_height * scale;
+  f32 max_y = y_cursor;
+ 
+  for (u64 i = 0; i < text.size; ++i)
+  {
+    u8 c = text.str[i];
+    if (c == '\n')
+    {
+      y_cursor += line_height;
+      position.x = x_start;
+      continue;
+    }
+
+    if (c < 32 || c > 126)
+    {
+      continue;
+    }
+   
+    Glyph* glyph = &font->glyphs[c - 32];
+
+    Vec2f32 pos = vec2f32(position.x + glyph->offset.x * scale, y_cursor - glyph->offset.y * scale - glyph->size.y * scale);
+    Vec2f32 size = vec2f32(glyph->size.x * scale, glyph->size.y * scale);
+   
+    renderer_draw_2dquad_textured(vec2f32(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f), size, vec2f32(glyph->uv_min.x, glyph->uv_max.y), vec2f32(glyph->uv_max.x, glyph->uv_min.y), color, font->texture_index);   
+
+    position.x += glyph->advance * scale;
+    max_y = Max(max_y, y_cursor + line_height);
+  }
+ 
+  return max_y - position.y;
+}
+
 function void
 renderer_draw_3dquad(Vec3f32 position, Vec3f32 scale, Vec4f32 color)
 {
@@ -646,9 +685,10 @@ renderer_load_font(String8 relative_path, f32 font_height)
 
   scratch_end(&scratch);
 
-  g_renderer.fonts[g_renderer.fonts_count].line_height = max_height - min_y;
-  g_renderer.fonts[g_renderer.fonts_count].height      = font_height;
-  g_renderer.fonts[g_renderer.fonts_count].texture_id  = result;
+  g_renderer.fonts[g_renderer.fonts_count].line_height   = max_height - min_y;
+  g_renderer.fonts[g_renderer.fonts_count].height        = font_height;
+  g_renderer.fonts[g_renderer.fonts_count].texture_id    = result;
+  g_renderer.fonts[g_renderer.fonts_count].texture_index = g_renderer.fonts_count;
   g_renderer.fonts_count += 1;
 
   return result;

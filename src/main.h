@@ -26,6 +26,7 @@ global Camera g_camera;
 
 OS_Timer g_frame_timer;
 f32      g_delta_time;
+u32      g_fps;
 
 function void input_update();
 

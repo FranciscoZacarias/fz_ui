@@ -23,8 +23,9 @@
 #define V_WS_Line_Path         S("\\src\\shaders\\vs_ws_line.glsl")
 
 // Fragment Shaders
-#define F_Default_Path         S("\\src\\shaders\\fs.glsl")
-#define F_Texture_Path         S("\\src\\shaders\\fs_texture.glsl")
+#define F_Default_Path S("\\src\\shaders\\fs.glsl")
+#define F_Texture_Path S("\\src\\shaders\\fs_texture.glsl")
+#define F_Text_Path    S("\\src\\shaders\\fs_text.glsl")
 
 ///////////////////////////////////////////////////////
 // @Section: Texture
@@ -111,6 +112,7 @@ struct Font
 #define MaxFontGlyphs 95
   Glyph glyphs[MaxFontGlyphs];
   u32   texture_id;
+  u32   texture_index;
   f32   height;
   f32   line_height;
 };
@@ -166,6 +168,7 @@ struct Renderer
     u32 v_worldspace_line;
     u32 f_default;
     u32 f_texture;
+    u32 f_text;
   } shaders;
 
   // Screenspace
@@ -198,6 +201,7 @@ function Instanced_Target* renderer_new_instanced_target(Arena* arena, Instanced
 
 function void renderer_draw_2dquad(Vec2f32 position, Vec2f32 scale, Vec4f32 color);
 function void renderer_draw_2dquad_textured(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
+function f32  renderer_draw_text_screenspace(Vec2f32 position, Vec4f32 color, f32 scale, String8 text);
 function void renderer_draw_3dquad(Vec3f32 position, Vec3f32 scale, Vec4f32 color);
 function void renderer_draw_3dquad_textured(Vec3f32 position, Vec3f32 scale, Vec4f32 color, u32 texture_id);
 function void renderer_draw_3dline(Vec3f32 p0, Vec3f32 p1, Vec4f32 color);

@@ -304,8 +304,6 @@ os_is_application_running()
   {
     _input_update();
 
-    _update_frame_info();
-
     if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
     {
       if (msg.message == WM_QUIT) 
