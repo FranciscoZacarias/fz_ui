@@ -1,7 +1,7 @@
 
 [ ] Text rendering screenspace
 [ ] Text rendering worldspace
-[ ] Draw arrow worlspace (Arrow end is 4 lines)
+[x] Draw arrow worlspace (Arrow end is 4 lines)
 [ ] Fix transparency in worldspace draws
 [ ] Create fallback texture
 [ ] Change worldspace quads such that I can transform them
