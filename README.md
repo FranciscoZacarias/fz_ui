@@ -3,8 +3,9 @@
 
 ### CRITICAL - Implement First
 
-- [ ] Text rendering screenspace - Render text in screen coordinates for UI and debug info
+- [x] Text rendering screenspace - Render text in screen coordinates for UI and debug info
 - [ ] Text rendering worldspace - Render text positioned in 3D world space
+- [ ] Screenspace texture rendering - Render texture in 2D screenspace
 - [ ] Create fallback texture - Default texture when loading fails to prevent crashes
 - [ ] Wireframe mode toggle - Switch between filled and wireframe rendering for debugging
 - [ ] Change worldspace quads such that I can transform them - Add rotation support to quad instances

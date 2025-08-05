@@ -47,15 +47,17 @@ entry_point(Command_Line* command_line)
     renderer_draw_3darrow(vec3f32(  0.0f,   0.0f, -4.0f), vec3f32(0.0f,  0.0f, 4.0), Color_Blue);
 
     renderer_draw_3dquad(vec3f32(0.0f, 0.0f, 0.0f), vec3f32(2.0f, 2.0f, 1.0f), Color_Brown);
-    renderer_draw_3dquad_textured(vec3f32( 2.0f,  2.0f, -2.0f), vec3f32(2.0f, 2.0f, 1.0f), vec4f32(1.0f, 1.0f, 1.0f, 1.0f), black.index);
-    renderer_draw_3dquad_textured(vec3f32(-2.0f,  2.0f, -2.0f), vec3f32(2.0f, 2.0f, 1.0f), vec4f32(1.0f, 1.0f, 1.0f, 1.0f), red.index);
-    renderer_draw_3dquad_textured(vec3f32( 2.0f, -2.0f, -2.0f), vec3f32(2.0f, 2.0f, 1.0f), vec4f32(1.0f, 1.0f, 1.0f, 1.0f), pink.index);
-    renderer_draw_3dquad_textured(vec3f32(-2.0f, -2.0f, -2.0f), vec3f32(2.0f, 2.0f, 1.0f), vec4f32(1.0f, 1.0f, 1.0f, 1.0f), yelow.index);
+    renderer_draw_3dquad_texture(vec3f32( 2.0f,  2.0f, -2.0f), vec3f32(2.0f, 2.0f, 1.0f), Color_White, black.index);
+    renderer_draw_3dquad_texture(vec3f32(-2.0f,  2.0f, -2.0f), vec3f32(2.0f, 2.0f, 1.0f), Color_White, red.index);
+    renderer_draw_3dquad_texture(vec3f32( 2.0f, -2.0f, -2.0f), vec3f32(2.0f, 2.0f, 1.0f), Color_White, pink.index);
+    renderer_draw_3dquad_texture(vec3f32(-2.0f, -2.0f, -2.0f), vec3f32(2.0f, 2.0f, 1.0f), Color_White, yelow.index);
 
     renderer_draw_2dquad(vec2f32(50.f, 100.f), vec2f32(15.f, 20.f), vec4f32(1.0f, 0.0f, 0.0f, 1.0f));
     renderer_draw_2dquad(vec2f32(70.f, 100.f), vec2f32(15.f, 20.f), vec4f32(0.0f, 1.0f, 0.0f, 1.0f));
     renderer_draw_2dquad(vec2f32(90.f, 100.f), vec2f32(15.f, 20.f), vec4f32(0.0f, 0.0f, 1.0f, 1.0f));
     
+    renderer_draw_2dquad_texture(vec2f32(90.f, 300.f), vec2f32(50.f, 50.f), Color_White, red.index);
+
     renderer_draw_text_screenspace(vec2f32(50.f, 500.f), Color_Black, 0.8f, Sf(arena, "We are not your kind. FPS: %.2f", g_fps));
 
     Mat4f32 view       = camera_get_view_matrix(&g_camera);

@@ -18,6 +18,7 @@
 // Vertex Shaders
 #define V_SS_Quad_Path         S("\\src\\shaders\\vs_ss_quad.glsl")
 #define V_SS_Quad_Texture_Path S("\\src\\shaders\\vs_ss_quad_texture.glsl")
+#define V_SS_Text_Path         S("\\src\\shaders\\vs_ss_text.glsl")
 #define V_WS_Quad_Path         S("\\src\\shaders\\vs_ws_quad.glsl")
 #define V_WS_Quad_Texture_Path S("\\src\\shaders\\vs_ws_quad_texture.glsl")
 #define V_WS_Line_Path         S("\\src\\shaders\\vs_ws_line.glsl")
@@ -123,6 +124,7 @@ typedef enum
 {
   IT_Kind_Screenspace_quad,
   IT_Kind_Screenspace_quad_texture,
+  IT_Kind_Screenspace_text,
   IT_Kind_Worldspace_quad,
   IT_Kind_Worldspace_quad_texture,
   IT_Kind_Worldspace_line,
@@ -163,6 +165,7 @@ struct Renderer
   {
     u32 v_screenspace_quad;
     u32 v_screenspace_quad_texture;
+    u32 v_screenspace_text;
     u32 v_worldspace_quad;
     u32 v_worldspace_quad_texture;
     u32 v_worldspace_line;
@@ -173,7 +176,8 @@ struct Renderer
 
   // Screenspace
   Instanced_Target* ss_quad;
-  Instanced_Target* ss_quad_text;
+  Instanced_Target* ss_quad_texture;
+  Instanced_Target* ss_text;
 
   // Worldspace
   Instanced_Target* ws_quad;
@@ -200,9 +204,10 @@ function void renderer_end_frame(Mat4f32 view, Mat4f32 projection);
 function Instanced_Target* renderer_new_instanced_target(Arena* arena, Instanced_Target_Kind kind, u32 max_instances);
 
 function void renderer_draw_2dquad(Vec2f32 position, Vec2f32 scale, Vec4f32 color);
+function void renderer_draw_2dquad_texture(Vec2f32 position, Vec2f32 scale, Vec4f32 color, u32 texture_id);
 function f32  renderer_draw_text_screenspace(Vec2f32 position, Vec4f32 color, f32 scale, String8 text);
 function void renderer_draw_3dquad(Vec3f32 position, Vec3f32 scale, Vec4f32 color);
-function void renderer_draw_3dquad_textured(Vec3f32 position, Vec3f32 scale, Vec4f32 color, u32 texture_id);
+function void renderer_draw_3dquad_texture(Vec3f32 position, Vec3f32 scale, Vec4f32 color, u32 texture_id);
 function void renderer_draw_3dline(Vec3f32 p0, Vec3f32 p1, Vec4f32 color);
 function void renderer_draw_3darrow(Vec3f32 start, Vec3f32 end, Vec4f32 color);
 

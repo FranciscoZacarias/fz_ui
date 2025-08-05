@@ -19,7 +19,6 @@ out gl_PerVertex
 {
   vec4 gl_Position;
 };
-
 void main()
 {
   vec2 pixel_pos = a_pos + a_unit_quad_pos * a_scale;
