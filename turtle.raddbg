@@ -1,10 +1,10 @@
-// raddbg 0.9.21 project file
+// raddbg 0.9.20 project file
 
-recent_file: path: "src/fz_std/base/memory.c"
 recent_file: path: "src/main.c"
 recent_file: path: "src/renderer.c"
-recent_file: path: "src/fz_std/os/win32/os_win32.c"
 recent_file: path: "src/fz_std/base/string.c"
+recent_file: path: "src/fz_std/base/memory.c"
+recent_file: path: "src/fz_std/os/win32/os_win32.c"
 recent_file: path: "src/camera.c"
 type_view:
 {
@@ -42,6 +42,6 @@ watch_pin:
 }
 breakpoint:
 {
-  source_location: "src/main.c:62:28"
+  source_location: "src/renderer.c:684:13"
   hit_count: 1
 }

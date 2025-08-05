@@ -56,9 +56,6 @@ entry_point(Command_Line* command_line)
     renderer_draw_2dquad(vec2f32(70.f, 100.f), vec2f32(15.f, 20.f), vec4f32(0.0f, 1.0f, 0.0f, 1.0f));
     renderer_draw_2dquad(vec2f32(90.f, 100.f), vec2f32(15.f, 20.f), vec4f32(0.0f, 0.0f, 1.0f, 1.0f));
     
-    // TODO(fz): Broken.
-    renderer_draw_2dquad_textured(vec2f32(50.f, 200.f), vec2f32(100.f, 100.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, black.index);
-
     renderer_draw_text_screenspace(vec2f32(50.f, 500.f), Color_Black, 0.8f, Sf(arena, "We are not your kind. FPS: %.2f", g_fps));
 
     Mat4f32 view       = camera_get_view_matrix(&g_camera);
