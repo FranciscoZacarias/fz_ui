@@ -83,6 +83,16 @@ vec2f32_sub(Vec2f32 a, Vec2f32 b)
 }
 
 function Vec2f32
+vec2f32_mul(Vec2f32 a, Vec2f32 b)
+{
+  Vec2f32 result = {
+    a.x * b.x,
+    a.y * b.y,
+  };
+  return result;
+}
+
+function Vec2f32
 vec2f32_scale(Vec2f32 v, f32 scalar)
 {
   Vec2f32 result;

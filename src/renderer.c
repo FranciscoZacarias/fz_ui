@@ -570,21 +570,31 @@ renderer_draw_2dquad_texture(Vec2f32 position, Vec2f32 scale, Vec4f32 color, u32
   g_renderer.ss_quad_texture->count += 1;
 }
 
-function f32 
-renderer_draw_text_screenspace(Vec2f32 position, Vec4f32 color, f32 scale, String8 text) 
+function Vec2f32
+renderer_draw_text_screenspace(Vec2f32 position, Vec4f32 color, f32 scale, String8 text)
 {
+  scale *= 0.1f;
+
   f32 x_start = position.x;
   f32 y_cursor = position.y;
-  Font* font = &g_renderer.fonts[0]; // TODO(fz): Hardcoded first font
+
+  Font* font = &g_renderer.fonts[0];
   f32 line_height = font->line_height * scale;
-  f32 max_y = y_cursor;
- 
+
+  f32 max_width = 0;
+  f32 current_line_width = 0;
+  f32 total_height = line_height;
+
   for (u64 i = 0; i < text.size; ++i)
   {
     u8 c = text.str[i];
+
     if (c == '\n')
     {
+      max_width = Max(max_width, current_line_width);
+      current_line_width = 0;
       y_cursor += line_height;
+      total_height += line_height;
       position.x = x_start;
       continue;
     }
@@ -593,17 +603,18 @@ renderer_draw_text_screenspace(Vec2f32 position, Vec4f32 color, f32 scale, Strin
     {
       continue;
     }
-   
+
     Glyph* glyph = &font->glyphs[c - 32];
 
-    Vec2f32 pos = vec2f32(position.x + glyph->offset.x * scale, y_cursor - glyph->offset.y * scale - glyph->size.y * scale);
+    Vec2f32 pos  = vec2f32(position.x + glyph->offset.x * scale, y_cursor - glyph->offset.y * scale - glyph->size.y * scale);
     Vec2f32 size = vec2f32(glyph->size.x * scale, glyph->size.y * scale);
-   
+
     if (g_renderer.ss_text->count >= g_renderer.ss_text->max)
     {
       emit_fatal(S("Tried to render more textured quads than g_renderer.ss_quad_texture->max"));
-      return 0;
+      return vec2f32(0, 0);
     }
+
     TexturedQuad2D* data = (TexturedQuad2D*)g_renderer.ss_text->data;
     data[g_renderer.ss_text->count].position   = vec2f32(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f);
     data[g_renderer.ss_text->count].scale      = size;
@@ -613,12 +624,12 @@ renderer_draw_text_screenspace(Vec2f32 position, Vec4f32 color, f32 scale, Strin
     data[g_renderer.ss_text->count].texture_id = font->texture_index;
     g_renderer.ss_text->count += 1;
 
-
     position.x += glyph->advance * scale;
-    max_y = Max(max_y, y_cursor + line_height);
+    current_line_width = position.x - x_start;
   }
- 
-  return max_y - position.y;
+
+  max_width = Max(max_width, current_line_width);
+  return vec2f32(max_width, total_height);
 }
 
 function void

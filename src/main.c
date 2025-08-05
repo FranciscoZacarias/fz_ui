@@ -33,7 +33,6 @@ entry_point(Command_Line* command_line)
   g_delta_time  = 0.0f;
   g_fps         = 0.0f;
   
-  os_window_enable_vsync(true); // Enabled by default.
   while(os_is_application_running())
   {
     f32 g_fps = 1.0f / g_delta_time;
@@ -58,7 +57,7 @@ entry_point(Command_Line* command_line)
     
     renderer_draw_2dquad_texture(vec2f32(90.f, 300.f), vec2f32(50.f, 50.f), Color_White, red.index);
 
-    renderer_draw_text_screenspace(vec2f32(50.f, 500.f), Color_Black, 0.8f, Sf(arena, "We are not your kind. FPS: %.2f", g_fps));
+    renderer_draw_text_screenspace(vec2f32(5.0f, g_os_window->dimensions.y - 15.0f), Color_Black, 4.0f, Sf(arena, "FPS: %.2f", g_fps));
 
     Mat4f32 view       = camera_get_view_matrix(&g_camera);
     Mat4f32 projection = mat4f32_perspective(g_camera.fov, g_os_window->dimensions.x, g_os_window->dimensions.y, 0.1f, 100.0f);
@@ -78,8 +77,15 @@ input_update()
     os_exit_process(0);
   }
 
-  if (input_is_key_pressed(Keyboard_Key_F2))
+  if (input_is_key_pressed(Keyboard_Key_F11))
   {
     renderer_toggle_wireframe();
+  }
+
+  if (input_is_key_pressed(Keyboard_Key_F12))
+  {
+    local_persist b32 is_vsync_on = true;
+    os_window_enable_vsync(is_vsync_on ? false : true);
+    is_vsync_on = !is_vsync_on;
   }
 }

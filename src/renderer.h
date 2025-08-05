@@ -203,13 +203,13 @@ function void renderer_end_frame(Mat4f32 view, Mat4f32 projection);
 
 function Instanced_Target* renderer_new_instanced_target(Arena* arena, Instanced_Target_Kind kind, u32 max_instances);
 
-function void renderer_draw_2dquad(Vec2f32 position, Vec2f32 scale, Vec4f32 color);
-function void renderer_draw_2dquad_texture(Vec2f32 position, Vec2f32 scale, Vec4f32 color, u32 texture_id);
-function f32  renderer_draw_text_screenspace(Vec2f32 position, Vec4f32 color, f32 scale, String8 text);
-function void renderer_draw_3dquad(Vec3f32 position, Vec3f32 scale, Vec4f32 color);
-function void renderer_draw_3dquad_texture(Vec3f32 position, Vec3f32 scale, Vec4f32 color, u32 texture_id);
-function void renderer_draw_3dline(Vec3f32 p0, Vec3f32 p1, Vec4f32 color);
-function void renderer_draw_3darrow(Vec3f32 start, Vec3f32 end, Vec4f32 color);
+function void    renderer_draw_2dquad(Vec2f32 position, Vec2f32 scale, Vec4f32 color);
+function void    renderer_draw_2dquad_texture(Vec2f32 position, Vec2f32 scale, Vec4f32 color, u32 texture_id);
+function Vec2f32 renderer_draw_text_screenspace(Vec2f32 position, Vec4f32 color, f32 scale, String8 text);
+function void    renderer_draw_3dquad(Vec3f32 position, Vec3f32 scale, Vec4f32 color);
+function void    renderer_draw_3dquad_texture(Vec3f32 position, Vec3f32 scale, Vec4f32 color, u32 texture_id);
+function void    renderer_draw_3dline(Vec3f32 p0, Vec3f32 p1, Vec4f32 color);
+function void    renderer_draw_3darrow(Vec3f32 start, Vec3f32 end, Vec4f32 color);
 
 function Texture_Info renderer_load_texture(String8 path);
 function void         renderer_load_font(String8 relative_path, f32 font_height);

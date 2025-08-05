@@ -7,7 +7,7 @@ camera_init(Camera* camera)
   camera->orientation = quatf32_identity();
   camera->fov         = 90.0f;
   camera->speed       = 8.0f;
-  camera->sensitivity = 0.0015f;
+  camera->sensitivity = 0.1;
   camera->pitch       = 0.0f;
   camera->yaw         = 0.0f;
   camera->mode        = CameraMode_Select;
@@ -34,8 +34,8 @@ camera_update(Camera* camera, f32 delta_time)
     f32 dx = g_input_state.mouse_current.delta.x;
     f32 dy = g_input_state.mouse_current.delta.y;
 
-    camera->yaw   += -dx * camera->sensitivity * 180.0f / PI;
-    camera->pitch += -dy * camera->sensitivity * 180.0f / PI;
+    camera->yaw   += -dx * camera->sensitivity * delta_time * 180.0f / PI;
+    camera->pitch += -dy * camera->sensitivity * delta_time * 180.0f / PI;
 
     if (camera->pitch > 89.0f)
     {

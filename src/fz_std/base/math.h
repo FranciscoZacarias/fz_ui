@@ -170,6 +170,7 @@ function f32 vec2f32_distance_signed(Vec2f32 a, Vec2f32 b, Vec2f32 reference);
 
 function Vec2f32 vec2f32_add(Vec2f32 a, Vec2f32 b);
 function Vec2f32 vec2f32_sub(Vec2f32 a, Vec2f32 b);
+function Vec2f32 vec2f32_mul(Vec2f32 a, Vec2f32 b);
 function Vec2f32 vec2f32_scale(Vec2f32 v, f32 scalar);
 function Vec2f32 vec2f32_normalize(Vec2f32 v);
 function f32 vec2f32_dot(Vec2f32 a, Vec2f32 b);
