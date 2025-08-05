@@ -214,6 +214,7 @@ function void renderer_draw_3darrow(Vec3f32 start, Vec3f32 end, Vec4f32 color);
 function Texture_Info renderer_load_texture(String8 path);
 function void         renderer_load_font(String8 relative_path, f32 font_height);
 
-function u32 renderer_compile_shader(String8 relative_path, GLenum shader_type);
+function void renderer_toggle_wireframe();
+function u32  renderer_compile_shader(String8 relative_path, GLenum shader_type);
 
 #endif // RENDERER_H

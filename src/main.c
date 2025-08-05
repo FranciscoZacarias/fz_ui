@@ -77,4 +77,9 @@ input_update()
   {
     os_exit_process(0);
   }
+
+  if (input_is_key_pressed(Keyboard_Key_F2))
+  {
+    renderer_toggle_wireframe();
+  }
 }

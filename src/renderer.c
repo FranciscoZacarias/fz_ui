@@ -459,7 +459,6 @@ renderer_end_frame(Mat4f32 view, Mat4f32 projection)
     glBindTextureUnit(idx, g_renderer.textures[idx]);
   }
 
-
   ///////////////////////////////////////////////////////
   // @Section: Worldspace
   if (g_renderer.ws_quad->count > 0)
@@ -786,7 +785,6 @@ renderer_load_font(String8 relative_path, f32 font_height)
 
   g_renderer.texture_count += 1;
   g_renderer.fonts_count += 1;
-
 }
 
 function Texture_Info
@@ -837,6 +835,14 @@ renderer_load_texture(String8 path)
 
   scratch_end(&scratch);
   return result;
+}
+
+function void
+renderer_toggle_wireframe()
+{
+  local_persist b32 is_wireframe = false;
+  glPolygonMode(GL_FRONT_AND_BACK, is_wireframe ? GL_FILL : GL_LINE);
+  is_wireframe = !is_wireframe;
 }
 
 function u32

@@ -58,3 +58,4 @@ GL_FUNC(void,   glVertexArrayAttribIFormat, (GLuint vaobj, GLuint attribindex, G
 GL_FUNC(void,   glUniform1iv,               (GLint location, GLsizei count, const GLint *value))
 GL_FUNC(void,   glUseProgram,               (GLuint program))
 GL_FUNC(void,   glProgramUniform1iv,        (GLuint program, GLint location, GLsizei count, const GLint *value))
+GL_FUNC(void,   glPolygonMode,              (GLenum face, GLenum mode))
