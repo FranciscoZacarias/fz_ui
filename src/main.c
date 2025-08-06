@@ -46,7 +46,7 @@ entry_point(Command_Line* command_line)
     renderer_draw_3darrow(vec3f32(  0.0f, -4.0f,   0.0f), vec3f32(0.0f, 4.0f,  0.0), Color_Green);
     renderer_draw_3darrow(vec3f32(  0.0f,   0.0f, -4.0f), vec3f32(0.0f,  0.0f, 4.0), Color_Blue);
 
-    renderer_draw_3dquad(transformf32(vec3f32(0.0f, 0.0f, 2.0f), quatf32_from_euler(Radians(30.0f), Radians(45.0f), Radians(0.0f)), vec3f32(1.0f, 1.0f, 1.0f)), Color_Brown);
+    renderer_draw_3dquad(transformf32(vec3f32(0.0f, 0.0f, 2.0f), quatf32_from_euler(Radians(90.0f), Radians(0.0f), Radians(0.0f)), vec3f32(1.0f, 1.0f, 1.0f)), Color_Brown);
     
     renderer_draw_3dquad_texture(transformf32(vec3f32( 2.0f,  2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_White, black.index);
     renderer_draw_3dquad_texture(transformf32(vec3f32(-2.0f,  2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_White, red.index);
@@ -57,8 +57,11 @@ entry_point(Command_Line* command_line)
     renderer_draw_2dquad(vec2f32(70.f, 100.f), vec2f32(15.f, 20.f), vec4f32(0.0f, 1.0f, 0.0f, 1.0f));
     renderer_draw_2dquad(vec2f32(90.f, 100.f), vec2f32(15.f, 20.f), vec4f32(0.0f, 0.0f, 1.0f, 1.0f));
     
-    renderer_draw_2dquad_texture(vec2f32(90.f, 300.f), vec2f32(50.f, 50.f), Color_White, red.index);
-    renderer_draw_2dquad_texture(vec2f32(170, 300.f), vec2f32(50.f, 50.f), Color_White, blue.index);
+    renderer_draw_2dquad_texture(vec2f32(30.f, 30.f), vec2f32(50.f, 50.f), Color_White, black.index);
+    renderer_draw_2dquad_texture(vec2f32(90.f, 30.f), vec2f32(50.f, 50.f), Color_White, red.index);
+    renderer_draw_2dquad_texture(vec2f32(150.f, 30.f), vec2f32(50.f, 50.f), Color_White, pink.index);
+    renderer_draw_2dquad_texture(vec2f32(210.f, 30.f), vec2f32(50.f, 50.f), Color_White, yelow.index);
+    renderer_draw_2dquad_texture(vec2f32(270.f, 30.f), vec2f32(50.f, 50.f), Color_White, blue.index);
 
     renderer_draw_text_screenspace(vec2f32(5.0f, g_os_window->dimensions.y - 15.0f), Color_Black, 4.0f, Sf(arena, "FPS: %.2f", g_fps));
 
@@ -91,4 +94,6 @@ input_update()
     os_window_enable_vsync(is_vsync_on ? false : true);
     is_vsync_on = !is_vsync_on;
   }
+
+
 }
