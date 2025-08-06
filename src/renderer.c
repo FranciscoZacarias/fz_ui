@@ -391,6 +391,7 @@ renderer_init()
 
   scratch_end(&scratch);
 }
+
 function Instanced_Target*
 renderer_new_instanced_target(Arena* arena, Instanced_Target_Kind kind, u32 max_instances)
 {
