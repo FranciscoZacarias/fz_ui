@@ -45,12 +45,12 @@ entry_point(Command_Line* command_line)
     renderer_draw_3darrow(vec3f32(  0.0f, -4.0f,   0.0f), vec3f32(0.0f, 4.0f,  0.0), Color_Green);
     renderer_draw_3darrow(vec3f32(  0.0f,   0.0f, -4.0f), vec3f32(0.0f,  0.0f, 4.0), Color_Blue);
 
-    Quatf32 r = quatf32_from_euler(Radians(30.0f), Radians(45.0f), Radians(0.0f));
-    renderer_draw_3dquad(transformf32(vec3f32(0.0f, 0.0f, 2.0f), r, vec3f32(1.0f, 1.0f, 1.0f)), Color_Brown);
-    renderer_draw_3dquad_texture(vec3f32( 2.0f,  2.0f, -2.0f), vec3f32(2.0f, 2.0f, 1.0f), Color_White, black.index);
-    renderer_draw_3dquad_texture(vec3f32(-2.0f,  2.0f, -2.0f), vec3f32(2.0f, 2.0f, 1.0f), Color_White, red.index);
-    renderer_draw_3dquad_texture(vec3f32( 2.0f, -2.0f, -2.0f), vec3f32(2.0f, 2.0f, 1.0f), Color_White, pink.index);
-    renderer_draw_3dquad_texture(vec3f32(-2.0f, -2.0f, -2.0f), vec3f32(2.0f, 2.0f, 1.0f), Color_White, yelow.index);
+    renderer_draw_3dquad(transformf32(vec3f32(0.0f, 0.0f, 2.0f), quatf32_from_euler(Radians(30.0f), Radians(45.0f), Radians(0.0f)), vec3f32(1.0f, 1.0f, 1.0f)), Color_Brown);
+    
+    renderer_draw_3dquad_texture(transformf32(vec3f32( 2.0f,  2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_White, black.index);
+    renderer_draw_3dquad_texture(transformf32(vec3f32(-2.0f,  2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_White, red.index);
+    renderer_draw_3dquad_texture(transformf32(vec3f32( 2.0f, -2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_White, pink.index);
+    renderer_draw_3dquad_texture(transformf32(vec3f32(-2.0f, -2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_White, yelow.index);
 
     renderer_draw_2dquad(vec2f32(50.f, 100.f), vec2f32(15.f, 20.f), vec4f32(1.0f, 0.0f, 0.0f, 1.0f));
     renderer_draw_2dquad(vec2f32(70.f, 100.f), vec2f32(15.f, 20.f), vec4f32(0.0f, 1.0f, 0.0f, 1.0f));

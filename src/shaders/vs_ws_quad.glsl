@@ -27,6 +27,7 @@ void main()
   vec3 scaled_pos  = a_unit_pos * a_instance_scale;
   vec3 rotated_pos = rotate_vec3_by_quat(scaled_pos, a_instance_rotation);
   vec3 world_pos   = a_instance_translation + rotated_pos;
+
   gl_Position      = u_projection * u_view * vec4(world_pos, 1.0);
   v_color          = a_instance_color;
 }
