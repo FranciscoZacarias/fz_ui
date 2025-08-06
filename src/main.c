@@ -22,6 +22,7 @@ entry_point(Command_Line* command_line)
   Texture_Info red   = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\red.png")));
   Texture_Info pink  = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\pink.png")));
   Texture_Info yelow = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\yelow.png")));
+  Texture_Info blue  = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\blue 1.png")));
 
   // Camera
   camera_init(&g_camera);
@@ -57,6 +58,7 @@ entry_point(Command_Line* command_line)
     renderer_draw_2dquad(vec2f32(90.f, 100.f), vec2f32(15.f, 20.f), vec4f32(0.0f, 0.0f, 1.0f, 1.0f));
     
     renderer_draw_2dquad_texture(vec2f32(90.f, 300.f), vec2f32(50.f, 50.f), Color_White, red.index);
+    renderer_draw_2dquad_texture(vec2f32(170, 300.f), vec2f32(50.f, 50.f), Color_White, blue.index);
 
     renderer_draw_text_screenspace(vec2f32(5.0f, g_os_window->dimensions.y - 15.0f), Color_Black, 4.0f, Sf(arena, "FPS: %.2f", g_fps));
 
