@@ -212,6 +212,7 @@ function void    renderer_draw_3dline(Vec3f32 p0, Vec3f32 p1, Vec4f32 color);
 function void    renderer_draw_3darrow(Vec3f32 start, Vec3f32 end, Vec4f32 color);
 
 function Texture_Info renderer_load_texture(String8 path);
+function void         renderer_create_fallback_texture();
 function void         renderer_load_font(String8 relative_path, f32 font_height);
 
 function void renderer_toggle_wireframe();

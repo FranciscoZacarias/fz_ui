@@ -373,10 +373,12 @@ renderer_init()
   // Textures
   {
     s32 max_gpu_textures;
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_gpu_textures);
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &max_gpu_textures);
     g_renderer.texture_max   = max_gpu_textures;
     g_renderer.textures      = push_array(g_renderer.arena, GLuint, g_renderer.texture_max);
     g_renderer.texture_count = 0;
+    printf("%d", g_renderer.texture_max);
+    renderer_create_fallback_texture();
   }
 
   // Font
@@ -846,6 +848,54 @@ renderer_load_texture(String8 path)
 
   scratch_end(&scratch);
   return result;
+}
+
+function void
+renderer_create_fallback_texture()
+{
+  u32 size = 16;
+  u32 square_size = 2;
+  u8* data = arena_push(g_renderer.arena, size * size * 4);
+  
+  for (u32 y = 0; y < size; y++)
+  {
+    for (u32 x = 0; x < size; x++)
+    {
+      u32 square_x = x / square_size;
+      u32 square_y = y / square_size;
+      b32 is_black = (square_x + square_y) % 2 == 0;
+      
+      u32 pixel_index = (y * size + x) * 4;
+      if (is_black)
+      {
+        data[pixel_index + 0] = 0;   // R
+        data[pixel_index + 1] = 0;   // G
+        data[pixel_index + 2] = 0;   // B
+        data[pixel_index + 3] = 255; // A
+      }
+      else
+      {
+        data[pixel_index + 0] = 255; // R
+        data[pixel_index + 1] = 0;   // G
+        data[pixel_index + 2] = 255; // B
+        data[pixel_index + 3] = 255; // A
+      }
+    }
+  }
+
+  GLuint texture;
+  glCreateTextures(GL_TEXTURE_2D, 1, &texture);
+  glTextureStorage2D(texture, 1, GL_RGBA8, size, size);
+  glTextureSubImage2D(texture, 0, 0, 0, size, size, GL_RGBA, GL_UNSIGNED_BYTE, data);
+  glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+  for (u32 slot = 0; slot < g_renderer.texture_max; slot++)
+  {
+    glBindTextureUnit(slot, texture);
+  }
 }
 
 function void

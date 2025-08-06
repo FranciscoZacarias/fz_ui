@@ -20,8 +20,8 @@ entry_point(Command_Line* command_line)
   renderer_init();
   Texture_Info black = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\black.png")));
   Texture_Info red   = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\red.png")));
-  Texture_Info pink   = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\pink.png")));
-  Texture_Info yelow   = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\yelow.png")));
+  Texture_Info pink  = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\pink.png")));
+  Texture_Info yelow = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\yelow.png")));
 
   // Camera
   camera_init(&g_camera);
