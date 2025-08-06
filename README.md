@@ -8,7 +8,7 @@
 - [x] Screenspace texture rendering - Render texture in 2D screenspace
 - [x] Create fallback texture - Default texture when loading fails to prevent crashes
 - [x] Wireframe mode toggle - Switch between filled and wireframe rendering for debugging
-- [ ] Change worldspace quads such that I can transform them - Add rotation support to quad instances
+- [x] Change worldspace quads such that I can transform them - Add rotation support to quad instances
 
 ### CORE FEATURES - High Priority
 
