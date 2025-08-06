@@ -45,7 +45,8 @@ entry_point(Command_Line* command_line)
     renderer_draw_3darrow(vec3f32(  0.0f, -4.0f,   0.0f), vec3f32(0.0f, 4.0f,  0.0), Color_Green);
     renderer_draw_3darrow(vec3f32(  0.0f,   0.0f, -4.0f), vec3f32(0.0f,  0.0f, 4.0), Color_Blue);
 
-    renderer_draw_3dquad(vec3f32(0.0f, 0.0f, 0.0f), vec3f32(2.0f, 2.0f, 1.0f), Color_Brown);
+    Quatf32 r = quatf32_from_euler(Radians(30.0f), Radians(45.0f), Radians(0.0f));
+    renderer_draw_3dquad(transformf32(vec3f32(0.0f, 0.0f, 2.0f), r, vec3f32(1.0f, 1.0f, 1.0f)), Color_Brown);
     renderer_draw_3dquad_texture(vec3f32( 2.0f,  2.0f, -2.0f), vec3f32(2.0f, 2.0f, 1.0f), Color_White, black.index);
     renderer_draw_3dquad_texture(vec3f32(-2.0f,  2.0f, -2.0f), vec3f32(2.0f, 2.0f, 1.0f), Color_White, red.index);
     renderer_draw_3dquad_texture(vec3f32( 2.0f, -2.0f, -2.0f), vec3f32(2.0f, 2.0f, 1.0f), Color_White, pink.index);

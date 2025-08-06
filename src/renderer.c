@@ -255,20 +255,25 @@ renderer_init()
     glVertexArrayAttribBinding(g_renderer.ws_quad->vao, 0, 0);
 
     // Instance data (per-instance)
-    glEnableVertexArrayAttrib(g_renderer.ws_quad->vao, 1); // Position
-    glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 1, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, position));
+    glEnableVertexArrayAttrib(g_renderer.ws_quad->vao, 1); // Translation
+    glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 1, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, transform.translation));
     glVertexArrayAttribBinding(g_renderer.ws_quad->vao, 1, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_quad->vao, 1, 1);
 
-    glEnableVertexArrayAttrib(g_renderer.ws_quad->vao, 2); // Scale
-    glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 2, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, scale));
+    glEnableVertexArrayAttrib(g_renderer.ws_quad->vao, 2); // Rotation
+    glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 2, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, transform.rotation));
     glVertexArrayAttribBinding(g_renderer.ws_quad->vao, 2, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_quad->vao, 2, 1);
 
-    glEnableVertexArrayAttrib(g_renderer.ws_quad->vao, 3); // Color
-    glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 3, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, color));
+    glEnableVertexArrayAttrib(g_renderer.ws_quad->vao, 3); // Scale
+    glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 3, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, transform.scale));
     glVertexArrayAttribBinding(g_renderer.ws_quad->vao, 3, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_quad->vao, 3, 1);
+
+    glEnableVertexArrayAttrib(g_renderer.ws_quad->vao, 4); // Color
+    glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 4, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, color));
+    glVertexArrayAttribBinding(g_renderer.ws_quad->vao, 4, 1);
+    glVertexArrayBindingDivisor(g_renderer.ws_quad->vao, 4, 1);
 
     g_renderer.ws_quad->u_projection_location = glGetUniformLocation(g_renderer.shaders.v_worldspace_quad, "u_projection");
     g_renderer.ws_quad->u_view_location = glGetUniformLocation(g_renderer.shaders.v_worldspace_quad, "u_view");
@@ -636,7 +641,7 @@ renderer_draw_text_screenspace(Vec2f32 position, Vec4f32 color, f32 scale, Strin
 }
 
 function void
-renderer_draw_3dquad(Vec3f32 position, Vec3f32 scale, Vec4f32 color)
+renderer_draw_3dquad(Transformf32 transform, Vec4f32 color)
 {
   if (g_renderer.ws_quad->count >= g_renderer.ws_quad->max)
   {
@@ -644,8 +649,9 @@ renderer_draw_3dquad(Vec3f32 position, Vec3f32 scale, Vec4f32 color)
     return;
   }
   Quad3D* data = (Quad3D*)g_renderer.ws_quad->data;
-  data[g_renderer.ws_quad->count].position = position;
-  data[g_renderer.ws_quad->count].scale    = scale;
+  data[g_renderer.ws_quad->count].transform.translation = transform.translation;
+  data[g_renderer.ws_quad->count].transform.rotation    = transform.rotation;
+  data[g_renderer.ws_quad->count].transform.scale       = transform.scale;
   data[g_renderer.ws_quad->count].color    = color;
   g_renderer.ws_quad->count += 1;
 }
