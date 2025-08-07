@@ -29,5 +29,6 @@ f32      g_delta_time;
 u32      g_fps;
 
 function void input_update();
+function void screen_alert(String8 text);
 
 #endif // MAIN_H

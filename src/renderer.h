@@ -11,6 +11,8 @@
 
 // Fonts
 #define Font_ProggyClean S("\\assets\\fonts\\ProggyClean.ttf")
+#define Font_Inconsolata S("\\assets\\fonts\\Inconsolata.ttf")
+#define Font_Karmina     S("\\assets\\fonts\\Karmina.otf")
 
 ///////////////////////////////////////////////////////
 // @Section: Screenspace primitives

@@ -218,15 +218,15 @@ r_init()
     glVertexArrayAttribBinding(g_renderer.ws_quad->vao, 3, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_quad->vao, 3, 1);
 
-		glEnableVertexArrayAttrib(g_renderer.ws_quad->vao, 4); // UV Min
-		glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 4, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, uv_min));
-		glVertexArrayAttribBinding(g_renderer.ws_quad->vao, 4, 1);
-		glVertexArrayBindingDivisor(g_renderer.ws_quad->vao, 4, 1);
+    glEnableVertexArrayAttrib(g_renderer.ws_quad->vao, 4); // UV Min
+    glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 4, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, uv_min));
+    glVertexArrayAttribBinding(g_renderer.ws_quad->vao, 4, 1);
+    glVertexArrayBindingDivisor(g_renderer.ws_quad->vao, 4, 1);
 
-		glEnableVertexArrayAttrib(g_renderer.ws_quad->vao, 5); // UV Max
-		glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 5, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, uv_max));
-		glVertexArrayAttribBinding(g_renderer.ws_quad->vao, 5, 1);
-		glVertexArrayBindingDivisor(g_renderer.ws_quad->vao, 5, 1);
+    glEnableVertexArrayAttrib(g_renderer.ws_quad->vao, 5); // UV Max
+    glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 5, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, uv_max));
+    glVertexArrayAttribBinding(g_renderer.ws_quad->vao, 5, 1);
+    glVertexArrayBindingDivisor(g_renderer.ws_quad->vao, 5, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ws_quad->vao, 6); // Color
     glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 6, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, color));
@@ -241,28 +241,28 @@ r_init()
     g_renderer.ws_quad->u_projection_location = glGetUniformLocation(g_renderer.shaders.v_ws_quad, "u_projection");
     g_renderer.ws_quad->u_view_location = glGetUniformLocation(g_renderer.shaders.v_ws_quad, "u_view");
 
-		//
-		// 3D Text
-		//
-		g_renderer.ws_text = r_new_instanced_target(g_renderer.arena, IT_Kind_Worldspace_text, Thousand(2));
+    //
+    // 3D Text
+    //
+    g_renderer.ws_text = r_new_instanced_target(g_renderer.arena, IT_Kind_Worldspace_text, Thousand(2));
 
-		// Unit geometry buffer
-		glCreateBuffers(1, &g_renderer.ws_text->unit_vbo);
-		glNamedBufferStorage(g_renderer.ws_text->unit_vbo, sizeof(unit_3dquad), unit_3dquad, 0);
+    // Unit geometry buffer
+    glCreateBuffers(1, &g_renderer.ws_text->unit_vbo);
+    glNamedBufferStorage(g_renderer.ws_text->unit_vbo, sizeof(unit_3dquad), unit_3dquad, 0);
 
-		// Instance data buffer  
-		glCreateBuffers(1, &g_renderer.ws_text->instance_vbo);
-		glNamedBufferStorage(g_renderer.ws_text->instance_vbo, sizeof(Quad3D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
+    // Instance data buffer  
+    glCreateBuffers(1, &g_renderer.ws_text->instance_vbo);
+    glNamedBufferStorage(g_renderer.ws_text->instance_vbo, sizeof(Quad3D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
 
-		// VAO setup (same pattern as ws_quad_texture but using f_text shader)
-		glCreateVertexArrays(1, &g_renderer.ws_text->vao);
-		glVertexArrayVertexBuffer(g_renderer.ws_text->vao, 0, g_renderer.ws_text->unit_vbo, 0, sizeof(Vec3f32));
-		glVertexArrayVertexBuffer(g_renderer.ws_text->vao, 1, g_renderer.ws_text->instance_vbo, 0, sizeof(Quad3D));
+    // VAO setup (same pattern as ws_quad_texture but using f_text shader)
+    glCreateVertexArrays(1, &g_renderer.ws_text->vao);
+    glVertexArrayVertexBuffer(g_renderer.ws_text->vao, 0, g_renderer.ws_text->unit_vbo, 0, sizeof(Vec3f32));
+    glVertexArrayVertexBuffer(g_renderer.ws_text->vao, 1, g_renderer.ws_text->instance_vbo, 0, sizeof(Quad3D));
 
-		// Pipeline - use f_text fragment shader
-		glCreateProgramPipelines(1, &g_renderer.ws_text->pipeline);
-		glUseProgramStages(g_renderer.ws_text->pipeline, GL_VERTEX_SHADER_BIT, g_renderer.shaders.v_ws_quad);
-		glUseProgramStages(g_renderer.ws_text->pipeline, GL_FRAGMENT_SHADER_BIT, g_renderer.shaders.f_text);
+    // Pipeline - use f_text fragment shader
+    glCreateProgramPipelines(1, &g_renderer.ws_text->pipeline);
+    glUseProgramStages(g_renderer.ws_text->pipeline, GL_VERTEX_SHADER_BIT, g_renderer.shaders.v_ws_quad);
+    glUseProgramStages(g_renderer.ws_text->pipeline, GL_FRAGMENT_SHADER_BIT, g_renderer.shaders.f_text);
 
     // Unit quad positions (per-vertex)
     glEnableVertexArrayAttrib(g_renderer.ws_text->vao, 0);
@@ -285,15 +285,15 @@ r_init()
     glVertexArrayAttribBinding(g_renderer.ws_text->vao, 3, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_text->vao, 3, 1);
 
-		glEnableVertexArrayAttrib(g_renderer.ws_text->vao, 4); // UV Min
-		glVertexArrayAttribFormat(g_renderer.ws_text->vao, 4, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, uv_min));
-		glVertexArrayAttribBinding(g_renderer.ws_text->vao, 4, 1);
-		glVertexArrayBindingDivisor(g_renderer.ws_text->vao, 4, 1);
+    glEnableVertexArrayAttrib(g_renderer.ws_text->vao, 4); // UV Min
+    glVertexArrayAttribFormat(g_renderer.ws_text->vao, 4, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, uv_min));
+    glVertexArrayAttribBinding(g_renderer.ws_text->vao, 4, 1);
+    glVertexArrayBindingDivisor(g_renderer.ws_text->vao, 4, 1);
 
-		glEnableVertexArrayAttrib(g_renderer.ws_text->vao, 5); // UV Max
-		glVertexArrayAttribFormat(g_renderer.ws_text->vao, 5, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, uv_max));
-		glVertexArrayAttribBinding(g_renderer.ws_text->vao, 5, 1);
-		glVertexArrayBindingDivisor(g_renderer.ws_text->vao, 5, 1);
+    glEnableVertexArrayAttrib(g_renderer.ws_text->vao, 5); // UV Max
+    glVertexArrayAttribFormat(g_renderer.ws_text->vao, 5, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, uv_max));
+    glVertexArrayAttribBinding(g_renderer.ws_text->vao, 5, 1);
+    glVertexArrayBindingDivisor(g_renderer.ws_text->vao, 5, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ws_text->vao, 6); // Color
     glVertexArrayAttribFormat(g_renderer.ws_text->vao, 6, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, color));
@@ -305,8 +305,8 @@ r_init()
     glVertexArrayAttribBinding(g_renderer.ws_text->vao, 7, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_text->vao, 7, 1);
 
-		g_renderer.ws_text->u_projection_location = glGetUniformLocation(g_renderer.shaders.v_ws_quad, "u_projection");
-		g_renderer.ws_text->u_view_location = glGetUniformLocation(g_renderer.shaders.v_ws_quad, "u_view");
+    g_renderer.ws_text->u_projection_location = glGetUniformLocation(g_renderer.shaders.v_ws_quad, "u_projection");
+    g_renderer.ws_text->u_view_location = glGetUniformLocation(g_renderer.shaders.v_ws_quad, "u_view");
 
     //
     // Lines
@@ -365,7 +365,7 @@ r_init()
     g_renderer.fonts_max   = 4;
     g_renderer.fonts       = push_array(g_renderer.arena, Font, g_renderer.fonts_max);
     g_renderer.fonts_count = 0;
-    r_load_font(Font_ProggyClean, 32.0f);
+    r_load_font(Font_Karmina, 32.0f);
   }
 
   scratch_end(&scratch);
@@ -385,7 +385,7 @@ r_new_instanced_target(Arena* arena, Instanced_Target_Kind kind, u32 max_instanc
       stride = sizeof(Quad2D);
     } break;
     case IT_Kind_Worldspace_quad:
-		case IT_Kind_Worldspace_text:
+    case IT_Kind_Worldspace_text:
     {
       stride = sizeof(Quad3D);
     } break;
@@ -585,8 +585,8 @@ r_draw_3dquad(Transformf32 transform, Vec4f32 color, u32 texture_id)
   data[g_renderer.ws_quad->count].transform.translation = transform.translation;
   data[g_renderer.ws_quad->count].transform.rotation    = transform.rotation;
   data[g_renderer.ws_quad->count].transform.scale       = transform.scale;
-	data[g_renderer.ws_quad->count].uv_min                = vec2f32(0.0f, 0.0f);
-	data[g_renderer.ws_quad->count].uv_max                = vec2f32(1.0f, 1.0f);
+  data[g_renderer.ws_quad->count].uv_min                = vec2f32(0.0f, 0.0f);
+  data[g_renderer.ws_quad->count].uv_max                = vec2f32(1.0f, 1.0f);
   data[g_renderer.ws_quad->count].color                 = color;
   data[g_renderer.ws_quad->count].texture_id            = texture_id;
   g_renderer.ws_quad->count += 1;
@@ -595,7 +595,7 @@ r_draw_3dquad(Transformf32 transform, Vec4f32 color, u32 texture_id)
 function void
 r_draw_3dtext(Transformf32 transform, Vec4f32 color, f32 font_scale, String8 text)
 {
-	font_scale *= 0.002;
+  font_scale *= 0.002;
 
   Font* font = &g_renderer.fonts[0];
   f32 cursor_x = 0;
@@ -780,12 +780,12 @@ r_load_font(String8 relative_path, f32 font_height)
   g_renderer.fonts[g_renderer.fonts_count].texture_id    = texture;
   g_renderer.fonts[g_renderer.fonts_count].texture_index = g_renderer.texture_count;
 
-	s32 ascent, descent, line_gap;
-	stbtt_GetFontVMetrics(&font_info, &ascent, &descent, &line_gap);
+  s32 ascent, descent, line_gap;
+  stbtt_GetFontVMetrics(&font_info, &ascent, &descent, &line_gap);
 
-	g_renderer.fonts[g_renderer.fonts_count].ascent   = (f32)ascent;
-	g_renderer.fonts[g_renderer.fonts_count].descent  = (f32)descent;
-	g_renderer.fonts[g_renderer.fonts_count].line_gap = (f32)line_gap;
+  g_renderer.fonts[g_renderer.fonts_count].ascent   = (f32)ascent;
+  g_renderer.fonts[g_renderer.fonts_count].descent  = (f32)descent;
+  g_renderer.fonts[g_renderer.fonts_count].line_gap = (f32)line_gap;
 
   g_renderer.texture_count += 1;
   g_renderer.fonts_count += 1;
@@ -844,7 +844,7 @@ r_load_texture(String8 path)
 function void
 r_create_fallback_texture()
 {
-	Scratch scratch = scratch_begin(0,0);
+  Scratch scratch = scratch_begin(0,0);
 
   u32 size = 16;
   u32 square_size = 2;
@@ -890,7 +890,7 @@ r_create_fallback_texture()
     glBindTextureUnit(slot, texture);
   }
 
-	scratch_end(&scratch);
+  scratch_end(&scratch);
 }
 
 function Texture_Info
