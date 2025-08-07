@@ -95,14 +95,16 @@ struct Glyph
 typedef struct Font Font;
 struct Font
 {
-#define MaxFontGlyphs 95
+  #define MaxFontGlyphs 95
   Glyph glyphs[MaxFontGlyphs];
   u32   texture_id;
   u32   texture_index;
   f32   height;
   f32   line_height;
+  f32   ascent;
+  f32   descent;
+  f32   line_gap;
 };
-
 ///////////////////////////////////////////////////////
 // @Section: Instanced Target
 typedef enum
