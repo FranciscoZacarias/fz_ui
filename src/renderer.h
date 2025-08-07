@@ -61,6 +61,8 @@ typedef struct Quad3D Quad3D;
 struct Quad3D
 {
   Transformf32 transform;
+  Vec2f32 uv_min;
+  Vec2f32 uv_max;
   Vec4f32 color;
   u32 texture_id;
 };
@@ -181,8 +183,8 @@ function void renderer_end_frame(Mat4f32 view, Mat4f32 projection);
 function Instanced_Target* renderer_new_instanced_target(Arena* arena, Instanced_Target_Kind kind, u32 max_instances);
 
 function void    renderer_draw_2dquad(Vec2f32 position, Vec2f32 scale, Vec4f32 color, u32 texture_id);
-function Vec2f32 renderer_draw_text_screenspace(Vec2f32 position, Vec4f32 color, f32 scale, String8 text);
-function void    renderer_draw_3dquad_texture(Transformf32 transform, Vec4f32 color, u32 texture_id);
+function Vec2f32 renderer_draw_2dtext(Vec2f32 position, Vec4f32 color, f32 scale, String8 text);
+function void    renderer_draw_3dquad(Transformf32 transform, Vec4f32 color, u32 texture_id);
 function void    renderer_draw_3dline(Vec3f32 p0, Vec3f32 p1, Vec4f32 color);
 function void    renderer_draw_3darrow(Vec3f32 start, Vec3f32 end, Vec4f32 color);
 
