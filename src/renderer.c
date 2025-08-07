@@ -17,10 +17,10 @@ renderer_init()
   MemoryZeroStruct(&g_renderer);
   g_renderer.arena = arena_alloc();
 
-  g_renderer.shaders.v_screenspace_quad = renderer_compile_shader(V_SS_Quad_Path, GL_VERTEX_SHADER);
-  g_renderer.shaders.v_screenspace_text = renderer_compile_shader(V_SS_Text_Path, GL_VERTEX_SHADER);
-  g_renderer.shaders.v_worldspace_quad  = renderer_compile_shader(V_WS_Quad_Path, GL_VERTEX_SHADER);
-  g_renderer.shaders.v_worldspace_line  = renderer_compile_shader(V_WS_Line_Path, GL_VERTEX_SHADER);
+  g_renderer.shaders.v_ss_quad = renderer_compile_shader(V_SS_Quad_Path, GL_VERTEX_SHADER);
+  g_renderer.shaders.v_ss_text = renderer_compile_shader(V_SS_Text_Path, GL_VERTEX_SHADER);
+  g_renderer.shaders.v_ws_quad  = renderer_compile_shader(V_WS_Quad_Path, GL_VERTEX_SHADER);
+  g_renderer.shaders.v_ws_line  = renderer_compile_shader(V_WS_Line_Path, GL_VERTEX_SHADER);
 
   g_renderer.shaders.f_default = renderer_compile_shader(F_Default_Path, GL_FRAGMENT_SHADER);
   g_renderer.shaders.f_texture = renderer_compile_shader(F_Texture_Path, GL_FRAGMENT_SHADER);
@@ -37,7 +37,7 @@ renderer_init()
   // Screenspace
   {
     //
-    // 2D Quads Texture
+    // 2D Quads
     //
 
     g_renderer.ss_quad = renderer_new_instanced_target(g_renderer.arena, IT_Kind_Screenspace_quad, Thousand(1));
@@ -61,7 +61,7 @@ renderer_init()
 
     // Pipeline
     glCreateProgramPipelines(1, &g_renderer.ss_quad->pipeline);
-    glUseProgramStages(g_renderer.ss_quad->pipeline, GL_VERTEX_SHADER_BIT, g_renderer.shaders.v_screenspace_quad);
+    glUseProgramStages(g_renderer.ss_quad->pipeline, GL_VERTEX_SHADER_BIT, g_renderer.shaders.v_ss_quad);
     glUseProgramStages(g_renderer.ss_quad->pipeline, GL_FRAGMENT_SHADER_BIT, g_renderer.shaders.f_texture);
 
     // Unit quad positions (per-vertex)
@@ -100,10 +100,10 @@ renderer_init()
     glVertexArrayAttribBinding(g_renderer.ss_quad->vao, 6, 1);
     glVertexArrayBindingDivisor(g_renderer.ss_quad->vao, 6, 1);
 
-    g_renderer.ss_quad->u_screen_size_location = glGetUniformLocation(g_renderer.shaders.v_screenspace_quad, "u_screen_size");
+    g_renderer.ss_quad->u_screen_size_location = glGetUniformLocation(g_renderer.shaders.v_ss_quad, "u_screen_size");
 
     //
-    // Text
+    // 2D Text
     //
     g_renderer.ss_text = renderer_new_instanced_target(g_renderer.arena, IT_Kind_Screenspace_text, Thousand(1));
     
@@ -126,7 +126,7 @@ renderer_init()
 
     // Pipeline
     glCreateProgramPipelines(1, &g_renderer.ss_text->pipeline);
-    glUseProgramStages(g_renderer.ss_text->pipeline, GL_VERTEX_SHADER_BIT, g_renderer.shaders.v_screenspace_text);
+    glUseProgramStages(g_renderer.ss_text->pipeline, GL_VERTEX_SHADER_BIT, g_renderer.shaders.v_ss_text);
     glUseProgramStages(g_renderer.ss_text->pipeline, GL_FRAGMENT_SHADER_BIT, g_renderer.shaders.f_text);
 
     // Unit quad positions (per-vertex)
@@ -165,15 +165,15 @@ renderer_init()
     glVertexArrayAttribBinding(g_renderer.ss_text->vao, 6, 1);
     glVertexArrayBindingDivisor(g_renderer.ss_text->vao, 6, 1);
 
-    g_renderer.ss_text->u_screen_size_location = glGetUniformLocation(g_renderer.shaders.v_screenspace_text, "u_screen_size");
+    g_renderer.ss_text->u_screen_size_location = glGetUniformLocation(g_renderer.shaders.v_ss_text, "u_screen_size");
   }
 
   // Worldspace
   {
     //
-    // Textured Quads
+    // 3D Quads
     //
-    g_renderer.ws_quad = renderer_new_instanced_target(g_renderer.arena, IT_Kind_Worldspace_quad_texture, Thousand(1));
+    g_renderer.ws_quad = renderer_new_instanced_target(g_renderer.arena, IT_Kind_Worldspace_quad, Thousand(1));
 
     // Unit geometry buffer
     glCreateBuffers(1, &g_renderer.ws_quad->unit_vbo);
@@ -194,7 +194,7 @@ renderer_init()
 
     // Pipeline
     glCreateProgramPipelines(1, &g_renderer.ws_quad->pipeline);
-    glUseProgramStages(g_renderer.ws_quad->pipeline, GL_VERTEX_SHADER_BIT, g_renderer.shaders.v_worldspace_quad);
+    glUseProgramStages(g_renderer.ws_quad->pipeline, GL_VERTEX_SHADER_BIT, g_renderer.shaders.v_ws_quad);
     glUseProgramStages(g_renderer.ws_quad->pipeline, GL_FRAGMENT_SHADER_BIT, g_renderer.shaders.f_texture);
 
     // Unit quad positions (per-vertex)
@@ -238,8 +238,75 @@ renderer_init()
     glVertexArrayAttribBinding(g_renderer.ws_quad->vao, 7, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_quad->vao, 7, 1);
 
-    g_renderer.ws_quad->u_projection_location = glGetUniformLocation(g_renderer.shaders.v_worldspace_quad, "u_projection");
-    g_renderer.ws_quad->u_view_location = glGetUniformLocation(g_renderer.shaders.v_worldspace_quad, "u_view");
+    g_renderer.ws_quad->u_projection_location = glGetUniformLocation(g_renderer.shaders.v_ws_quad, "u_projection");
+    g_renderer.ws_quad->u_view_location = glGetUniformLocation(g_renderer.shaders.v_ws_quad, "u_view");
+
+		//
+		// 3D Text
+		//
+		g_renderer.ws_text = renderer_new_instanced_target(g_renderer.arena, IT_Kind_Worldspace_text, Thousand(2));
+
+		// Unit geometry buffer
+		glCreateBuffers(1, &g_renderer.ws_text->unit_vbo);
+		glNamedBufferStorage(g_renderer.ws_text->unit_vbo, sizeof(unit_3dquad), unit_3dquad, 0);
+
+		// Instance data buffer  
+		glCreateBuffers(1, &g_renderer.ws_text->instance_vbo);
+		glNamedBufferStorage(g_renderer.ws_text->instance_vbo, sizeof(Quad3D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
+
+		// VAO setup (same pattern as ws_quad_texture but using f_text shader)
+		glCreateVertexArrays(1, &g_renderer.ws_text->vao);
+		glVertexArrayVertexBuffer(g_renderer.ws_text->vao, 0, g_renderer.ws_text->unit_vbo, 0, sizeof(Vec3f32));
+		glVertexArrayVertexBuffer(g_renderer.ws_text->vao, 1, g_renderer.ws_text->instance_vbo, 0, sizeof(Quad3D));
+
+		// Pipeline - use f_text fragment shader
+		glCreateProgramPipelines(1, &g_renderer.ws_text->pipeline);
+		glUseProgramStages(g_renderer.ws_text->pipeline, GL_VERTEX_SHADER_BIT, g_renderer.shaders.v_ws_quad);
+		glUseProgramStages(g_renderer.ws_text->pipeline, GL_FRAGMENT_SHADER_BIT, g_renderer.shaders.f_text);
+
+    // Unit quad positions (per-vertex)
+    glEnableVertexArrayAttrib(g_renderer.ws_text->vao, 0);
+    glVertexArrayAttribFormat(g_renderer.ws_text->vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(g_renderer.ws_text->vao, 0, 0);
+    
+    // Instance data (per-instance)
+    glEnableVertexArrayAttrib(g_renderer.ws_text->vao, 1); // Translation
+    glVertexArrayAttribFormat(g_renderer.ws_text->vao, 1, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, transform.translation));
+    glVertexArrayAttribBinding(g_renderer.ws_text->vao, 1, 1);
+    glVertexArrayBindingDivisor(g_renderer.ws_text->vao, 1, 1);
+
+    glEnableVertexArrayAttrib(g_renderer.ws_text->vao, 2); // Rotation
+    glVertexArrayAttribFormat(g_renderer.ws_text->vao, 2, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, transform.rotation));
+    glVertexArrayAttribBinding(g_renderer.ws_text->vao, 2, 1);
+    glVertexArrayBindingDivisor(g_renderer.ws_text->vao, 2, 1);
+
+    glEnableVertexArrayAttrib(g_renderer.ws_text->vao, 3); // Scale
+    glVertexArrayAttribFormat(g_renderer.ws_text->vao, 3, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, transform.scale));
+    glVertexArrayAttribBinding(g_renderer.ws_text->vao, 3, 1);
+    glVertexArrayBindingDivisor(g_renderer.ws_text->vao, 3, 1);
+
+		glEnableVertexArrayAttrib(g_renderer.ws_text->vao, 4); // UV Min
+		glVertexArrayAttribFormat(g_renderer.ws_text->vao, 4, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, uv_min));
+		glVertexArrayAttribBinding(g_renderer.ws_text->vao, 4, 1);
+		glVertexArrayBindingDivisor(g_renderer.ws_text->vao, 4, 1);
+
+		glEnableVertexArrayAttrib(g_renderer.ws_text->vao, 5); // UV Max
+		glVertexArrayAttribFormat(g_renderer.ws_text->vao, 5, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, uv_max));
+		glVertexArrayAttribBinding(g_renderer.ws_text->vao, 5, 1);
+		glVertexArrayBindingDivisor(g_renderer.ws_text->vao, 5, 1);
+
+    glEnableVertexArrayAttrib(g_renderer.ws_text->vao, 6); // Color
+    glVertexArrayAttribFormat(g_renderer.ws_text->vao, 6, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, color));
+    glVertexArrayAttribBinding(g_renderer.ws_text->vao, 6, 1);
+    glVertexArrayBindingDivisor(g_renderer.ws_text->vao, 6, 1);
+
+    glEnableVertexArrayAttrib(g_renderer.ws_text->vao, 7); // Texture ID
+    glVertexArrayAttribIFormat(g_renderer.ws_text->vao, 7, 1, GL_UNSIGNED_INT, OffsetOfMember(Quad3D, texture_id));
+    glVertexArrayAttribBinding(g_renderer.ws_text->vao, 7, 1);
+    glVertexArrayBindingDivisor(g_renderer.ws_text->vao, 7, 1);
+
+		g_renderer.ws_text->u_projection_location = glGetUniformLocation(g_renderer.shaders.v_ws_quad, "u_projection");
+		g_renderer.ws_text->u_view_location = glGetUniformLocation(g_renderer.shaders.v_ws_quad, "u_view");
 
     //
     // Lines
@@ -258,7 +325,7 @@ renderer_init()
 
     // Pipeline
     glCreateProgramPipelines(1, &g_renderer.ws_line->pipeline);
-    glUseProgramStages(g_renderer.ws_line->pipeline, GL_VERTEX_SHADER_BIT, g_renderer.shaders.v_worldspace_line);
+    glUseProgramStages(g_renderer.ws_line->pipeline, GL_VERTEX_SHADER_BIT, g_renderer.shaders.v_ws_line);
     glUseProgramStages(g_renderer.ws_line->pipeline, GL_FRAGMENT_SHADER_BIT, g_renderer.shaders.f_default);
 
 
@@ -279,8 +346,8 @@ renderer_init()
     glVertexArrayBindingDivisor(g_renderer.ws_line->vao, 2, 1);
 
 
-    g_renderer.ws_line->u_projection_location = glGetUniformLocation(g_renderer.shaders.v_worldspace_line, "u_projection");
-    g_renderer.ws_line->u_view_location = glGetUniformLocation(g_renderer.shaders.v_worldspace_line, "u_view");
+    g_renderer.ws_line->u_projection_location = glGetUniformLocation(g_renderer.shaders.v_ws_line, "u_projection");
+    g_renderer.ws_line->u_view_location = glGetUniformLocation(g_renderer.shaders.v_ws_line, "u_view");
   }
 
   // Textures
@@ -317,7 +384,8 @@ renderer_new_instanced_target(Arena* arena, Instanced_Target_Kind kind, u32 max_
     {
       stride = sizeof(Quad2D);
     } break;
-    case IT_Kind_Worldspace_quad_texture:
+    case IT_Kind_Worldspace_quad:
+		case IT_Kind_Worldspace_text:
     {
       stride = sizeof(Quad3D);
     } break;
@@ -341,20 +409,7 @@ renderer_new_instanced_target(Arena* arena, Instanced_Target_Kind kind, u32 max_
 }
 
 function void
-renderer_begin_frame()
-{
-  glClearColor(0.5f, 0.96f, 1.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-  g_renderer.ss_quad->count         = 0;
-  g_renderer.ss_quad->count = 0;
-  g_renderer.ss_text->count         = 0;
-  g_renderer.ws_quad->count = 0;
-  g_renderer.ws_line->count         = 0;
-}
-
-function void
-renderer_end_frame(Mat4f32 view, Mat4f32 projection)
+renderer_render(Mat4f32 view, Mat4f32 projection)
 {
   // Bind textures
   for (u32 idx = 0; idx < g_renderer.texture_count; idx += 1)
@@ -369,11 +424,23 @@ renderer_end_frame(Mat4f32 view, Mat4f32 projection)
     glBindProgramPipeline(g_renderer.ws_quad->pipeline);
     glBindVertexArray(g_renderer.ws_quad->vao);
 
-    glProgramUniformMatrix4fv(g_renderer.shaders.v_worldspace_quad, g_renderer.ws_quad->u_view_location, 1, GL_TRUE, &view.data[0][0]);
-    glProgramUniformMatrix4fv(g_renderer.shaders.v_worldspace_quad, g_renderer.ws_quad->u_projection_location, 1, GL_TRUE, &projection.data[0][0]);
+    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.ws_quad->u_view_location, 1, GL_TRUE, &view.data[0][0]);
+    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.ws_quad->u_projection_location, 1, GL_TRUE, &projection.data[0][0]);
 
     glNamedBufferSubData(g_renderer.ws_quad->instance_vbo, 0, sizeof(Quad3D) * g_renderer.ws_quad->count, g_renderer.ws_quad->data);
     glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.ws_quad->count);
+  }
+
+  if (g_renderer.ws_text->count > 0)
+  {
+    glBindProgramPipeline(g_renderer.ws_text->pipeline);
+    glBindVertexArray(g_renderer.ws_text->vao);
+
+    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.ws_text->u_view_location, 1, GL_TRUE, &view.data[0][0]);
+    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.ws_text->u_projection_location, 1, GL_TRUE, &projection.data[0][0]);
+
+    glNamedBufferSubData(g_renderer.ws_text->instance_vbo, 0, sizeof(Quad3D) * g_renderer.ws_text->count, g_renderer.ws_text->data);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.ws_text->count);
   }
 
   if (g_renderer.ws_line->count > 0)
@@ -382,8 +449,8 @@ renderer_end_frame(Mat4f32 view, Mat4f32 projection)
     glBindProgramPipeline(g_renderer.ws_line->pipeline);
     glBindVertexArray(g_renderer.ws_line->vao);
 
-    glProgramUniformMatrix4fv(g_renderer.shaders.v_worldspace_line, g_renderer.ws_line->u_view_location, 1, GL_TRUE, (f32*)&view);
-    glProgramUniformMatrix4fv(g_renderer.shaders.v_worldspace_line, g_renderer.ws_line->u_projection_location, 1, GL_TRUE, (f32*)&projection);
+    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_line, g_renderer.ws_line->u_view_location, 1, GL_TRUE, (f32*)&view);
+    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_line, g_renderer.ws_line->u_projection_location, 1, GL_TRUE, (f32*)&projection);
     
     glNamedBufferSubData(g_renderer.ws_line->instance_vbo, 0, sizeof(Line3D) * g_renderer.ws_line->count, g_renderer.ws_line->data);
     glDrawArraysInstanced(GL_LINES, 0, 2, g_renderer.ws_line->count);
@@ -396,7 +463,7 @@ renderer_end_frame(Mat4f32 view, Mat4f32 projection)
     glBindProgramPipeline(g_renderer.ss_quad->pipeline);
     glBindVertexArray(g_renderer.ss_quad->vao);
 
-    glProgramUniform2f(g_renderer.shaders.v_screenspace_quad, g_renderer.ss_quad->u_screen_size_location, (f32)g_os_window->dimensions.x, (f32)g_os_window->dimensions.y);
+    glProgramUniform2f(g_renderer.shaders.v_ss_quad, g_renderer.ss_quad->u_screen_size_location, (f32)g_os_window->dimensions.x, (f32)g_os_window->dimensions.y);
 
     glNamedBufferSubData(g_renderer.ss_quad->instance_vbo, 0, sizeof(Quad2D) * g_renderer.ss_quad->count, g_renderer.ss_quad->data);
     glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.ss_quad->count);
@@ -407,13 +474,23 @@ renderer_end_frame(Mat4f32 view, Mat4f32 projection)
     glBindProgramPipeline(g_renderer.ss_text->pipeline);
     glBindVertexArray(g_renderer.ss_text->vao);
 
-    glProgramUniform2f(g_renderer.shaders.v_screenspace_text, g_renderer.ss_text->u_screen_size_location, (f32)g_os_window->dimensions.x, (f32)g_os_window->dimensions.y);
+    glProgramUniform2f(g_renderer.shaders.v_ss_text, g_renderer.ss_text->u_screen_size_location, (f32)g_os_window->dimensions.x, (f32)g_os_window->dimensions.y);
 
     glNamedBufferSubData(g_renderer.ss_text->instance_vbo, 0, sizeof(Quad2D) * g_renderer.ss_text->count, g_renderer.ss_text->data);
     glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.ss_text->count);
   }
 
   os_swap_buffers();
+
+  glClearColor(0.5f, 0.96f, 1.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+  g_renderer.ss_quad->count = 0;
+  g_renderer.ss_quad->count = 0;
+  g_renderer.ss_text->count = 0;
+  g_renderer.ws_quad->count = 0;
+  g_renderer.ws_text->count = 0;
+  g_renderer.ws_line->count = 0;
 }
 
 function void
@@ -513,6 +590,63 @@ renderer_draw_3dquad(Transformf32 transform, Vec4f32 color, u32 texture_id)
   data[g_renderer.ws_quad->count].color                 = color;
   data[g_renderer.ws_quad->count].texture_id            = texture_id;
   g_renderer.ws_quad->count += 1;
+}
+
+function void
+renderer_draw_3dtext(Transformf32 transform, Vec4f32 color, f32 font_scale, String8 text)
+{
+	font_scale *= 0.002;
+
+  Font* font = &g_renderer.fonts[0];
+  f32 cursor_x = 0;
+  f32 cursor_y = 0;
+  f32 line_height = font->line_height * font_scale;
+  
+  for (u64 i = 0; i < text.size; ++i)
+  {
+    u8 c = text.str[i];
+    
+    if (c == '\n')
+    {
+      cursor_x = 0;
+      cursor_y -= line_height;
+      continue;
+    }
+    
+    if (c < 32 || c > 126) continue;
+    
+    Glyph* glyph = &font->glyphs[c - 32];
+    
+    Vec3f32 glyph_translation = vec3f32_add(transform.translation, vec3f32(
+      cursor_x + glyph->offset.x * font_scale,
+      cursor_y - glyph->offset.y * font_scale,
+      0.0f
+    ));
+    
+    Vec3f32 glyph_scale = vec3f32(
+      glyph->size.x * font_scale,
+      glyph->size.y * font_scale,
+      1.0f
+    );
+    
+    if (g_renderer.ws_text->count >= g_renderer.ws_text->max)
+    {
+      emit_fatal(S("Tried to render more 3D text quads than max"));
+      return;
+    }
+    
+    Quad3D* data = (Quad3D*)g_renderer.ws_text->data;
+    data[g_renderer.ws_text->count].transform.translation = glyph_translation;
+    data[g_renderer.ws_text->count].transform.rotation    = transform.rotation;
+    data[g_renderer.ws_text->count].transform.scale       = glyph_scale;
+    data[g_renderer.ws_text->count].uv_min                = vec2f32(glyph->uv_min.x, glyph->uv_max.y);
+    data[g_renderer.ws_text->count].uv_max                = vec2f32(glyph->uv_max.x, glyph->uv_min.y);
+    data[g_renderer.ws_text->count].color                 = color;
+    data[g_renderer.ws_text->count].texture_id            = font->texture_index;
+    g_renderer.ws_text->count += 1;
+    
+    cursor_x += glyph->advance * font_scale;
+  }
 }
 
 function void

@@ -16,15 +16,15 @@
 // @Section: Screenspace primitives
 
 // Vertex Shaders
-#define V_SS_Quad_Path S("\\src\\shaders\\vs_ss_quad.glsl")
-#define V_SS_Text_Path S("\\src\\shaders\\vs_ss_text.glsl")
-#define V_WS_Quad_Path S("\\src\\shaders\\vs_ws_quad.glsl")
-#define V_WS_Line_Path S("\\src\\shaders\\vs_ws_line.glsl")
+#define V_SS_Quad_Path S("\\src\\shaders\\v_ss_quad.glsl")
+#define V_SS_Text_Path S("\\src\\shaders\\v_ss_text.glsl")
+#define V_WS_Quad_Path S("\\src\\shaders\\v_ws_quad.glsl")
+#define V_WS_Line_Path S("\\src\\shaders\\v_ws_line.glsl")
 
 // Fragment Shaders
-#define F_Default_Path S("\\src\\shaders\\fs.glsl")
-#define F_Texture_Path S("\\src\\shaders\\fs_texture.glsl")
-#define F_Text_Path    S("\\src\\shaders\\fs_text.glsl")
+#define F_Default_Path S("\\src\\shaders\\f.glsl")
+#define F_Texture_Path S("\\src\\shaders\\f_texture.glsl")
+#define F_Text_Path    S("\\src\\shaders\\f_text.glsl")
 
 ///////////////////////////////////////////////////////
 // @Section: Texture
@@ -109,7 +109,8 @@ typedef enum
 {
   IT_Kind_Screenspace_quad,
   IT_Kind_Screenspace_text,
-  IT_Kind_Worldspace_quad_texture,
+  IT_Kind_Worldspace_quad,
+  IT_Kind_Worldspace_text,
   IT_Kind_Worldspace_line,
 } Instanced_Target_Kind;
 
@@ -146,10 +147,10 @@ struct Renderer
 
   struct
   {
-    u32 v_screenspace_quad;
-    u32 v_screenspace_text;
-    u32 v_worldspace_quad;
-    u32 v_worldspace_line;
+    u32 v_ss_quad;
+    u32 v_ss_text;
+    u32 v_ws_quad;
+    u32 v_ws_line;
     u32 f_default;
     u32 f_texture;
     u32 f_text;
@@ -161,6 +162,7 @@ struct Renderer
 
   // Worldspace
   Instanced_Target* ws_quad;
+  Instanced_Target* ws_text;
   Instanced_Target* ws_line;
 
   // Textures
@@ -177,14 +179,14 @@ struct Renderer
 global Renderer g_renderer;
 
 function void renderer_init();
-function void renderer_begin_frame();
-function void renderer_end_frame(Mat4f32 view, Mat4f32 projection);
+function void renderer_render(Mat4f32 view, Mat4f32 projection);
 
 function Instanced_Target* renderer_new_instanced_target(Arena* arena, Instanced_Target_Kind kind, u32 max_instances);
 
 function void    renderer_draw_2dquad(Vec2f32 position, Vec2f32 scale, Vec4f32 color, u32 texture_id);
 function Vec2f32 renderer_draw_2dtext(Vec2f32 position, Vec4f32 color, f32 scale, String8 text);
 function void    renderer_draw_3dquad(Transformf32 transform, Vec4f32 color, u32 texture_id);
+function void    renderer_draw_3dtext(Transformf32 transform, Vec4f32 color, f32 font_scale, String8 text);
 function void    renderer_draw_3dline(Vec3f32 p0, Vec3f32 p1, Vec4f32 color);
 function void    renderer_draw_3darrow(Vec3f32 start, Vec3f32 end, Vec4f32 color);
 
