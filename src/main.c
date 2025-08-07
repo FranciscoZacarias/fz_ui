@@ -24,7 +24,7 @@ entry_point(Command_Line* command_line)
   Texture_Info tex_yelow = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\yelow.png")));
   Texture_Info tex_blue  = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\blue 1.png")));
 
-	Texture_Info yellow = renderer_create_color_texture(Color_Red);
+	Texture_Info yellow = renderer_create_color_texture(Color_Yellow);
 	Texture_Info green  = renderer_create_color_texture(Color_Green);
 
   // Camera
@@ -49,7 +49,7 @@ entry_point(Command_Line* command_line)
     renderer_draw_3darrow(vec3f32(  0.0f, -4.0f,   0.0f), vec3f32(0.0f, 4.0f,  0.0), Color_Green);
     renderer_draw_3darrow(vec3f32(  0.0f,   0.0f, -4.0f), vec3f32(0.0f,  0.0f, 4.0), Color_Blue);
 
-    renderer_draw_3dquad(transformf32(vec3f32(0.0f, 0.0f, 2.0f), quatf32_from_euler(Radians(90.0f), Radians(0.0f), Radians(0.0f)), vec3f32(1.0f, 1.0f, 1.0f)), Color_Brown);
+    renderer_draw_3dquad_texture(transformf32(vec3f32(0.0f, 0.0f, 2.0f), quatf32_from_euler(Radians(90.0f), Radians(0.0f), Radians(0.0f)), vec3f32(1.0f, 1.0f, 1.0f)), Color_White, green.index);
     
     renderer_draw_3dquad_texture(transformf32(vec3f32( 2.0f,  2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_White, tex_black.index);
     renderer_draw_3dquad_texture(transformf32(vec3f32(-2.0f,  2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_White, tex_red.index);

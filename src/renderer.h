@@ -16,11 +16,10 @@
 // @Section: Screenspace primitives
 
 // Vertex Shaders
-#define V_SS_Quad_Texture_Path S("\\src\\shaders\\vs_ss_quad_texture.glsl")
-#define V_SS_Text_Path         S("\\src\\shaders\\vs_ss_text.glsl")
-#define V_WS_Quad_Path         S("\\src\\shaders\\vs_ws_quad.glsl")
-#define V_WS_Quad_Texture_Path S("\\src\\shaders\\vs_ws_quad_texture.glsl")
-#define V_WS_Line_Path         S("\\src\\shaders\\vs_ws_line.glsl")
+#define V_SS_Quad_Path S("\\src\\shaders\\vs_ss_quad.glsl")
+#define V_SS_Text_Path S("\\src\\shaders\\vs_ss_text.glsl")
+#define V_WS_Quad_Path S("\\src\\shaders\\vs_ws_quad.glsl")
+#define V_WS_Line_Path S("\\src\\shaders\\vs_ws_line.glsl")
 
 // Fragment Shaders
 #define F_Default_Path S("\\src\\shaders\\fs.glsl")
@@ -58,18 +57,12 @@ global Vec2f32 unit_2dquad[6] = {
 
 ///////////////////////////////////////////////////////
 // @Section: Worldspace primitives
-typedef struct TexturedQuad3D TexturedQuad3D;
-struct TexturedQuad3D
-{
-  Transformf32 transform;
-  Vec4f32 color;
-  u32 texture_id;
-};
 typedef struct Quad3D Quad3D;
 struct Quad3D
 {
   Transformf32 transform;
   Vec4f32 color;
+  u32 texture_id;
 };
 global Vec3f32 unit_3dquad[6] = {
   {  0.5f,  0.5f, 0.0f }, { -0.5f,  0.5f, 0.0f },
@@ -114,7 +107,6 @@ typedef enum
 {
   IT_Kind_Screenspace_quad,
   IT_Kind_Screenspace_text,
-  IT_Kind_Worldspace_quad,
   IT_Kind_Worldspace_quad_texture,
   IT_Kind_Worldspace_line,
 } Instanced_Target_Kind;
@@ -152,10 +144,9 @@ struct Renderer
 
   struct
   {
-    u32 v_screenspace_quad_texture;
+    u32 v_screenspace_quad;
     u32 v_screenspace_text;
     u32 v_worldspace_quad;
-    u32 v_worldspace_quad_texture;
     u32 v_worldspace_line;
     u32 f_default;
     u32 f_texture;
@@ -167,7 +158,6 @@ struct Renderer
   Instanced_Target* ss_text;
 
   // Worldspace
-  Instanced_Target* ws_quad;
   Instanced_Target* ws_quad_texture;
   Instanced_Target* ws_line;
 
@@ -192,7 +182,6 @@ function Instanced_Target* renderer_new_instanced_target(Arena* arena, Instanced
 
 function void    renderer_draw_2dquad(Vec2f32 position, Vec2f32 scale, Vec4f32 color, u32 texture_id);
 function Vec2f32 renderer_draw_text_screenspace(Vec2f32 position, Vec4f32 color, f32 scale, String8 text);
-function void    renderer_draw_3dquad(Transformf32 transform, Vec4f32 color);
 function void    renderer_draw_3dquad_texture(Transformf32 transform, Vec4f32 color, u32 texture_id);
 function void    renderer_draw_3dline(Vec3f32 p0, Vec3f32 p1, Vec4f32 color);
 function void    renderer_draw_3darrow(Vec3f32 start, Vec3f32 end, Vec4f32 color);
