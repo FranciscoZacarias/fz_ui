@@ -24,8 +24,8 @@ entry_point(Command_Line* command_line)
   Texture_Info tex_yelow = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\yelow.png")));
   Texture_Info tex_blue  = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\blue 1.png")));
 
-	Texture_Info yellow = renderer_create_color_texture(Color_Yellow);
-	Texture_Info green  = renderer_create_color_texture(Color_Green);
+  Texture_Info yellow = renderer_create_color_texture(Color_Yellow);
+  Texture_Info green  = renderer_create_color_texture(Color_Green);
 
   // Camera
   camera_init(&g_camera);
@@ -54,8 +54,8 @@ entry_point(Command_Line* command_line)
     renderer_draw_3dquad(transformf32(vec3f32( 2.0f, -2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_White, tex_pink.index);
     renderer_draw_3dquad(transformf32(vec3f32(-2.0f, -2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_White, tex_yelow.index);
 
-		renderer_draw_3dtext(transformf32(vec3f32(0.0f, 0.0f, 0.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_Black, 4.0f, S("ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-		renderer_draw_3dtext(transformf32(vec3f32(0.0f, -0.2f, 0.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_Black, 4.0f, S("abcdefghijklmnopqrstuvwxyz"));
+    renderer_draw_3dtext(transformf32(vec3f32(0.0f, 0.0f, 0.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_Black, 4.0f, S("ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+    renderer_draw_3dtext(transformf32(vec3f32(0.0f, -0.2f, 0.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_Black, 4.0f, S("abcdefghijklmnopqrstuvwxyz"));
 
     renderer_draw_2dquad(vec2f32(30.f,  100.f), vec2f32(50.f, 50.f), Color_Red,   tex_black.index);
     renderer_draw_2dquad(vec2f32(90.f,  100.f), vec2f32(50.f, 50.f), Color_Green, tex_red.index);
@@ -69,7 +69,7 @@ entry_point(Command_Line* command_line)
     renderer_draw_2dquad(vec2f32(210.f, 30.f), vec2f32(50.f, 50.f), Color_White, tex_yelow.index);
     renderer_draw_2dquad(vec2f32(270.f, 30.f), vec2f32(50.f, 50.f), Color_White, tex_blue.index);
 
-		renderer_draw_2dtext(vec2f32(10.0f, 140.0f), Color_Black, 8.0f, S("We are not your kind."));
+    renderer_draw_2dtext(vec2f32(10.0f, 140.0f), Color_Black, 8.0f, S("We are not your kind."));
     renderer_draw_2dtext(vec2f32(5.0f, g_os_window->dimensions.y - 15.0f), Color_Black, 4.0f, Sf(arena, "FPS: %.2f", g_fps));
 
     Mat4f32 view       = camera_get_view_matrix(&g_camera);

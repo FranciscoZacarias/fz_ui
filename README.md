@@ -4,7 +4,7 @@
 ### CRITICAL - Implement First
 
 - [x] Text rendering screenspace - Render text in screen coordinates for UI and debug info
-- [ ] Text rendering worldspace - Render text positioned in 3D world space
+- [x] Text rendering worldspace - Render text positioned in 3D world space
 - [x] Screenspace texture rendering - Render texture in 2D screenspace
 - [x] Create fallback texture - Default texture when loading fails to prevent crashes
 - [x] Wireframe mode toggle - Switch between filled and wireframe rendering for debugging
@@ -12,6 +12,7 @@
 
 ### CORE FEATURES - High Priority
 
+- [ ] Add normals to render primitives
 - [ ] Directional light pass
 - [ ] Implement depth sorting for transparency - Sort transparent objects back-to-front for correct alpha blending
 - [ ] Draw worldspace circles - Render circles positioned in 3D space

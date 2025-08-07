@@ -782,6 +782,7 @@ renderer_load_font(String8 relative_path, f32 font_height)
 
 	s32 ascent, descent, line_gap;
 	stbtt_GetFontVMetrics(&font_info, &ascent, &descent, &line_gap);
+
 	g_renderer.fonts[g_renderer.fonts_count].ascent   = (f32)ascent;
 	g_renderer.fonts[g_renderer.fonts_count].descent  = (f32)descent;
 	g_renderer.fonts[g_renderer.fonts_count].line_gap = (f32)line_gap;
