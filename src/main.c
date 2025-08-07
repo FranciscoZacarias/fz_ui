@@ -18,11 +18,14 @@ entry_point(Command_Line* command_line)
 
   // Renderer
   renderer_init();
-  Texture_Info black = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\black.png")));
-  Texture_Info red   = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\red.png")));
-  Texture_Info pink  = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\pink.png")));
-  Texture_Info yelow = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\yelow.png")));
-  Texture_Info blue  = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\blue 1.png")));
+  Texture_Info tex_black = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\black.png")));
+  Texture_Info tex_red   = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\red.png")));
+  Texture_Info tex_pink  = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\pink.png")));
+  Texture_Info tex_yelow = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\yelow.png")));
+  Texture_Info tex_blue  = renderer_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\blue 1.png")));
+
+	Texture_Info yellow = renderer_create_color_texture(Color_Red);
+	Texture_Info green  = renderer_create_color_texture(Color_Green);
 
   // Camera
   camera_init(&g_camera);
@@ -48,20 +51,24 @@ entry_point(Command_Line* command_line)
 
     renderer_draw_3dquad(transformf32(vec3f32(0.0f, 0.0f, 2.0f), quatf32_from_euler(Radians(90.0f), Radians(0.0f), Radians(0.0f)), vec3f32(1.0f, 1.0f, 1.0f)), Color_Brown);
     
-    renderer_draw_3dquad_texture(transformf32(vec3f32( 2.0f,  2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_White, black.index);
-    renderer_draw_3dquad_texture(transformf32(vec3f32(-2.0f,  2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_White, red.index);
-    renderer_draw_3dquad_texture(transformf32(vec3f32( 2.0f, -2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_White, pink.index);
-    renderer_draw_3dquad_texture(transformf32(vec3f32(-2.0f, -2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_White, yelow.index);
+    renderer_draw_3dquad_texture(transformf32(vec3f32( 2.0f,  2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_White, tex_black.index);
+    renderer_draw_3dquad_texture(transformf32(vec3f32(-2.0f,  2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_White, tex_red.index);
+    renderer_draw_3dquad_texture(transformf32(vec3f32( 2.0f, -2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_White, tex_pink.index);
+    renderer_draw_3dquad_texture(transformf32(vec3f32(-2.0f, -2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_White, tex_yelow.index);
 
-    renderer_draw_2dquad(vec2f32(50.f, 100.f), vec2f32(15.f, 20.f), vec4f32(1.0f, 0.0f, 0.0f, 1.0f));
-    renderer_draw_2dquad(vec2f32(70.f, 100.f), vec2f32(15.f, 20.f), vec4f32(0.0f, 1.0f, 0.0f, 1.0f));
-    renderer_draw_2dquad(vec2f32(90.f, 100.f), vec2f32(15.f, 20.f), vec4f32(0.0f, 0.0f, 1.0f, 1.0f));
-    
-    renderer_draw_2dquad_texture(vec2f32(30.f, 30.f), vec2f32(50.f, 50.f), Color_White, black.index);
-    renderer_draw_2dquad_texture(vec2f32(90.f, 30.f), vec2f32(50.f, 50.f), Color_White, red.index);
-    renderer_draw_2dquad_texture(vec2f32(150.f, 30.f), vec2f32(50.f, 50.f), Color_White, pink.index);
-    renderer_draw_2dquad_texture(vec2f32(210.f, 30.f), vec2f32(50.f, 50.f), Color_White, yelow.index);
-    renderer_draw_2dquad_texture(vec2f32(270.f, 30.f), vec2f32(50.f, 50.f), Color_White, blue.index);
+    renderer_draw_2dquad(vec2f32(30.f,  100.f), vec2f32(50.f, 50.f), Color_Red,   tex_black.index);
+    renderer_draw_2dquad(vec2f32(90.f,  100.f), vec2f32(50.f, 50.f), Color_Green, tex_red.index);
+    renderer_draw_2dquad(vec2f32(150.f, 100.f), vec2f32(50.f, 50.f), Color_Blue,  tex_pink.index);
+    renderer_draw_2dquad(vec2f32(210.f, 100.f), vec2f32(50.f, 50.f), Color_White, yellow.index);
+    renderer_draw_2dquad(vec2f32(270.f, 100.f), vec2f32(50.f, 50.f), Color_White, green.index);
+
+    renderer_draw_2dquad(vec2f32(30.f, 30.f), vec2f32(50.f, 50.f), Color_White, tex_black.index);
+    renderer_draw_2dquad(vec2f32(90.f, 30.f), vec2f32(50.f, 50.f), Color_White, tex_red.index);
+    renderer_draw_2dquad(vec2f32(150.f, 30.f), vec2f32(50.f, 50.f), Color_White, tex_pink.index);
+    renderer_draw_2dquad(vec2f32(210.f, 30.f), vec2f32(50.f, 50.f), Color_White, tex_yelow.index);
+    renderer_draw_2dquad(vec2f32(270.f, 30.f), vec2f32(50.f, 50.f), Color_White, tex_blue.index);
+
+		renderer_draw_text_screenspace(vec2f32(10.0f, 140.0f), Color_Black, 8.0f, S("We are not your kind."));
 
     renderer_draw_text_screenspace(vec2f32(5.0f, g_os_window->dimensions.y - 15.0f), Color_Black, 4.0f, Sf(arena, "FPS: %.2f", g_fps));
 

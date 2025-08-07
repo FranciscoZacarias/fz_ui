@@ -2,6 +2,7 @@
 
 in vec4 v_color;
 in vec2 v_uv;
+
 in flat uint v_texture_id;
 
 uniform sampler2D u_textures[32];

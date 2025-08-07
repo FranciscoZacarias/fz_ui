@@ -17,7 +17,6 @@ renderer_init()
   MemoryZeroStruct(&g_renderer);
   g_renderer.arena = arena_alloc();
 
-  g_renderer.shaders.v_screenspace_quad         = renderer_compile_shader(V_SS_Quad_Path,          GL_VERTEX_SHADER);
   g_renderer.shaders.v_screenspace_quad_texture = renderer_compile_shader(V_SS_Quad_Texture_Path,  GL_VERTEX_SHADER);
   g_renderer.shaders.v_screenspace_text         = renderer_compile_shader(V_SS_Text_Path,          GL_VERTEX_SHADER);
   g_renderer.shaders.v_worldspace_quad          = renderer_compile_shader(V_WS_Quad_Path,          GL_VERTEX_SHADER);
@@ -39,34 +38,35 @@ renderer_init()
   // Screenspace
   {
     //
-    // 2D Quads
+    // 2D Quads Texture
     //
-    g_renderer.ss_quad = renderer_new_instanced_target(g_renderer.arena, IT_Kind_Screenspace_quad, Thousand(1));
 
+    g_renderer.ss_quad = renderer_new_instanced_target(g_renderer.arena, IT_Kind_Screenspace_quad, Thousand(1));
+    
     // Unit geometry buffer
     glCreateBuffers(1, &g_renderer.ss_quad->unit_vbo);
     glNamedBufferStorage(g_renderer.ss_quad->unit_vbo, sizeof(unit_2dquad), unit_2dquad, 0);
-    
+
     // Instance data buffer
     glCreateBuffers(1, &g_renderer.ss_quad->instance_vbo);
     glNamedBufferStorage(g_renderer.ss_quad->instance_vbo, sizeof(Quad2D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
-    
+
     // VAO
     glCreateVertexArrays(1, &g_renderer.ss_quad->vao);
-    
+
     // Unit geometry binding (binding 0)
     glVertexArrayVertexBuffer(g_renderer.ss_quad->vao, 0, g_renderer.ss_quad->unit_vbo, 0, sizeof(Vec2f32));
-    
+
     // Instance data binding (binding 1)
     glVertexArrayVertexBuffer(g_renderer.ss_quad->vao, 1, g_renderer.ss_quad->instance_vbo, 0, sizeof(Quad2D));
 
     // Pipeline
     glCreateProgramPipelines(1, &g_renderer.ss_quad->pipeline);
-    glUseProgramStages(g_renderer.ss_quad->pipeline, GL_VERTEX_SHADER_BIT, g_renderer.shaders.v_screenspace_quad);
-    glUseProgramStages(g_renderer.ss_quad->pipeline, GL_FRAGMENT_SHADER_BIT, g_renderer.shaders.f_default);
+    glUseProgramStages(g_renderer.ss_quad->pipeline, GL_VERTEX_SHADER_BIT, g_renderer.shaders.v_screenspace_quad_texture);
+    glUseProgramStages(g_renderer.ss_quad->pipeline, GL_FRAGMENT_SHADER_BIT, g_renderer.shaders.f_texture);
 
     // Unit quad positions (per-vertex)
-    glEnableVertexArrayAttrib(g_renderer.ss_quad->vao, 0); // Unit
+    glEnableVertexArrayAttrib(g_renderer.ss_quad->vao, 0);
     glVertexArrayAttribFormat(g_renderer.ss_quad->vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
     glVertexArrayAttribBinding(g_renderer.ss_quad->vao, 0, 0);
 
@@ -81,78 +81,27 @@ renderer_init()
     glVertexArrayAttribBinding(g_renderer.ss_quad->vao, 2, 1);
     glVertexArrayBindingDivisor(g_renderer.ss_quad->vao, 2, 1);
 
-    glEnableVertexArrayAttrib(g_renderer.ss_quad->vao, 3); // Color
-    glVertexArrayAttribFormat(g_renderer.ss_quad->vao, 3, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad2D, color));
+    glEnableVertexArrayAttrib(g_renderer.ss_quad->vao, 3); // UV Min
+    glVertexArrayAttribFormat(g_renderer.ss_quad->vao, 3, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad2D, uv_min));
     glVertexArrayAttribBinding(g_renderer.ss_quad->vao, 3, 1);
     glVertexArrayBindingDivisor(g_renderer.ss_quad->vao, 3, 1);
 
-    g_renderer.ss_quad->u_screen_size_location = glGetUniformLocation(g_renderer.shaders.v_screenspace_quad, "u_screen_size");
+    glEnableVertexArrayAttrib(g_renderer.ss_quad->vao, 4); // UV Max
+    glVertexArrayAttribFormat(g_renderer.ss_quad->vao, 4, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad2D, uv_max));
+    glVertexArrayAttribBinding(g_renderer.ss_quad->vao, 4, 1);
+    glVertexArrayBindingDivisor(g_renderer.ss_quad->vao, 4, 1);
 
-    //
-    // 2D Quads Texture
-    //
+    glEnableVertexArrayAttrib(g_renderer.ss_quad->vao, 5); // Color
+    glVertexArrayAttribFormat(g_renderer.ss_quad->vao, 5, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad2D, color));
+    glVertexArrayAttribBinding(g_renderer.ss_quad->vao, 5, 1);
+    glVertexArrayBindingDivisor(g_renderer.ss_quad->vao, 5, 1);
 
-    g_renderer.ss_quad_texture = renderer_new_instanced_target(g_renderer.arena, IT_Kind_Screenspace_quad_texture, Thousand(1));
-    
-    // Unit geometry buffer
-    glCreateBuffers(1, &g_renderer.ss_quad_texture->unit_vbo);
-    glNamedBufferStorage(g_renderer.ss_quad_texture->unit_vbo, sizeof(unit_2dquad), unit_2dquad, 0);
+    glEnableVertexArrayAttrib(g_renderer.ss_quad->vao, 6); // Texture ID
+    glVertexArrayAttribIFormat(g_renderer.ss_quad->vao, 6, 1, GL_UNSIGNED_INT, OffsetOfMember(Quad2D, texture_id));
+    glVertexArrayAttribBinding(g_renderer.ss_quad->vao, 6, 1);
+    glVertexArrayBindingDivisor(g_renderer.ss_quad->vao, 6, 1);
 
-    // Instance data buffer
-    glCreateBuffers(1, &g_renderer.ss_quad_texture->instance_vbo);
-    glNamedBufferStorage(g_renderer.ss_quad_texture->instance_vbo, sizeof(TexturedQuad2D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
-
-    // VAO
-    glCreateVertexArrays(1, &g_renderer.ss_quad_texture->vao);
-
-    // Unit geometry binding (binding 0)
-    glVertexArrayVertexBuffer(g_renderer.ss_quad_texture->vao, 0, g_renderer.ss_quad_texture->unit_vbo, 0, sizeof(Vec2f32));
-
-    // Instance data binding (binding 1)
-    glVertexArrayVertexBuffer(g_renderer.ss_quad_texture->vao, 1, g_renderer.ss_quad_texture->instance_vbo, 0, sizeof(TexturedQuad2D));
-
-    // Pipeline
-    glCreateProgramPipelines(1, &g_renderer.ss_quad_texture->pipeline);
-    glUseProgramStages(g_renderer.ss_quad_texture->pipeline, GL_VERTEX_SHADER_BIT, g_renderer.shaders.v_screenspace_quad_texture);
-    glUseProgramStages(g_renderer.ss_quad_texture->pipeline, GL_FRAGMENT_SHADER_BIT, g_renderer.shaders.f_texture);
-
-    // Unit quad positions (per-vertex)
-    glEnableVertexArrayAttrib(g_renderer.ss_quad_texture->vao, 0);
-    glVertexArrayAttribFormat(g_renderer.ss_quad_texture->vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
-    glVertexArrayAttribBinding(g_renderer.ss_quad_texture->vao, 0, 0);
-
-    // Instance data (per-instance)
-    glEnableVertexArrayAttrib(g_renderer.ss_quad_texture->vao, 1); // Position
-    glVertexArrayAttribFormat(g_renderer.ss_quad_texture->vao, 1, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(TexturedQuad2D, position));
-    glVertexArrayAttribBinding(g_renderer.ss_quad_texture->vao, 1, 1);
-    glVertexArrayBindingDivisor(g_renderer.ss_quad_texture->vao, 1, 1);
-
-    glEnableVertexArrayAttrib(g_renderer.ss_quad_texture->vao, 2); // Scale
-    glVertexArrayAttribFormat(g_renderer.ss_quad_texture->vao, 2, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(TexturedQuad2D, scale));
-    glVertexArrayAttribBinding(g_renderer.ss_quad_texture->vao, 2, 1);
-    glVertexArrayBindingDivisor(g_renderer.ss_quad_texture->vao, 2, 1);
-
-    glEnableVertexArrayAttrib(g_renderer.ss_quad_texture->vao, 3); // UV Min
-    glVertexArrayAttribFormat(g_renderer.ss_quad_texture->vao, 3, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(TexturedQuad2D, uv_min));
-    glVertexArrayAttribBinding(g_renderer.ss_quad_texture->vao, 3, 1);
-    glVertexArrayBindingDivisor(g_renderer.ss_quad_texture->vao, 3, 1);
-
-    glEnableVertexArrayAttrib(g_renderer.ss_quad_texture->vao, 4); // UV Max
-    glVertexArrayAttribFormat(g_renderer.ss_quad_texture->vao, 4, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(TexturedQuad2D, uv_max));
-    glVertexArrayAttribBinding(g_renderer.ss_quad_texture->vao, 4, 1);
-    glVertexArrayBindingDivisor(g_renderer.ss_quad_texture->vao, 4, 1);
-
-    glEnableVertexArrayAttrib(g_renderer.ss_quad_texture->vao, 5); // Color
-    glVertexArrayAttribFormat(g_renderer.ss_quad_texture->vao, 5, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(TexturedQuad2D, color));
-    glVertexArrayAttribBinding(g_renderer.ss_quad_texture->vao, 5, 1);
-    glVertexArrayBindingDivisor(g_renderer.ss_quad_texture->vao, 5, 1);
-
-    glEnableVertexArrayAttrib(g_renderer.ss_quad_texture->vao, 6); // Texture ID
-    glVertexArrayAttribIFormat(g_renderer.ss_quad_texture->vao, 6, 1, GL_UNSIGNED_INT, OffsetOfMember(TexturedQuad2D, texture_id));
-    glVertexArrayAttribBinding(g_renderer.ss_quad_texture->vao, 6, 1);
-    glVertexArrayBindingDivisor(g_renderer.ss_quad_texture->vao, 6, 1);
-
-    g_renderer.ss_quad_texture->u_screen_size_location = glGetUniformLocation(g_renderer.shaders.v_screenspace_quad_texture, "u_screen_size");
+    g_renderer.ss_quad->u_screen_size_location = glGetUniformLocation(g_renderer.shaders.v_screenspace_quad_texture, "u_screen_size");
 
     //
     // Text
@@ -165,7 +114,7 @@ renderer_init()
 
     // Instance data buffer
     glCreateBuffers(1, &g_renderer.ss_text->instance_vbo);
-    glNamedBufferStorage(g_renderer.ss_text->instance_vbo, sizeof(TexturedQuad2D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
+    glNamedBufferStorage(g_renderer.ss_text->instance_vbo, sizeof(Quad2D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
 
     // VAO
     glCreateVertexArrays(1, &g_renderer.ss_text->vao);
@@ -174,7 +123,7 @@ renderer_init()
     glVertexArrayVertexBuffer(g_renderer.ss_text->vao, 0, g_renderer.ss_text->unit_vbo, 0, sizeof(Vec2f32));
 
     // Instance data binding (binding 1)
-    glVertexArrayVertexBuffer(g_renderer.ss_text->vao, 1, g_renderer.ss_text->instance_vbo, 0, sizeof(TexturedQuad2D));
+    glVertexArrayVertexBuffer(g_renderer.ss_text->vao, 1, g_renderer.ss_text->instance_vbo, 0, sizeof(Quad2D));
 
     // Pipeline
     glCreateProgramPipelines(1, &g_renderer.ss_text->pipeline);
@@ -188,32 +137,32 @@ renderer_init()
 
     // Instance data (per-instance)
     glEnableVertexArrayAttrib(g_renderer.ss_text->vao, 1); // Position
-    glVertexArrayAttribFormat(g_renderer.ss_text->vao, 1, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(TexturedQuad2D, position));
+    glVertexArrayAttribFormat(g_renderer.ss_text->vao, 1, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad2D, position));
     glVertexArrayAttribBinding(g_renderer.ss_text->vao, 1, 1);
     glVertexArrayBindingDivisor(g_renderer.ss_text->vao, 1, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ss_text->vao, 2); // Scale
-    glVertexArrayAttribFormat(g_renderer.ss_text->vao, 2, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(TexturedQuad2D, scale));
+    glVertexArrayAttribFormat(g_renderer.ss_text->vao, 2, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad2D, scale));
     glVertexArrayAttribBinding(g_renderer.ss_text->vao, 2, 1);
     glVertexArrayBindingDivisor(g_renderer.ss_text->vao, 2, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ss_text->vao, 3); // UV Min
-    glVertexArrayAttribFormat(g_renderer.ss_text->vao, 3, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(TexturedQuad2D, uv_min));
+    glVertexArrayAttribFormat(g_renderer.ss_text->vao, 3, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad2D, uv_min));
     glVertexArrayAttribBinding(g_renderer.ss_text->vao, 3, 1);
     glVertexArrayBindingDivisor(g_renderer.ss_text->vao, 3, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ss_text->vao, 4); // UV Max
-    glVertexArrayAttribFormat(g_renderer.ss_text->vao, 4, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(TexturedQuad2D, uv_max));
+    glVertexArrayAttribFormat(g_renderer.ss_text->vao, 4, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad2D, uv_max));
     glVertexArrayAttribBinding(g_renderer.ss_text->vao, 4, 1);
     glVertexArrayBindingDivisor(g_renderer.ss_text->vao, 4, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ss_text->vao, 5); // Color
-    glVertexArrayAttribFormat(g_renderer.ss_text->vao, 5, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(TexturedQuad2D, color));
+    glVertexArrayAttribFormat(g_renderer.ss_text->vao, 5, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad2D, color));
     glVertexArrayAttribBinding(g_renderer.ss_text->vao, 5, 1);
     glVertexArrayBindingDivisor(g_renderer.ss_text->vao, 5, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ss_text->vao, 6); // Texture ID
-    glVertexArrayAttribIFormat(g_renderer.ss_text->vao, 6, 1, GL_UNSIGNED_INT, OffsetOfMember(TexturedQuad2D, texture_id));
+    glVertexArrayAttribIFormat(g_renderer.ss_text->vao, 6, 1, GL_UNSIGNED_INT, OffsetOfMember(Quad2D, texture_id));
     glVertexArrayAttribBinding(g_renderer.ss_text->vao, 6, 1);
     glVertexArrayBindingDivisor(g_renderer.ss_text->vao, 6, 1);
 
@@ -388,7 +337,6 @@ renderer_init()
     g_renderer.texture_max   = max_gpu_textures;
     g_renderer.textures      = push_array(g_renderer.arena, GLuint, g_renderer.texture_max);
     g_renderer.texture_count = 0;
-    printf("%d", g_renderer.texture_max);
     renderer_create_fallback_texture();
   }
 
@@ -412,16 +360,9 @@ renderer_new_instanced_target(Arena* arena, Instanced_Target_Kind kind, u32 max_
   switch (kind)
   {
     case IT_Kind_Screenspace_quad:
-    {
-      stride = sizeof(Quad2D);
-    } break;
-    case IT_Kind_Screenspace_quad_texture:
-    {
-      stride = sizeof(TexturedQuad2D);
-    } break;
     case IT_Kind_Screenspace_text:
     {
-      stride = sizeof(TexturedQuad2D);
+      stride = sizeof(Quad2D);
     } break;
     case IT_Kind_Worldspace_quad:
     {
@@ -457,7 +398,7 @@ renderer_begin_frame()
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
   g_renderer.ss_quad->count         = 0;
-  g_renderer.ss_quad_texture->count = 0;
+  g_renderer.ss_quad->count = 0;
   g_renderer.ss_text->count         = 0;
   g_renderer.ws_quad->count         = 0;
   g_renderer.ws_quad_texture->count = 0;
@@ -520,21 +461,10 @@ renderer_end_frame(Mat4f32 view, Mat4f32 projection)
     glBindProgramPipeline(g_renderer.ss_quad->pipeline);
     glBindVertexArray(g_renderer.ss_quad->vao);
 
-    glProgramUniform2f(g_renderer.shaders.v_screenspace_quad, g_renderer.ss_quad->u_screen_size_location, (f32)g_os_window->dimensions.x, (f32)g_os_window->dimensions.y);
+    glProgramUniform2f(g_renderer.shaders.v_screenspace_quad_texture, g_renderer.ss_quad->u_screen_size_location, (f32)g_os_window->dimensions.x, (f32)g_os_window->dimensions.y);
 
     glNamedBufferSubData(g_renderer.ss_quad->instance_vbo, 0, sizeof(Quad2D) * g_renderer.ss_quad->count, g_renderer.ss_quad->data);
     glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.ss_quad->count);
-  }
-
-  if (g_renderer.ss_quad_texture->count > 0)
-  {
-    glBindProgramPipeline(g_renderer.ss_quad_texture->pipeline);
-    glBindVertexArray(g_renderer.ss_quad_texture->vao);
-
-    glProgramUniform2f(g_renderer.shaders.v_screenspace_quad_texture, g_renderer.ss_quad_texture->u_screen_size_location, (f32)g_os_window->dimensions.x, (f32)g_os_window->dimensions.y);
-
-    glNamedBufferSubData(g_renderer.ss_quad_texture->instance_vbo, 0, sizeof(TexturedQuad2D) * g_renderer.ss_quad_texture->count, g_renderer.ss_quad_texture->data);
-    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.ss_quad_texture->count);
   }
 
   if (g_renderer.ss_text->count > 0)
@@ -544,7 +474,7 @@ renderer_end_frame(Mat4f32 view, Mat4f32 projection)
 
     glProgramUniform2f(g_renderer.shaders.v_screenspace_text, g_renderer.ss_text->u_screen_size_location, (f32)g_os_window->dimensions.x, (f32)g_os_window->dimensions.y);
 
-    glNamedBufferSubData(g_renderer.ss_text->instance_vbo, 0, sizeof(TexturedQuad2D) * g_renderer.ss_text->count, g_renderer.ss_text->data);
+    glNamedBufferSubData(g_renderer.ss_text->instance_vbo, 0, sizeof(Quad2D) * g_renderer.ss_text->count, g_renderer.ss_text->data);
     glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.ss_text->count);
   }
 
@@ -552,36 +482,21 @@ renderer_end_frame(Mat4f32 view, Mat4f32 projection)
 }
 
 function void
-renderer_draw_2dquad(Vec2f32 position, Vec2f32 scale, Vec4f32 color)
+renderer_draw_2dquad(Vec2f32 position, Vec2f32 scale, Vec4f32 color, u32 texture_id)
 {
   if (g_renderer.ss_quad->count >= g_renderer.ss_quad->max)
-  {
-    emit_fatal(S("Tried to render more quads than g_renderer.ss_quad->max"));
-    return;
-  }
-  Quad2D* data = (Quad2D*)g_renderer.ss_quad->data;
-  data[g_renderer.ss_quad->count].position = position;
-  data[g_renderer.ss_quad->count].scale    = scale;
-  data[g_renderer.ss_quad->count].color    = color;
-  g_renderer.ss_quad->count += 1;
-}
-
-function void
-renderer_draw_2dquad_texture(Vec2f32 position, Vec2f32 scale, Vec4f32 color, u32 texture_id)
-{
-  if (g_renderer.ss_quad_texture->count >= g_renderer.ss_quad_texture->max)
   {
     emit_fatal(S("Tried to render more quads than g_renderer.ss_quad_texture->max"));
     return;
   }
-  TexturedQuad2D* data = (TexturedQuad2D*)g_renderer.ss_quad_texture->data;
-  data[g_renderer.ss_quad_texture->count].position   = position;
-  data[g_renderer.ss_quad_texture->count].scale      = scale;
-  data[g_renderer.ss_quad_texture->count].uv_min     = vec2f32(0.0f, 0.0f);
-  data[g_renderer.ss_quad_texture->count].uv_max     = vec2f32(1.0f, 1.0f);
-  data[g_renderer.ss_quad_texture->count].color      = color;
-  data[g_renderer.ss_quad_texture->count].texture_id = texture_id;
-  g_renderer.ss_quad_texture->count += 1;
+  Quad2D* data = (Quad2D*)g_renderer.ss_quad->data;
+  data[g_renderer.ss_quad->count].position   = position;
+  data[g_renderer.ss_quad->count].scale      = scale;
+  data[g_renderer.ss_quad->count].uv_min     = vec2f32(0.0f, 0.0f);
+  data[g_renderer.ss_quad->count].uv_max     = vec2f32(1.0f, 1.0f);
+  data[g_renderer.ss_quad->count].color      = color;
+  data[g_renderer.ss_quad->count].texture_id = texture_id;
+  g_renderer.ss_quad->count += 1;
 }
 
 function Vec2f32
@@ -629,7 +544,7 @@ renderer_draw_text_screenspace(Vec2f32 position, Vec4f32 color, f32 scale, Strin
       return vec2f32(0, 0);
     }
 
-    TexturedQuad2D* data = (TexturedQuad2D*)g_renderer.ss_text->data;
+    Quad2D* data = (Quad2D*)g_renderer.ss_text->data;
     data[g_renderer.ss_text->count].position   = vec2f32(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f);
     data[g_renderer.ss_text->count].scale      = size;
     data[g_renderer.ss_text->count].uv_min     = vec2f32(glyph->uv_min.x, glyph->uv_max.y);
@@ -867,9 +782,11 @@ renderer_load_texture(String8 path)
 function void
 renderer_create_fallback_texture()
 {
+	Scratch scratch = scratch_begin(0,0);
+
   u32 size = 16;
   u32 square_size = 2;
-  u8* data = arena_push(g_renderer.arena, size * size * 4);
+  u8* data = arena_push(scratch.arena, size * size * 4);
   
   for (u32 y = 0; y < size; y++)
   {
@@ -910,6 +827,50 @@ renderer_create_fallback_texture()
   {
     glBindTextureUnit(slot, texture);
   }
+
+	scratch_end(&scratch);
+}
+
+function Texture_Info
+renderer_create_color_texture(Vec4f32 color)
+{
+  Scratch scratch = scratch_begin(0, 0);
+  Texture_Info result = {0};
+
+  u32 size = 16;
+  u8* data = push_array(scratch.arena, u8, size * size * 4);
+
+  for (u32 y = 0; y < size; y++)
+  {
+    for (u32 x = 0; x < size; x++)
+    {
+      u32 pixel_index = (y * size + x) * 4;
+      data[pixel_index + 0] = (u8)(color.x * 255.0f + 0.5f);
+      data[pixel_index + 1] = (u8)(color.y * 255.0f + 0.5f);
+      data[pixel_index + 2] = (u8)(color.z * 255.0f + 0.5f);
+      data[pixel_index + 3] = (u8)(color.w * 255.0f + 0.5f);
+    }
+  }
+
+  GLuint texture;
+  glCreateTextures(GL_TEXTURE_2D, 1, &texture);
+  glTextureStorage2D(texture, 1, GL_RGBA8, size, size);
+  glTextureSubImage2D(texture, 0, 0, 0, size, size, GL_RGBA, GL_UNSIGNED_BYTE, data);
+  glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+  g_renderer.textures[g_renderer.texture_count] = texture;
+
+  result.handle = texture;
+  result.index  = g_renderer.texture_count;
+  result.width  = size;
+  result.height = size;
+  g_renderer.texture_count += 1;
+
+  scratch_end(&scratch);
+  return result;
 }
 
 function void
