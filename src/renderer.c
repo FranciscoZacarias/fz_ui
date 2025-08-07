@@ -1,5 +1,5 @@
 function void
-renderer_init()
+r_init()
 {
   Scratch scratch = scratch_begin(0,0);
 
@@ -17,14 +17,14 @@ renderer_init()
   MemoryZeroStruct(&g_renderer);
   g_renderer.arena = arena_alloc();
 
-  g_renderer.shaders.v_ss_quad = renderer_compile_shader(V_SS_Quad_Path, GL_VERTEX_SHADER);
-  g_renderer.shaders.v_ss_text = renderer_compile_shader(V_SS_Text_Path, GL_VERTEX_SHADER);
-  g_renderer.shaders.v_ws_quad  = renderer_compile_shader(V_WS_Quad_Path, GL_VERTEX_SHADER);
-  g_renderer.shaders.v_ws_line  = renderer_compile_shader(V_WS_Line_Path, GL_VERTEX_SHADER);
+  g_renderer.shaders.v_ss_quad = r_compile_shader(V_SS_Quad_Path, GL_VERTEX_SHADER);
+  g_renderer.shaders.v_ss_text = r_compile_shader(V_SS_Text_Path, GL_VERTEX_SHADER);
+  g_renderer.shaders.v_ws_quad  = r_compile_shader(V_WS_Quad_Path, GL_VERTEX_SHADER);
+  g_renderer.shaders.v_ws_line  = r_compile_shader(V_WS_Line_Path, GL_VERTEX_SHADER);
 
-  g_renderer.shaders.f_default = renderer_compile_shader(F_Default_Path, GL_FRAGMENT_SHADER);
-  g_renderer.shaders.f_texture = renderer_compile_shader(F_Texture_Path, GL_FRAGMENT_SHADER);
-  g_renderer.shaders.f_text    = renderer_compile_shader(F_Text_Path,    GL_FRAGMENT_SHADER);
+  g_renderer.shaders.f_default = r_compile_shader(F_Default_Path, GL_FRAGMENT_SHADER);
+  g_renderer.shaders.f_texture = r_compile_shader(F_Texture_Path, GL_FRAGMENT_SHADER);
+  g_renderer.shaders.f_text    = r_compile_shader(F_Text_Path,    GL_FRAGMENT_SHADER);
   
   // Set texture sampler
   GLint sampler_locations[32];
@@ -40,7 +40,7 @@ renderer_init()
     // 2D Quads
     //
 
-    g_renderer.ss_quad = renderer_new_instanced_target(g_renderer.arena, IT_Kind_Screenspace_quad, Thousand(1));
+    g_renderer.ss_quad = r_new_instanced_target(g_renderer.arena, IT_Kind_Screenspace_quad, Thousand(1));
     
     // Unit geometry buffer
     glCreateBuffers(1, &g_renderer.ss_quad->unit_vbo);
@@ -105,7 +105,7 @@ renderer_init()
     //
     // 2D Text
     //
-    g_renderer.ss_text = renderer_new_instanced_target(g_renderer.arena, IT_Kind_Screenspace_text, Thousand(1));
+    g_renderer.ss_text = r_new_instanced_target(g_renderer.arena, IT_Kind_Screenspace_text, Thousand(1));
     
     // Unit geometry buffer
     glCreateBuffers(1, &g_renderer.ss_text->unit_vbo);
@@ -173,7 +173,7 @@ renderer_init()
     //
     // 3D Quads
     //
-    g_renderer.ws_quad = renderer_new_instanced_target(g_renderer.arena, IT_Kind_Worldspace_quad, Thousand(1));
+    g_renderer.ws_quad = r_new_instanced_target(g_renderer.arena, IT_Kind_Worldspace_quad, Thousand(1));
 
     // Unit geometry buffer
     glCreateBuffers(1, &g_renderer.ws_quad->unit_vbo);
@@ -244,7 +244,7 @@ renderer_init()
 		//
 		// 3D Text
 		//
-		g_renderer.ws_text = renderer_new_instanced_target(g_renderer.arena, IT_Kind_Worldspace_text, Thousand(2));
+		g_renderer.ws_text = r_new_instanced_target(g_renderer.arena, IT_Kind_Worldspace_text, Thousand(2));
 
 		// Unit geometry buffer
 		glCreateBuffers(1, &g_renderer.ws_text->unit_vbo);
@@ -311,7 +311,7 @@ renderer_init()
     //
     // Lines
     //
-    g_renderer.ws_line = renderer_new_instanced_target(g_renderer.arena, IT_Kind_Worldspace_line, Thousand(1));
+    g_renderer.ws_line = r_new_instanced_target(g_renderer.arena, IT_Kind_Worldspace_line, Thousand(1));
 
     // Instance data buffer
     glCreateBuffers(1, &g_renderer.ws_line->instance_vbo);
@@ -357,7 +357,7 @@ renderer_init()
     g_renderer.texture_max   = max_gpu_textures;
     g_renderer.textures      = push_array(g_renderer.arena, GLuint, g_renderer.texture_max);
     g_renderer.texture_count = 0;
-    renderer_create_fallback_texture();
+    r_create_fallback_texture();
   }
 
   // Font
@@ -365,14 +365,14 @@ renderer_init()
     g_renderer.fonts_max   = 4;
     g_renderer.fonts       = push_array(g_renderer.arena, Font, g_renderer.fonts_max);
     g_renderer.fonts_count = 0;
-    renderer_load_font(Font_ProggyClean, 32.0f);
+    r_load_font(Font_ProggyClean, 32.0f);
   }
 
   scratch_end(&scratch);
 }
 
 function Instanced_Target*
-renderer_new_instanced_target(Arena* arena, Instanced_Target_Kind kind, u32 max_instances)
+r_new_instanced_target(Arena* arena, Instanced_Target_Kind kind, u32 max_instances)
 {
   Instanced_Target* result = push_array(arena, Instanced_Target, 1);
 
@@ -409,7 +409,7 @@ renderer_new_instanced_target(Arena* arena, Instanced_Target_Kind kind, u32 max_
 }
 
 function void
-renderer_render(Mat4f32 view, Mat4f32 projection)
+r_render(Mat4f32 view, Mat4f32 projection)
 {
   // Bind textures
   for (u32 idx = 0; idx < g_renderer.texture_count; idx += 1)
@@ -494,7 +494,7 @@ renderer_render(Mat4f32 view, Mat4f32 projection)
 }
 
 function void
-renderer_draw_2dquad(Vec2f32 position, Vec2f32 scale, Vec4f32 color, u32 texture_id)
+r_draw_2dquad(Vec2f32 position, Vec2f32 scale, Vec4f32 color, u32 texture_id)
 {
   if (g_renderer.ss_quad->count >= g_renderer.ss_quad->max)
   {
@@ -512,7 +512,7 @@ renderer_draw_2dquad(Vec2f32 position, Vec2f32 scale, Vec4f32 color, u32 texture
 }
 
 function Vec2f32
-renderer_draw_2dtext(Vec2f32 position, Vec4f32 color, f32 scale, String8 text)
+r_draw_2dtext(Vec2f32 position, Vec4f32 color, f32 scale, String8 text)
 {
   scale *= 0.1f;
 
@@ -574,7 +574,7 @@ renderer_draw_2dtext(Vec2f32 position, Vec4f32 color, f32 scale, String8 text)
 }
 
 function void
-renderer_draw_3dquad(Transformf32 transform, Vec4f32 color, u32 texture_id)
+r_draw_3dquad(Transformf32 transform, Vec4f32 color, u32 texture_id)
 {
   if (g_renderer.ws_quad->count >= g_renderer.ws_quad->max)
   {
@@ -593,7 +593,7 @@ renderer_draw_3dquad(Transformf32 transform, Vec4f32 color, u32 texture_id)
 }
 
 function void
-renderer_draw_3dtext(Transformf32 transform, Vec4f32 color, f32 font_scale, String8 text)
+r_draw_3dtext(Transformf32 transform, Vec4f32 color, f32 font_scale, String8 text)
 {
 	font_scale *= 0.002;
 
@@ -650,7 +650,7 @@ renderer_draw_3dtext(Transformf32 transform, Vec4f32 color, f32 font_scale, Stri
 }
 
 function void
-renderer_draw_3dline(Vec3f32 p0, Vec3f32 p1, Vec4f32 color)
+r_draw_3dline(Vec3f32 p0, Vec3f32 p1, Vec4f32 color)
 {
   if (g_renderer.ws_line->count >= g_renderer.ws_line->max)
   {
@@ -665,9 +665,9 @@ renderer_draw_3dline(Vec3f32 p0, Vec3f32 p1, Vec4f32 color)
 }
 
 function void
-renderer_draw_3darrow(Vec3f32 start, Vec3f32 end, Vec4f32 color)
+r_draw_3darrow(Vec3f32 start, Vec3f32 end, Vec4f32 color)
 {
-  renderer_draw_3dline(start, end, color);
+  r_draw_3dline(start, end, color);
 
   Vec3f32 dir = vec3f32_sub(end, start);
   f32 len = vec3f32_length(dir);
@@ -687,14 +687,14 @@ renderer_draw_3darrow(Vec3f32 start, Vec3f32 end, Vec4f32 color)
   Vec3f32 base = vec3f32_sub(tip, vec3f32_scale(dir, head_length));
 
   // Two arrowhead lines
-  renderer_draw_3dline(tip, vec3f32_add(base, right),   color);
-  renderer_draw_3dline(tip, vec3f32_sub(base, right),   color);
-  renderer_draw_3dline(tip, vec3f32_add(base, forward), color);
-  renderer_draw_3dline(tip, vec3f32_sub(base, forward), color);
+  r_draw_3dline(tip, vec3f32_add(base, right),   color);
+  r_draw_3dline(tip, vec3f32_sub(base, right),   color);
+  r_draw_3dline(tip, vec3f32_add(base, forward), color);
+  r_draw_3dline(tip, vec3f32_sub(base, forward), color);
 }
 
 function void
-renderer_load_font(String8 relative_path, f32 font_height) 
+r_load_font(String8 relative_path, f32 font_height) 
 {
   Scratch scratch = scratch_begin(0, 0);
 
@@ -792,7 +792,7 @@ renderer_load_font(String8 relative_path, f32 font_height)
 }
 
 function Texture_Info
-renderer_load_texture(String8 path)
+r_load_texture(String8 path)
 {
   Scratch scratch = scratch_begin(0, 0);
   Texture_Info result = {0};
@@ -842,7 +842,7 @@ renderer_load_texture(String8 path)
 }
 
 function void
-renderer_create_fallback_texture()
+r_create_fallback_texture()
 {
 	Scratch scratch = scratch_begin(0,0);
 
@@ -894,7 +894,7 @@ renderer_create_fallback_texture()
 }
 
 function Texture_Info
-renderer_create_color_texture(Vec4f32 color)
+r_create_color_texture(Vec4f32 color)
 {
   Scratch scratch = scratch_begin(0, 0);
   Texture_Info result = {0};
@@ -936,7 +936,7 @@ renderer_create_color_texture(Vec4f32 color)
 }
 
 function void
-renderer_toggle_wireframe()
+r_toggle_wireframe()
 {
   local_persist b32 is_wireframe = false;
   glPolygonMode(GL_FRONT_AND_BACK, is_wireframe ? GL_FILL : GL_LINE);
@@ -944,7 +944,7 @@ renderer_toggle_wireframe()
 }
 
 function u32
-renderer_compile_shader(String8 relative_path, GLenum shader_type)
+r_compile_shader(String8 relative_path, GLenum shader_type)
 {
   if (!shader_type)
   {

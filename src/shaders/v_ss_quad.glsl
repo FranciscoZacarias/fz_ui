@@ -23,11 +23,11 @@ out gl_PerVertex
 void main()
 {
   vec2 pixel_pos = a_pos + a_unit_quad_pos * a_scale;
-  vec2 ndc = (pixel_pos / u_screen_size) * 2.0 - 1.0;
-  gl_Position = vec4(ndc, 0.0, 1.0);
+  vec2 ndc       = (pixel_pos / u_screen_size) * 2.0 - 1.0;
+  gl_Position    = vec4(ndc, 0.0, 1.0);
  
   vec2 unit_uv = a_unit_quad_pos + 0.5;
-  v_uv = mix(a_uv_min, a_uv_max, unit_uv);
-  v_color = a_color;
+  v_uv         = mix(a_uv_min, a_uv_max, unit_uv);
+  v_color      = a_color;
   v_texture_id = a_texture_id;
 }

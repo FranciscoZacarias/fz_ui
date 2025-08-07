@@ -41,8 +41,3 @@ watch_pin:
   expression: "g_renderer.ss_quad.vao"
   source_location: "src/renderer.c:293:1"
 }
-breakpoint:
-{
-  source_location: "src/main.c:81:16"
-  hit_count: 10
-}

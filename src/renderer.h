@@ -180,24 +180,24 @@ struct Renderer
 
 global Renderer g_renderer;
 
-function void renderer_init();
-function void renderer_render(Mat4f32 view, Mat4f32 projection);
+function void r_init();
+function void r_render(Mat4f32 view, Mat4f32 projection);
 
-function Instanced_Target* renderer_new_instanced_target(Arena* arena, Instanced_Target_Kind kind, u32 max_instances);
+function Instanced_Target* r_new_instanced_target(Arena* arena, Instanced_Target_Kind kind, u32 max_instances);
 
-function void    renderer_draw_2dquad(Vec2f32 position, Vec2f32 scale, Vec4f32 color, u32 texture_id);
-function Vec2f32 renderer_draw_2dtext(Vec2f32 position, Vec4f32 color, f32 scale, String8 text);
-function void    renderer_draw_3dquad(Transformf32 transform, Vec4f32 color, u32 texture_id);
-function void    renderer_draw_3dtext(Transformf32 transform, Vec4f32 color, f32 font_scale, String8 text);
-function void    renderer_draw_3dline(Vec3f32 p0, Vec3f32 p1, Vec4f32 color);
-function void    renderer_draw_3darrow(Vec3f32 start, Vec3f32 end, Vec4f32 color);
+function void    r_draw_2dquad(Vec2f32 position, Vec2f32 scale, Vec4f32 color, u32 texture_id);
+function Vec2f32 r_draw_2dtext(Vec2f32 position, Vec4f32 color, f32 scale, String8 text);
+function void    r_draw_3dquad(Transformf32 transform, Vec4f32 color, u32 texture_id);
+function void    r_draw_3dtext(Transformf32 transform, Vec4f32 color, f32 font_scale, String8 text);
+function void    r_draw_3dline(Vec3f32 p0, Vec3f32 p1, Vec4f32 color);
+function void    r_draw_3darrow(Vec3f32 start, Vec3f32 end, Vec4f32 color);
 
-function Texture_Info renderer_load_texture(String8 path);
-function void         renderer_create_fallback_texture();
-function Texture_Info renderer_create_color_texture(Vec4f32 color);
-function void         renderer_load_font(String8 relative_path, f32 font_height);
+function Texture_Info r_load_texture(String8 path);
+function void         r_create_fallback_texture();
+function Texture_Info r_create_color_texture(Vec4f32 color);
+function void         r_load_font(String8 relative_path, f32 font_height);
 
-function void renderer_toggle_wireframe();
-function u32  renderer_compile_shader(String8 relative_path, GLenum shader_type);
+function void r_toggle_wireframe();
+function u32  r_compile_shader(String8 relative_path, GLenum shader_type);
 
 #endif // RENDERER_H
