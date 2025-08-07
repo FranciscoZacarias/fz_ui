@@ -160,7 +160,7 @@ struct Renderer
   Instanced_Target* ss_text;
 
   // Worldspace
-  Instanced_Target* ws_quad_texture;
+  Instanced_Target* ws_quad;
   Instanced_Target* ws_line;
 
   // Textures
