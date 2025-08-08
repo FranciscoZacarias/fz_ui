@@ -28,6 +28,74 @@ r_init()
   
   // Screenspace
   {
+    // 2D Triangles
+    {
+      Render_Batch* batch = r_new_render_batch(g_renderer.arena, IT_Kind_Screenspace_triangle, Thousand(1));
+      g_renderer.ss_triangle= batch;
+
+      // Uniforms
+      batch->u_screen_size_location = glGetUniformLocation(g_renderer.shaders.v_ss_quad, "u_screen_size");
+    
+      // Unit geometry buffer
+      glCreateBuffers(1, &batch->unit_vbo);
+      glNamedBufferStorage(batch->unit_vbo, sizeof(unit_2dquad), unit_2dquad, 0);
+
+      // Instance data buffer
+      glCreateBuffers(1, &batch->instance_vbo);
+      glNamedBufferStorage(batch->instance_vbo, sizeof(Primitive2D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
+
+      // VAO
+      glCreateVertexArrays(1, &batch->vao);
+
+      // Unit geometry binding (binding 0)
+      glVertexArrayVertexBuffer(batch->vao, 0, batch->unit_vbo, 0, sizeof(Vec2f32));
+
+      // Instance data binding (binding 1)
+      glVertexArrayVertexBuffer(batch->vao, 1, batch->instance_vbo, 0, sizeof(Primitive2D));
+
+      // Pipeline
+      glCreateProgramPipelines(1, &batch->pipeline);
+      glUseProgramStages(batch->pipeline, GL_VERTEX_SHADER_BIT, g_renderer.shaders.v_ss_quad);
+      glUseProgramStages(batch->pipeline, GL_FRAGMENT_SHADER_BIT, g_renderer.shaders.f_texture);
+
+      // Unit quad positions (per-vertex)
+      glEnableVertexArrayAttrib(batch->vao, 0);
+      glVertexArrayAttribFormat(batch->vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
+      glVertexArrayAttribBinding(batch->vao, 0, 0);
+
+      // Instance data (per-instance)
+      glEnableVertexArrayAttrib(batch->vao, 1); // Position
+      glVertexArrayAttribFormat(batch->vao, 1, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive2D, position));
+      glVertexArrayAttribBinding(batch->vao, 1, 1);
+      glVertexArrayBindingDivisor(batch->vao, 1, 1);
+
+      glEnableVertexArrayAttrib(batch->vao, 2); // Scale
+      glVertexArrayAttribFormat(batch->vao, 2, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive2D, scale));
+      glVertexArrayAttribBinding(batch->vao, 2, 1);
+      glVertexArrayBindingDivisor(batch->vao, 2, 1);
+
+      glEnableVertexArrayAttrib(batch->vao, 3); // UV Min
+      glVertexArrayAttribFormat(batch->vao, 3, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive2D, uv_min));
+      glVertexArrayAttribBinding(batch->vao, 3, 1);
+      glVertexArrayBindingDivisor(batch->vao, 3, 1);
+
+      glEnableVertexArrayAttrib(batch->vao, 4); // UV Max
+      glVertexArrayAttribFormat(batch->vao, 4, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive2D, uv_max));
+      glVertexArrayAttribBinding(batch->vao, 4, 1);
+      glVertexArrayBindingDivisor(batch->vao, 4, 1);
+
+      glEnableVertexArrayAttrib(batch->vao, 5); // Color
+      glVertexArrayAttribFormat(batch->vao, 5, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive2D, color));
+      glVertexArrayAttribBinding(batch->vao, 5, 1);
+      glVertexArrayBindingDivisor(batch->vao, 5, 1);
+
+      glEnableVertexArrayAttrib(batch->vao, 6); // Texture ID
+      glVertexArrayAttribIFormat(batch->vao, 6, 1, GL_UNSIGNED_INT, OffsetOfMember(Primitive2D, texture_id));
+      glVertexArrayAttribBinding(batch->vao, 6, 1);
+      glVertexArrayBindingDivisor(batch->vao, 6, 1);
+    }
+
+
     // 2D Quads
     {
       Render_Batch* batch = r_new_render_batch(g_renderer.arena, IT_Kind_Screenspace_quad, Thousand(1));
@@ -97,7 +165,7 @@ r_init()
 
     // 2D Text
     {
-      Render_Batch* batch = r_new_render_batch(g_renderer.arena, IT_Kind_Screenspace_quad, Thousand(1));
+      Render_Batch* batch = r_new_render_batch(g_renderer.arena, IT_Kind_Screenspace_text, Thousand(1));
       g_renderer.ss_text = batch;
 
       // Uniforms
@@ -167,7 +235,7 @@ r_init()
   {
     // 3D Triangles
     {
-      Render_Batch* batch = r_new_render_batch(g_renderer.arena, IT_Kind_Screenspace_quad, Thousand(1));
+      Render_Batch* batch = r_new_render_batch(g_renderer.arena, IT_Kind_Worldspace_triangle, Thousand(1));
       g_renderer.ws_triangle = batch;
 
       // Uniforms
@@ -176,7 +244,7 @@ r_init()
 
       // Unit geometry buffer
       glCreateBuffers(1, &batch->unit_vbo);
-      glNamedBufferStorage(batch->unit_vbo, sizeof(unit_3dtriangle), unit_3dtriangle, 0);
+      glNamedBufferStorage(batch->unit_vbo, sizeof(unit_3d_triangle), unit_3d_triangle, 0);
     
       // Instance data buffer
       glCreateBuffers(1, &batch->instance_vbo);
@@ -245,7 +313,7 @@ r_init()
 
     // 3D Quads
     {
-      Render_Batch* batch = r_new_render_batch(g_renderer.arena, IT_Kind_Screenspace_quad, Thousand(1));
+      Render_Batch* batch = r_new_render_batch(g_renderer.arena, IT_Kind_Worldspace_quad, Thousand(1));
       g_renderer.ws_quad = batch;
 
       // Uniforms
@@ -254,7 +322,7 @@ r_init()
 
       // Unit geometry buffer
       glCreateBuffers(1, &batch->unit_vbo);
-      glNamedBufferStorage(batch->unit_vbo, sizeof(unit_3dquad), unit_3dquad, 0);
+      glNamedBufferStorage(batch->unit_vbo, sizeof(unit_3d_quad), unit_3d_quad, 0);
     
       // Instance data buffer
       glCreateBuffers(1, &batch->instance_vbo);
@@ -325,7 +393,7 @@ r_init()
     // 3D Text
     //
     {
-      Render_Batch* batch = r_new_render_batch(g_renderer.arena, IT_Kind_Screenspace_quad, Thousand(1));
+      Render_Batch* batch = r_new_render_batch(g_renderer.arena, IT_Kind_Worldspace_text, Thousand(1));
       g_renderer.ws_text = batch;
       
       // Uniforms
@@ -334,7 +402,7 @@ r_init()
 
       // Unit geometry buffer
       glCreateBuffers(1, &batch->unit_vbo);
-      glNamedBufferStorage(batch->unit_vbo, sizeof(unit_3dquad), unit_3dquad, 0);
+      glNamedBufferStorage(batch->unit_vbo, sizeof(unit_3d_quad), unit_3d_quad, 0);
 
       // Instance data buffer  
       glCreateBuffers(1, &batch->instance_vbo);
@@ -399,7 +467,7 @@ r_init()
 
     // Lines
     {
-      Render_Batch* batch = r_new_render_batch(g_renderer.arena, IT_Kind_Screenspace_quad, Thousand(1));
+      Render_Batch* batch = r_new_render_batch(g_renderer.arena, IT_Kind_Worldspace_line, Thousand(1));
       g_renderer.ws_line = batch;
 
       batch->u_projection_location = glGetUniformLocation(g_renderer.shaders.v_ws_line, "u_projection");
@@ -476,11 +544,13 @@ r_new_render_batch(Arena* arena, Instanced_Target_Kind kind, u32 max_instances)
   u32 stride = 0;
   switch (kind)
   {
+    case IT_Kind_Screenspace_triangle:
     case IT_Kind_Screenspace_quad:
     case IT_Kind_Screenspace_text:
     {
       stride = sizeof(Primitive2D);
     } break;
+    case IT_Kind_Worldspace_triangle:
     case IT_Kind_Worldspace_quad:
     case IT_Kind_Worldspace_text:
     {
@@ -594,6 +664,7 @@ r_render(Mat4f32 view, Mat4f32 projection)
   glClearColor(0.5f, 0.96f, 1.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+  g_renderer.ss_triangle->count = 0;
   g_renderer.ss_quad->count     = 0;
   g_renderer.ss_text->count     = 0;
   g_renderer.ws_triangle->count = 0;

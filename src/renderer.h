@@ -71,14 +71,14 @@ struct Primitive3D
 };
 
 // Triangles
-global Vec3f32 unit_3dtriangle[3] = {
+global Vec3f32 unit_3d_triangle[3] = {
   { -0.5f, -0.5f, 0.0f }, 
   {  0.5f, -0.5f, 0.0f },
   { -0.5f,  0.5f, 0.0f }
 };
 
 // Quad
-global Vec3f32 unit_3dquad[6] = {
+global Vec3f32 unit_3d_quad[6] = {
   {  0.5f,  0.5f, 0.0f }, { -0.5f,  0.5f, 0.0f },
   { -0.5f, -0.5f, 0.0f }, {  0.5f, -0.5f, 0.0f },
   {  0.5f,  0.5f, 0.0f }, { -0.5f, -0.5f, 0.0f }
@@ -123,8 +123,10 @@ struct Font
 typedef enum
 {
   IT_Kind_None,
+  IT_Kind_Screenspace_triangle,
   IT_Kind_Screenspace_quad,
   IT_Kind_Screenspace_text,
+  IT_Kind_Worldspace_triangle,
   IT_Kind_Worldspace_quad,
   IT_Kind_Worldspace_text,
   IT_Kind_Worldspace_line,
@@ -173,6 +175,7 @@ struct Renderer
   } shaders;
 
   // Screenspace
+  Render_Batch* ss_triangle;
   Render_Batch* ss_quad;
   Render_Batch* ss_text;
 
