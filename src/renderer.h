@@ -51,7 +51,11 @@ struct Primitive2D
   Vec4f32 color;
   u32 texture_id;
 };
-global Vec2f32 unit_2dquad[6] = {
+global Vec2f32 unit_2d_triangle[6] = {
+  { -0.5f, -0.5f }, {  0.5f, -0.5f },
+  { -0.5f,  0.5f }
+};
+global Vec2f32 unit_2d_quad[6] = {
   { -0.5f, -0.5f }, {  0.5f, -0.5f },
   {  0.5f,  0.5f }, { -0.5f, -0.5f },
   {  0.5f,  0.5f }, { -0.5f,  0.5f }
@@ -201,11 +205,12 @@ global Renderer g_renderer;
 function void r_init();
 function void r_render(Mat4f32 view, Mat4f32 projection);
 
-function void    r_draw_2d_primitive(Render_Batch* render_batch, Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
+function void   _r_draw_2d_primitive(Render_Batch* render_batch, Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
+function void    r_draw_2d_triangle(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
 function void    r_draw_2d_quad(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
 function Vec2f32 r_draw_2d_text(Vec2f32 position, Vec4f32 color, f32 scale, String8 text);
 
-function void    r_draw_3d_primitive(Render_Batch* render_batch, Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
+function void   _r_draw_3d_primitive(Render_Batch* render_batch, Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
 function void    r_draw_3d_triangle(Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
 function void    r_draw_3d_quad(Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
 function void    r_draw_3d_text(Transformf32 transform, Vec4f32 color, f32 font_scale, String8 text);

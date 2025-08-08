@@ -9,7 +9,7 @@
 - [x] Create fallback texture - Default texture when loading fails to prevent crashes
 - [x] Wireframe mode toggle - Switch between filled and wireframe rendering for debugging
 - [x] Change worldspace quads such that I can transform them - Add rotation support to quad instances
-- [ ] Add triangle render primitives
+- [x] Add triangle render primitives
 
 ### CORE FEATURES - High Priority
 
@@ -43,11 +43,16 @@
 - [ ] Bloom/glow effect - Post-processing effect for bright light sources
 - [ ] Particle system - GPU-based particle rendering with instancing
 
-### PERFORMANCE - Implement When Needed
+### PERFORMANCE - When needed
 
 - [ ] Frustum culling - Skip rendering objects outside camera view
 - [ ] Texture atlasing system - Combine multiple textures to reduce binding overhead
 - [ ] GPU Timer queries - Measure GPU performance for bottleneck identification
+
+### BUGS 
+
+- [ ] Camera is janky, especially when pressing like 2, 3 or more keys at once
+- [ ] We have to properly figure out text rendering. Worldspace is not aligned and text overall is blurry
 
 ## Game
 

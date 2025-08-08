@@ -38,7 +38,7 @@ r_init()
     
       // Unit geometry buffer
       glCreateBuffers(1, &batch->unit_vbo);
-      glNamedBufferStorage(batch->unit_vbo, sizeof(unit_2dquad), unit_2dquad, 0);
+      glNamedBufferStorage(batch->unit_vbo, sizeof(unit_2d_triangle), unit_2d_triangle, 0);
 
       // Instance data buffer
       glCreateBuffers(1, &batch->instance_vbo);
@@ -106,7 +106,7 @@ r_init()
     
       // Unit geometry buffer
       glCreateBuffers(1, &batch->unit_vbo);
-      glNamedBufferStorage(batch->unit_vbo, sizeof(unit_2dquad), unit_2dquad, 0);
+      glNamedBufferStorage(batch->unit_vbo, sizeof(unit_2d_quad), unit_2d_quad, 0);
 
       // Instance data buffer
       glCreateBuffers(1, &batch->instance_vbo);
@@ -173,7 +173,7 @@ r_init()
     
       // Unit geometry buffer
       glCreateBuffers(1, &batch->unit_vbo);
-      glNamedBufferStorage(batch->unit_vbo, sizeof(unit_2dquad), unit_2dquad, 0);
+      glNamedBufferStorage(batch->unit_vbo, sizeof(unit_2d_quad), unit_2d_quad, 0);
 
       // Instance data buffer
       glCreateBuffers(1, &batch->instance_vbo);
@@ -637,6 +637,17 @@ r_render(Mat4f32 view, Mat4f32 projection)
 
   ///////////////////////////////////////////////////////
   // @Section: Screenspace
+  if (g_renderer.ss_triangle->count > 0)
+  {
+    glBindProgramPipeline(g_renderer.ss_triangle->pipeline);
+    glBindVertexArray(g_renderer.ss_triangle->vao);
+
+    glProgramUniform2f(g_renderer.shaders.v_ss_quad, g_renderer.ss_triangle->u_screen_size_location, (f32)g_os_window->dimensions.x, (f32)g_os_window->dimensions.y);
+
+    glNamedBufferSubData(g_renderer.ss_triangle->instance_vbo, 0, sizeof(Primitive2D) * g_renderer.ss_triangle->count, g_renderer.ss_triangle->data);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.ss_triangle->count);
+  }
+
   if (g_renderer.ss_quad->count > 0)
   {
     glBindProgramPipeline(g_renderer.ss_quad->pipeline);
@@ -674,7 +685,7 @@ r_render(Mat4f32 view, Mat4f32 projection)
 }
 
 function void
-r_draw_2d_primitive(Render_Batch* render_batch, Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
+_r_draw_2d_primitive(Render_Batch* render_batch, Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
 {
   if (render_batch->count >= render_batch->max)
   {
@@ -693,9 +704,15 @@ r_draw_2d_primitive(Render_Batch* render_batch, Vec2f32 position, Vec2f32 scale,
 }
 
 function void
+r_draw_2d_triangle(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
+{
+  _r_draw_2d_primitive(g_renderer.ss_triangle, position, scale, uv_min, uv_max, color, texture_id);
+}
+
+function void
 r_draw_2d_quad(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
 {
-  r_draw_2d_primitive(g_renderer.ss_quad, position, scale, uv_min, uv_max, color, texture_id);
+  _r_draw_2d_primitive(g_renderer.ss_quad, position, scale, uv_min, uv_max, color, texture_id);
 }
 
 function Vec2f32
@@ -746,7 +763,7 @@ r_draw_2d_text(Vec2f32 position, Vec4f32 color, f32 scale, String8 text)
     Vec2f32 screen_pos = vec2f32(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f);
     Vec2f32 uv_min     = vec2f32(glyph->uv_min.x, glyph->uv_max.y);
     Vec2f32 uv_max     = vec2f32(glyph->uv_max.x, glyph->uv_min.y);
-    r_draw_2d_primitive(g_renderer.ss_text, screen_pos, size, uv_min, uv_max, color, font->texture_index);
+    _r_draw_2d_primitive(g_renderer.ss_text, screen_pos, size, uv_min, uv_max, color, font->texture_index);
 
     position.x += glyph->advance * scale;
     current_line_width = position.x - x_start;
@@ -757,7 +774,7 @@ r_draw_2d_text(Vec2f32 position, Vec4f32 color, f32 scale, String8 text)
 }
 
 function void
-r_draw_3d_primitive(Render_Batch* render_batch, Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
+_r_draw_3d_primitive(Render_Batch* render_batch, Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
 {
   if (render_batch->count >= render_batch->max)
   {
@@ -784,13 +801,13 @@ r_draw_3d_primitive(Render_Batch* render_batch, Transformf32 transform, Vec2f32 
 function void
 r_draw_3d_triangle(Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
 {
-  r_draw_3d_primitive(g_renderer.ws_triangle, transform, uv_min, uv_max, color, texture_id);
+  _r_draw_3d_primitive(g_renderer.ws_triangle, transform, uv_min, uv_max, color, texture_id);
 }
 
 function void
 r_draw_3d_quad(Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
 {
-  r_draw_3d_primitive(g_renderer.ws_quad, transform, uv_min, uv_max, color, texture_id);
+  _r_draw_3d_primitive(g_renderer.ws_quad, transform, uv_min, uv_max, color, texture_id);
 }
 
 function void
@@ -839,7 +856,7 @@ r_draw_3d_text(Transformf32 transform, Vec4f32 color, f32 font_scale, String8 te
     Transformf32 text_transform = transformf32(glyph_translation, transform.rotation, glyph_scale);
     Vec2f32 uv_min = vec2f32(glyph->uv_min.x, glyph->uv_max.y);
     Vec2f32 uv_max = vec2f32(glyph->uv_max.x, glyph->uv_min.y);
-    r_draw_3d_primitive(g_renderer.ws_text, text_transform, uv_min, uv_max, color, font->texture_index);
+    _r_draw_3d_primitive(g_renderer.ws_text, text_transform, uv_min, uv_max, color, font->texture_index);
     
     cursor_x += glyph->advance * font_scale;
   }
