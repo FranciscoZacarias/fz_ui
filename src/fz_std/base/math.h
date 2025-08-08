@@ -112,28 +112,21 @@ typedef union Quatf32 {
 #define quatf32_identity() quatf32(0.0f, 0.0f, 0.0f, 1.0f)
 
 // @Section: Transform
-typedef struct Transformf32 {
+typedef struct Transform3f32 Transform3f32;
+struct Transform3f32 {
   Vec3f32 translation;
   Quatf32 rotation;
   Vec3f32 scale;
-} Transformf32;
-#define transformf32(t,r,s) (Transformf32){t,r,s}
+};
+#define transform3f32(t,r,s) (Transform3f32){t,r,s}
 
-// @Section: 1D Range
-typedef union Range1u32 { f32 data[2]; struct { u32 min; u32 max; }; } Range1u32;
-typedef union Range1u64 { f32 data[2]; struct { u64 min; u64 max; }; } Range1u64;
-typedef union Range1s32 { f32 data[2]; struct { s32 min; s32 max; }; } Range1s32;
-typedef union Range1s64 { f32 data[2]; struct { s64 min; s64 max; }; } Range1s64;
-typedef union Range1f32 { f32 data[2]; struct { f32 min; f32 max; }; } Range1f32;
-typedef union Range1f64 { f32 data[2]; struct { f64 min; f64 max; }; } Range1f64;
-
-// @Section: 2D Range
-typedef union Range2u32 { Vec2u32 v[2]; struct { Vec2u32 min; Vec2u32 max; }; struct { Vec2u32 p0; Vec2u32 p1; }; struct { u32 x0, y0; u32 x1, y1; }; } Range2u32;
-typedef union Range2u64 { Vec2u64 v[2]; struct { Vec2u64 min; Vec2u64 max; }; struct { Vec2u64 p0; Vec2u64 p1; }; struct { u64 x0, y0; u64 x1, y1; }; } Range2u64;
-typedef union Range2s32 { Vec2s32 v[2]; struct { Vec2s32 min; Vec2s32 max; }; struct { Vec2s32 p0; Vec2s32 p1; }; struct { s32 x0, y0; s32 x1, y1; }; } Range2s32;
-typedef union Range2s64 { Vec2s64 v[2]; struct { Vec2s64 min; Vec2s64 max; }; struct { Vec2s64 p0; Vec2s64 p1; }; struct { s64 x0, y0; s64 x1, y1; }; } Range2s64;
-typedef union Range2f32 { Vec2f32 v[2]; struct { Vec2f32 min; Vec2f32 max; }; struct { Vec2f32 p0; Vec2f32 p1; }; struct { f32 x0, y0; f32 x1, y1; }; } Range2f32;
-typedef union Range2f64 { Vec2f64 v[2]; struct { Vec2f64 min; Vec2f64 max; }; struct { Vec2f64 p0; Vec2f64 p1; }; struct { f64 x0, y0; f64 x1, y1; }; } Range2f64;
+typedef struct Transform2f32 Transform2f32;
+struct Transform2f32 {
+  Vec2f32 translation;
+  f32 rotation;
+  Vec2f32 scale;
+};
+#define transform2f32(t,r,s) (Transform2f32){t,r,s}
 
 function f32 f32_min(f32 a, f32 b);
 function f32 f32_max(f32 a, f32 b);
@@ -209,7 +202,7 @@ function Mat4f32 mat4f32_perspective(f32 fovy, f32 window_width, f32 window_heig
 function Mat4f32 mat4f32_ortographic(f64 left, f64 right, f64 bottom, f64 top, f64 near_plane, f64 far_plane);
 function Mat4f32 mat4f32_look_at(Vec3f32 eye, Vec3f32 target, Vec3f32 up);
 function Mat4f32 mat4f32_from_quatf32(Quatf32 q);
-function Transformf32 transformf32_from_mat4f32(Mat4f32 mat);
+function Transform3f32 transformf32_from_mat4f32(Mat4f32 mat);
 
 function Quatf32 quatf32_add(Quatf32 q1, Quatf32 q2);
 function Quatf32 quatf32_add_value(Quatf32 q, f32 value);
@@ -245,6 +238,6 @@ function void vec3f32_print(Vec3f32 v, const u8 *label);
 function void vec4f32_print(Vec4f32 v, const u8 *label);
 function void mat4f32_print(Mat4f32 m, const u8 *label);
 function void quatf32_print(Quatf32 q, const u8 *label);
-function void transformf32_print(Transformf32 t, const u8 *label);
+function void transformf32_print(Transform3f32 t, const u8 *label);
 
 #endif // MATH_H

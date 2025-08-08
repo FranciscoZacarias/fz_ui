@@ -462,7 +462,7 @@ os_window_push_custom_edges(f32 thickness)
 }
 
 function void
-os_window_push_custom_title_bar_client_area(Range2f32 rect)
+os_window_push_custom_title_bar_client_area()
 {
 
 }

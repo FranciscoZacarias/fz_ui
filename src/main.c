@@ -51,18 +51,18 @@ entry_point(Command_Line* command_line)
     r_draw_3d_arrow(vec3f32( 0.0f, -16.0f,  0.0f), vec3f32(0.0f, 16.0f, 0.0), Color_Green(1.0f));
     r_draw_3d_arrow(vec3f32( 0.0f,  0.0f, -16.0f), vec3f32(0.0f, 0.0f, 16.0), Color_Blue(1.0f));
 
-    r_draw_3d_quad(transformf32(vec3f32(0.0f, 0.0f, 2.0f), quatf32_from_euler(Radians(g_frame_counter), Radians(g_frame_counter), Radians(0.0f)), vec3f32(1.0f, 1.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), green.index);
+    r_draw_3d_quad(transform3f32(vec3f32(0.0f, 0.0f, 2.0f), quatf32_from_euler(Radians(g_frame_counter), Radians(g_frame_counter), Radians(0.0f)), vec3f32(1.0f, 1.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), green.index);
 
-    r_draw_3d_triangle(transformf32(vec3f32(0.0f, 0.0f, -2.0f), quatf32_from_euler(Radians(g_frame_counter), Radians(g_frame_counter), Radians(0.0f)), vec3f32(1.0f, 1.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_blue.index);
-    r_draw_3d_triangle(transformf32(vec3f32(-2.0f, 0.0f, -2.0f), quatf32_identity(), vec3f32(1.0f, 1.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_pink.index);
+    r_draw_3d_triangle(transform3f32(vec3f32(0.0f, 0.0f, -2.0f), quatf32_from_euler(Radians(g_frame_counter), Radians(g_frame_counter), Radians(0.0f)), vec3f32(1.0f, 1.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_blue.index);
+    r_draw_3d_triangle(transform3f32(vec3f32(-2.0f, 0.0f, -2.0f), quatf32_identity(), vec3f32(1.0f, 1.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_pink.index);
     
-    r_draw_3d_quad(transformf32(vec3f32( 2.0f,  2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_black.index);
-    r_draw_3d_quad(transformf32(vec3f32(-2.0f,  2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_red.index);
-    r_draw_3d_quad(transformf32(vec3f32( 2.0f, -2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_pink.index);
-    r_draw_3d_quad(transformf32(vec3f32(-2.0f, -2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_yelow.index);
+    r_draw_3d_quad(transform3f32(vec3f32( 2.0f,  2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_black.index);
+    r_draw_3d_quad(transform3f32(vec3f32(-2.0f,  2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_red.index);
+    r_draw_3d_quad(transform3f32(vec3f32( 2.0f, -2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_pink.index);
+    r_draw_3d_quad(transform3f32(vec3f32(-2.0f, -2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_yelow.index);
 
-    r_draw_3d_text(transformf32(vec3f32(0.0f, 0.0f, 0.0f),  quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_Black(1.0f), 4.0f, S("ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-    r_draw_3d_text(transformf32(vec3f32(0.0f, -0.4f, 0.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_Black(1.0f), 4.0f, S("abcdefghijklmnopqrstuvwxyz"));
+    r_draw_3d_text(transform3f32(vec3f32(0.0f, 0.0f, 0.0f),  quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_Black(1.0f), 4.0f, S("ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+    r_draw_3d_text(transform3f32(vec3f32(0.0f, -0.4f, 0.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_Black(1.0f), 4.0f, S("abcdefghijklmnopqrstuvwxyz"));
 
     r_draw_2d_quad(vec2f32(30.f,  100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_Red(1.0f),   tex_black.index);
     r_draw_2d_quad(vec2f32(90.f,  100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_Green(1.0f), tex_red.index);

@@ -783,7 +783,7 @@ r_draw_2d_text(Vec2f32 position, Vec4f32 color, f32 scale, String8 text)
 }
 
 function void
-_r_draw_3d_primitive(Render_Batch* render_batch, Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
+_r_draw_3d_primitive(Render_Batch* render_batch, Transform3f32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
 {
   if (render_batch->count >= render_batch->max)
   {
@@ -808,19 +808,19 @@ _r_draw_3d_primitive(Render_Batch* render_batch, Transformf32 transform, Vec2f32
 }
 
 function void
-r_draw_3d_triangle(Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
+r_draw_3d_triangle(Transform3f32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
 {
   _r_draw_3d_primitive(g_renderer.batches[Render_Batch_WS_Triangle], transform, uv_min, uv_max, color, texture_id);
 }
 
 function void
-r_draw_3d_quad(Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
+r_draw_3d_quad(Transform3f32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
 {
   _r_draw_3d_primitive(g_renderer.batches[Render_Batch_WS_Quad], transform, uv_min, uv_max, color, texture_id);
 }
 
 function void
-r_draw_3d_text(Transformf32 transform, Vec4f32 color, f32 font_scale, String8 text)
+r_draw_3d_text(Transform3f32 transform, Vec4f32 color, f32 font_scale, String8 text)
 {
   font_scale *= 0.002;
 
@@ -862,7 +862,7 @@ r_draw_3d_text(Transformf32 transform, Vec4f32 color, f32 font_scale, String8 te
       return;
     }
 
-    Transformf32 text_transform = transformf32(glyph_translation, transform.rotation, glyph_scale);
+    Transform3f32 text_transform = transform3f32(glyph_translation, transform.rotation, glyph_scale);
     Vec2f32 uv_min = vec2f32(glyph->uv_min.x, glyph->uv_max.y);
     Vec2f32 uv_max = vec2f32(glyph->uv_max.x, glyph->uv_min.y);
     _r_draw_3d_primitive(g_renderer.batches[Render_Batch_WS_text], text_transform, uv_min, uv_max, color, font->texture_index);

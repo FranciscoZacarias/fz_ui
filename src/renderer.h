@@ -66,7 +66,7 @@ global Vec2f32 unit_2d_quad[6] = {
 typedef struct Primitive3D Primitive3D;
 struct Primitive3D
 {
-  Transformf32 transform;
+  Transform3f32 transform;
   Vec2f32 uv_min;
   Vec2f32 uv_max;
   Vec3f32 normal;
@@ -205,10 +205,10 @@ function void    r_draw_2d_triangle(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_
 function void    r_draw_2d_quad(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
 function Vec2f32 r_draw_2d_text(Vec2f32 position, Vec4f32 color, f32 scale, String8 text);
 
-function void   _r_draw_3d_primitive(Render_Batch* render_batch, Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
-function void    r_draw_3d_triangle(Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
-function void    r_draw_3d_quad(Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
-function void    r_draw_3d_text(Transformf32 transform, Vec4f32 color, f32 font_scale, String8 text);
+function void   _r_draw_3d_primitive(Render_Batch* render_batch, Transform3f32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
+function void    r_draw_3d_triangle(Transform3f32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
+function void    r_draw_3d_quad(Transform3f32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
+function void    r_draw_3d_text(Transform3f32 transform, Vec4f32 color, f32 font_scale, String8 text);
 function void    r_draw_3d_line(Vec3f32 p0, Vec3f32 p1, Vec4f32 color);
 function void    r_draw_3d_arrow(Vec3f32 start, Vec3f32 end, Vec4f32 color);
 

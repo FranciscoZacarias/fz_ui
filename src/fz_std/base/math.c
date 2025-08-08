@@ -971,10 +971,10 @@ mat4f32_from_quatf32(Quatf32 q)
   return result;
 }
 
-function Transformf32 
+function Transform3f32 
 transformf32_from_mat4f32(Mat4f32 mat)
 {
-  Transformf32 result = { 0 };
+  Transform3f32 result = { 0 };
 
   // Extract translation.
   result.translation.x = mat.m12;
@@ -1631,7 +1631,7 @@ quatf32_print(Quatf32 q, const u8 *label)
 }
 
 function void
-transformf32_print(Transformf32 t, const u8 *label)
+transformf32_print(Transform3f32 t, const u8 *label)
 {
   printf("%s: Transformf32\n", label);
   vec3f32_print(t.translation, "  translation");
