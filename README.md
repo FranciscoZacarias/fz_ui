@@ -9,10 +9,11 @@
 - [x] Create fallback texture - Default texture when loading fails to prevent crashes
 - [x] Wireframe mode toggle - Switch between filled and wireframe rendering for debugging
 - [x] Change worldspace quads such that I can transform them - Add rotation support to quad instances
+- [ ] Add triangle render primitives
 
 ### CORE FEATURES - High Priority
 
-- [ ] Add normals to render primitives
+- [x] Add normals to render primitives
 - [ ] Directional light pass
 - [ ] Implement depth sorting for transparency - Sort transparent objects back-to-front for correct alpha blending
 - [ ] Draw worldspace circles - Render circles positioned in 3D space

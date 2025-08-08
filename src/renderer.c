@@ -228,15 +228,20 @@ r_init()
     glVertexArrayAttribBinding(g_renderer.ws_quad->vao, 5, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_quad->vao, 5, 1);
 
-    glEnableVertexArrayAttrib(g_renderer.ws_quad->vao, 6); // Color
-    glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 6, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, color));
+    glEnableVertexArrayAttrib(g_renderer.ws_quad->vao, 6); // Normal
+    glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 6, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, normal));
     glVertexArrayAttribBinding(g_renderer.ws_quad->vao, 6, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_quad->vao, 6, 1);
 
-    glEnableVertexArrayAttrib(g_renderer.ws_quad->vao, 7); // Texture ID
-    glVertexArrayAttribIFormat(g_renderer.ws_quad->vao, 7, 1, GL_UNSIGNED_INT, OffsetOfMember(Quad3D, texture_id));
+    glEnableVertexArrayAttrib(g_renderer.ws_quad->vao, 7); // Color
+    glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 7, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, color));
     glVertexArrayAttribBinding(g_renderer.ws_quad->vao, 7, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_quad->vao, 7, 1);
+
+    glEnableVertexArrayAttrib(g_renderer.ws_quad->vao, 8); // Texture ID
+    glVertexArrayAttribIFormat(g_renderer.ws_quad->vao, 8, 1, GL_UNSIGNED_INT, OffsetOfMember(Quad3D, texture_id));
+    glVertexArrayAttribBinding(g_renderer.ws_quad->vao, 8, 1);
+    glVertexArrayBindingDivisor(g_renderer.ws_quad->vao, 8, 1);
 
     g_renderer.ws_quad->u_projection_location = glGetUniformLocation(g_renderer.shaders.v_ws_quad, "u_projection");
     g_renderer.ws_quad->u_view_location = glGetUniformLocation(g_renderer.shaders.v_ws_quad, "u_view");
@@ -295,15 +300,20 @@ r_init()
     glVertexArrayAttribBinding(g_renderer.ws_text->vao, 5, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_text->vao, 5, 1);
 
-    glEnableVertexArrayAttrib(g_renderer.ws_text->vao, 6); // Color
-    glVertexArrayAttribFormat(g_renderer.ws_text->vao, 6, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, color));
+    glEnableVertexArrayAttrib(g_renderer.ws_text->vao, 6); // Normal
+    glVertexArrayAttribFormat(g_renderer.ws_text->vao, 6, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, normal));
     glVertexArrayAttribBinding(g_renderer.ws_text->vao, 6, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_text->vao, 6, 1);
 
-    glEnableVertexArrayAttrib(g_renderer.ws_text->vao, 7); // Texture ID
-    glVertexArrayAttribIFormat(g_renderer.ws_text->vao, 7, 1, GL_UNSIGNED_INT, OffsetOfMember(Quad3D, texture_id));
+    glEnableVertexArrayAttrib(g_renderer.ws_text->vao, 7); // Color
+    glVertexArrayAttribFormat(g_renderer.ws_text->vao, 7, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, color));
     glVertexArrayAttribBinding(g_renderer.ws_text->vao, 7, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_text->vao, 7, 1);
+
+    glEnableVertexArrayAttrib(g_renderer.ws_text->vao, 8); // Texture ID
+    glVertexArrayAttribIFormat(g_renderer.ws_text->vao, 8, 1, GL_UNSIGNED_INT, OffsetOfMember(Quad3D, texture_id));
+    glVertexArrayAttribBinding(g_renderer.ws_text->vao, 8, 1);
+    glVertexArrayBindingDivisor(g_renderer.ws_text->vao, 8, 1);
 
     g_renderer.ws_text->u_projection_location = glGetUniformLocation(g_renderer.shaders.v_ws_quad, "u_projection");
     g_renderer.ws_text->u_view_location = glGetUniformLocation(g_renderer.shaders.v_ws_quad, "u_view");
@@ -573,19 +583,27 @@ r_draw_2dtext(Vec2f32 position, Vec4f32 color, f32 scale, String8 text)
 }
 
 function void
-r_draw_3dquad(Transformf32 transform, Vec4f32 color, u32 texture_id)
+r_draw_3dquad(Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
 {
   if (g_renderer.ws_quad->count >= g_renderer.ws_quad->max)
   {
     emit_fatal(S("Tried to render more textured quads than g_renderer.ws_quad_texture->max"));
     return;
   }
+  
+  Vec4f32 normal4 = vec4f32_mul_mat4f32(vec4f32(0.0f, 0.0f, 1.0f, 0.0f), mat4f32_from_quatf32(transform.rotation));
+  Vec3f32 normal  = vec3f32_normalize(vec3f32_from_vec4f32(normal4));
+
+  Vec3f32 end = vec3f32_add(transform.translation, vec3f32_scale(normal, 1.0f));
+  r_draw_3dline(transform.translation, end, Color_Yellow);
+
   Quad3D* data = (Quad3D*)g_renderer.ws_quad->data;
   data[g_renderer.ws_quad->count].transform.translation = transform.translation;
   data[g_renderer.ws_quad->count].transform.rotation    = transform.rotation;
   data[g_renderer.ws_quad->count].transform.scale       = transform.scale;
-  data[g_renderer.ws_quad->count].uv_min                = vec2f32(0.0f, 0.0f);
-  data[g_renderer.ws_quad->count].uv_max                = vec2f32(1.0f, 1.0f);
+  data[g_renderer.ws_quad->count].uv_min                = uv_min;
+  data[g_renderer.ws_quad->count].uv_max                = uv_max;
+  data[g_renderer.ws_quad->count].normal                = normal;
   data[g_renderer.ws_quad->count].color                 = color;
   data[g_renderer.ws_quad->count].texture_id            = texture_id;
   g_renderer.ws_quad->count += 1;
@@ -633,13 +651,14 @@ r_draw_3dtext(Transformf32 transform, Vec4f32 color, f32 font_scale, String8 tex
       emit_fatal(S("Tried to render more 3D text quads than max"));
       return;
     }
-    
+
     Quad3D* data = (Quad3D*)g_renderer.ws_text->data;
     data[g_renderer.ws_text->count].transform.translation = glyph_translation;
     data[g_renderer.ws_text->count].transform.rotation    = transform.rotation;
     data[g_renderer.ws_text->count].transform.scale       = glyph_scale;
     data[g_renderer.ws_text->count].uv_min                = vec2f32(glyph->uv_min.x, glyph->uv_max.y);
     data[g_renderer.ws_text->count].uv_max                = vec2f32(glyph->uv_max.x, glyph->uv_min.y);
+    data[g_renderer.ws_text->count].normal                = vec3f32(0.0f, 0.0f, 0.0f);
     data[g_renderer.ws_text->count].color                 = color;
     data[g_renderer.ws_text->count].texture_id            = font->texture_index;
     g_renderer.ws_text->count += 1;

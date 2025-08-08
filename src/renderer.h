@@ -65,6 +65,7 @@ struct Quad3D
   Transformf32 transform;
   Vec2f32 uv_min;
   Vec2f32 uv_max;
+  Vec3f32 normal;
   Vec4f32 color;
   u32 texture_id;
 };
@@ -190,7 +191,7 @@ function Instanced_Target* r_new_instanced_target(Arena* arena, Instanced_Target
 
 function void    r_draw_2dquad(Vec2f32 position, Vec2f32 scale, Vec4f32 color, u32 texture_id);
 function Vec2f32 r_draw_2dtext(Vec2f32 position, Vec4f32 color, f32 scale, String8 text);
-function void    r_draw_3dquad(Transformf32 transform, Vec4f32 color, u32 texture_id);
+function void    r_draw_3dquad(Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
 function void    r_draw_3dtext(Transformf32 transform, Vec4f32 color, f32 font_scale, String8 text);
 function void    r_draw_3dline(Vec3f32 p0, Vec3f32 p1, Vec4f32 color);
 function void    r_draw_3darrow(Vec3f32 start, Vec3f32 end, Vec4f32 color);

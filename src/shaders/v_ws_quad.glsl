@@ -6,8 +6,9 @@ layout(location = 2) in vec4 a_rotation;
 layout(location = 3) in vec3 a_scale;
 layout(location = 4) in vec2 a_uv_min;
 layout(location = 5) in vec2 a_uv_max;
-layout(location = 6) in vec4 a_color;
-layout(location = 7) in uint a_texture_id;
+layout(location = 6) in vec3 a_normal;
+layout(location = 7) in vec4 a_color;
+layout(location = 8) in uint a_texture_id;
 
 uniform mat4 u_view;
 uniform mat4 u_projection;

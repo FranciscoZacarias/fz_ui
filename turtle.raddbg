@@ -43,11 +43,6 @@ watch_pin:
 }
 breakpoint:
 {
-  source_location: "src/renderer.c:518:15"
-  hit_count: 0
-}
-breakpoint:
-{
-  source_location: "src/renderer.c:747:15"
+  source_location: "src/renderer.c:432:1"
   hit_count: 1
 }

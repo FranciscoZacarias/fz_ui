@@ -48,12 +48,12 @@ entry_point(Command_Line* command_line)
     r_draw_3darrow(vec3f32( 0.0f, -16.0f,  0.0f), vec3f32(0.0f, 16.0f, 0.0), Color_Green);
     r_draw_3darrow(vec3f32( 0.0f,  0.0f, -16.0f), vec3f32(0.0f, 0.0f, 16.0), Color_Blue);
 
-    r_draw_3dquad(transformf32(vec3f32(0.0f, 0.0f, 2.0f), quatf32_from_euler(Radians(90.0f), Radians(0.0f), Radians(0.0f)), vec3f32(1.0f, 1.0f, 1.0f)), Color_White, green.index);
+    r_draw_3dquad(transformf32(vec3f32(0.0f, 0.0f, 2.0f), quatf32_from_euler(Radians(90.0f), Radians(0.0f), Radians(0.0f)), vec3f32(1.0f, 1.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, green.index);
     
-    r_draw_3dquad(transformf32(vec3f32( 2.0f,  2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_White, tex_black.index);
-    r_draw_3dquad(transformf32(vec3f32(-2.0f,  2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_White, tex_red.index);
-    r_draw_3dquad(transformf32(vec3f32( 2.0f, -2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_White, tex_pink.index);
-    r_draw_3dquad(transformf32(vec3f32(-2.0f, -2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_White, tex_yelow.index);
+    r_draw_3dquad(transformf32(vec3f32( 2.0f,  2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, tex_black.index);
+    r_draw_3dquad(transformf32(vec3f32(-2.0f,  2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, tex_red.index);
+    r_draw_3dquad(transformf32(vec3f32( 2.0f, -2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, tex_pink.index);
+    r_draw_3dquad(transformf32(vec3f32(-2.0f, -2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, tex_yelow.index);
 
     r_draw_3dtext(transformf32(vec3f32(0.0f, 0.0f, 0.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_Black, 4.0f, S("ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
     r_draw_3dtext(transformf32(vec3f32(0.0f, -0.4f, 0.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_Black, 4.0f, S("abcdefghijklmnopqrstuvwxyz"));
