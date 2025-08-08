@@ -9,7 +9,7 @@ r_init()
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
 
-#if 0
+#if 1
   glEnable(GL_CULL_FACE);
   glCullFace(GL_BACK);
 #endif
@@ -162,6 +162,82 @@ r_init()
 
   // Worldspace
   {
+    //
+    // 3D Triangles
+    //
+    g_renderer.ws_triangle = r_new_instanced_target(g_renderer.arena, IT_Kind_Worldspace_quad, Thousand(1));
+
+    // Unit geometry buffer
+    glCreateBuffers(1, &g_renderer.ws_triangle->unit_vbo);
+    glNamedBufferStorage(g_renderer.ws_triangle->unit_vbo, sizeof(unit_3dtriangle), unit_3dtriangle, 0);
+    
+    // Instance data buffer
+    glCreateBuffers(1, &g_renderer.ws_triangle->instance_vbo);
+    glNamedBufferStorage(g_renderer.ws_triangle->instance_vbo, sizeof(Triangle3D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
+    
+    // VAO
+    glCreateVertexArrays(1, &g_renderer.ws_triangle->vao);
+    
+    // Unit geometry binding (binding 0)
+    glVertexArrayVertexBuffer(g_renderer.ws_triangle->vao, 0, g_renderer.ws_triangle->unit_vbo, 0, sizeof(Vec3f32));
+    
+    // Instance data binding (binding 1)
+    glVertexArrayVertexBuffer(g_renderer.ws_triangle->vao, 1, g_renderer.ws_triangle->instance_vbo, 0, sizeof(Triangle3D));
+
+    // Pipeline
+    glCreateProgramPipelines(1, &g_renderer.ws_triangle->pipeline);
+    glUseProgramStages(g_renderer.ws_triangle->pipeline, GL_VERTEX_SHADER_BIT, g_renderer.shaders.v_ws_quad);
+    glUseProgramStages(g_renderer.ws_triangle->pipeline, GL_FRAGMENT_SHADER_BIT, g_renderer.shaders.f_texture);
+
+    // Unit quad positions (per-vertex)
+    glEnableVertexArrayAttrib(g_renderer.ws_triangle->vao, 0);
+    glVertexArrayAttribFormat(g_renderer.ws_triangle->vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(g_renderer.ws_triangle->vao, 0, 0);
+    
+    // Instance data (per-instance)
+    glEnableVertexArrayAttrib(g_renderer.ws_triangle->vao, 1); // Translation
+    glVertexArrayAttribFormat(g_renderer.ws_triangle->vao, 1, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Triangle3D, transform.translation));
+    glVertexArrayAttribBinding(g_renderer.ws_triangle->vao, 1, 1);
+    glVertexArrayBindingDivisor(g_renderer.ws_triangle->vao, 1, 1);
+
+    glEnableVertexArrayAttrib(g_renderer.ws_triangle->vao, 2); // Rotation
+    glVertexArrayAttribFormat(g_renderer.ws_triangle->vao, 2, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Triangle3D, transform.rotation));
+    glVertexArrayAttribBinding(g_renderer.ws_triangle->vao, 2, 1);
+    glVertexArrayBindingDivisor(g_renderer.ws_triangle->vao, 2, 1);
+
+    glEnableVertexArrayAttrib(g_renderer.ws_triangle->vao, 3); // Scale
+    glVertexArrayAttribFormat(g_renderer.ws_triangle->vao, 3, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Triangle3D, transform.scale));
+    glVertexArrayAttribBinding(g_renderer.ws_triangle->vao, 3, 1);
+    glVertexArrayBindingDivisor(g_renderer.ws_triangle->vao, 3, 1);
+
+    glEnableVertexArrayAttrib(g_renderer.ws_triangle->vao, 4); // UV Min
+    glVertexArrayAttribFormat(g_renderer.ws_triangle->vao, 4, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Triangle3D, uv_min));
+    glVertexArrayAttribBinding(g_renderer.ws_triangle->vao, 4, 1);
+    glVertexArrayBindingDivisor(g_renderer.ws_triangle->vao, 4, 1);
+
+    glEnableVertexArrayAttrib(g_renderer.ws_triangle->vao, 5); // UV Max
+    glVertexArrayAttribFormat(g_renderer.ws_triangle->vao, 5, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Triangle3D, uv_max));
+    glVertexArrayAttribBinding(g_renderer.ws_triangle->vao, 5, 1);
+    glVertexArrayBindingDivisor(g_renderer.ws_triangle->vao, 5, 1);
+
+    glEnableVertexArrayAttrib(g_renderer.ws_triangle->vao, 6); // Normal
+    glVertexArrayAttribFormat(g_renderer.ws_triangle->vao, 6, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Triangle3D, normal));
+    glVertexArrayAttribBinding(g_renderer.ws_triangle->vao, 6, 1);
+    glVertexArrayBindingDivisor(g_renderer.ws_triangle->vao, 6, 1);
+
+    glEnableVertexArrayAttrib(g_renderer.ws_triangle->vao, 7); // Color
+    glVertexArrayAttribFormat(g_renderer.ws_triangle->vao, 7, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Triangle3D, color));
+    glVertexArrayAttribBinding(g_renderer.ws_triangle->vao, 7, 1);
+    glVertexArrayBindingDivisor(g_renderer.ws_triangle->vao, 7, 1);
+
+    glEnableVertexArrayAttrib(g_renderer.ws_triangle->vao, 8); // Texture ID
+    glVertexArrayAttribIFormat(g_renderer.ws_triangle->vao, 8, 1, GL_UNSIGNED_INT, OffsetOfMember(Triangle3D, texture_id));
+    glVertexArrayAttribBinding(g_renderer.ws_triangle->vao, 8, 1);
+    glVertexArrayBindingDivisor(g_renderer.ws_triangle->vao, 8, 1);
+
+    g_renderer.ws_triangle->u_projection_location = glGetUniformLocation(g_renderer.shaders.v_ws_quad, "u_projection");
+    g_renderer.ws_triangle->u_view_location = glGetUniformLocation(g_renderer.shaders.v_ws_quad, "u_view");
+
     //
     // 3D Quads
     //
@@ -330,7 +406,6 @@ r_init()
     glUseProgramStages(g_renderer.ws_line->pipeline, GL_VERTEX_SHADER_BIT, g_renderer.shaders.v_ws_line);
     glUseProgramStages(g_renderer.ws_line->pipeline, GL_FRAGMENT_SHADER_BIT, g_renderer.shaders.f_line);
 
-
     // Instance data (per-instance) - use binding 1 and divisor 1
     glEnableVertexArrayAttrib(g_renderer.ws_line->vao, 0); // p0
     glVertexArrayAttribFormat(g_renderer.ws_line->vao, 0, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Line3D, p0));
@@ -430,6 +505,18 @@ r_render(Mat4f32 view, Mat4f32 projection)
 
   ///////////////////////////////////////////////////////
   // @Section: Worldspace
+  if (g_renderer.ws_triangle->count > 0)
+  {
+    glBindProgramPipeline(g_renderer.ws_triangle->pipeline);
+    glBindVertexArray(g_renderer.ws_triangle->vao);
+
+    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.ws_triangle->u_view_location, 1, GL_TRUE, &view.data[0][0]);
+    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.ws_triangle->u_projection_location, 1, GL_TRUE, &projection.data[0][0]);
+
+    glNamedBufferSubData(g_renderer.ws_triangle->instance_vbo, 0, sizeof(Triangle3D) * g_renderer.ws_triangle->count, g_renderer.ws_triangle->data);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 3, g_renderer.ws_triangle->count);
+  }
+
   if (g_renderer.ws_quad->count > 0)
   {
     glBindProgramPipeline(g_renderer.ws_quad->pipeline);
@@ -496,15 +583,16 @@ r_render(Mat4f32 view, Mat4f32 projection)
   glClearColor(0.5f, 0.96f, 1.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-  g_renderer.ss_quad->count = 0;
-  g_renderer.ss_text->count = 0;
-  g_renderer.ws_quad->count = 0;
-  g_renderer.ws_text->count = 0;
-  g_renderer.ws_line->count = 0;
+  g_renderer.ss_quad->count     = 0;
+  g_renderer.ss_text->count     = 0;
+  g_renderer.ws_triangle->count = 0;
+  g_renderer.ws_quad->count     = 0;
+  g_renderer.ws_text->count     = 0;
+  g_renderer.ws_line->count     = 0;
 }
 
 function void
-r_draw_2dquad(Vec2f32 position, Vec2f32 scale, Vec4f32 color, u32 texture_id)
+r_draw_2dquad(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
 {
   if (g_renderer.ss_quad->count >= g_renderer.ss_quad->max)
   {
@@ -514,8 +602,8 @@ r_draw_2dquad(Vec2f32 position, Vec2f32 scale, Vec4f32 color, u32 texture_id)
   Quad2D* data = (Quad2D*)g_renderer.ss_quad->data;
   data[g_renderer.ss_quad->count].position   = position;
   data[g_renderer.ss_quad->count].scale      = scale;
-  data[g_renderer.ss_quad->count].uv_min     = vec2f32(0.0f, 0.0f);
-  data[g_renderer.ss_quad->count].uv_max     = vec2f32(1.0f, 1.0f);
+  data[g_renderer.ss_quad->count].uv_min     = uv_min;
+  data[g_renderer.ss_quad->count].uv_max     = uv_max;
   data[g_renderer.ss_quad->count].color      = color;
   data[g_renderer.ss_quad->count].texture_id = texture_id;
   g_renderer.ss_quad->count += 1;
@@ -581,6 +669,33 @@ r_draw_2dtext(Vec2f32 position, Vec4f32 color, f32 scale, String8 text)
 
   max_width = Max(max_width, current_line_width);
   return vec2f32(max_width, total_height);
+}
+
+function void
+r_draw_3dtriangle(Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
+{
+  if (g_renderer.ws_triangle->count >= g_renderer.ws_triangle->max)
+  {
+    emit_fatal(S("Tried to render more textured quads than g_renderer.ws_triangle_texture->max"));
+    return;
+  }
+  
+  Vec4f32 normal4 = vec4f32_mul_mat4f32(vec4f32(0.0f, 0.0f, 1.0f, 0.0f), mat4f32_from_quatf32(transform.rotation));
+  Vec3f32 normal  = vec3f32_normalize(vec3f32_from_vec4f32(normal4));
+
+  Vec3f32 end = vec3f32_add(transform.translation, vec3f32_scale(normal, 1.0f));
+  r_draw_3dline(transform.translation, end, Color_Yellow);
+
+  Quad3D* data = (Quad3D*)g_renderer.ws_triangle->data;
+  data[g_renderer.ws_triangle->count].transform.translation = transform.translation;
+  data[g_renderer.ws_triangle->count].transform.rotation    = transform.rotation;
+  data[g_renderer.ws_triangle->count].transform.scale       = transform.scale;
+  data[g_renderer.ws_triangle->count].uv_min                = uv_min;
+  data[g_renderer.ws_triangle->count].uv_max                = uv_max;
+  data[g_renderer.ws_triangle->count].normal                = normal;
+  data[g_renderer.ws_triangle->count].color                 = color;
+  data[g_renderer.ws_triangle->count].texture_id            = texture_id;
+  g_renderer.ws_triangle->count += 1;
 }
 
 function void
