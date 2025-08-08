@@ -131,8 +131,9 @@ typedef enum
   Render_Batch_SS_triangle,
   Render_Batch_SS_quad,
   Render_Batch_SS_text,
-  Render_Batch_WS_triangle,
-  Render_Batch_WS_quad,
+
+  Render_Batch_WS_Triangle,
+  Render_Batch_WS_Quad,
   Render_Batch_WS_text,
   Render_Batch_WS_line,
 
@@ -210,6 +211,8 @@ function void    r_draw_3d_quad(Transformf32 transform, Vec2f32 uv_min, Vec2f32 
 function void    r_draw_3d_text(Transformf32 transform, Vec4f32 color, f32 font_scale, String8 text);
 function void    r_draw_3d_line(Vec3f32 p0, Vec3f32 p1, Vec4f32 color);
 function void    r_draw_3d_arrow(Vec3f32 start, Vec3f32 end, Vec4f32 color);
+
+function void    r_draw_grid(Vec3f32 center, Vec3f32 normal, Vec3f32 forward, u32 square_size, u32 square_per_side, Vec4f32 color);
 
 function Texture_Info  r_load_texture(String8 path);
 function Texture_Info  r_create_color_texture(Vec4f32 color);

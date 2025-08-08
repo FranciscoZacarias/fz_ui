@@ -135,27 +135,6 @@ typedef union Range2s64 { Vec2s64 v[2]; struct { Vec2s64 min; Vec2s64 max; }; st
 typedef union Range2f32 { Vec2f32 v[2]; struct { Vec2f32 min; Vec2f32 max; }; struct { Vec2f32 p0; Vec2f32 p1; }; struct { f32 x0, y0; f32 x1, y1; }; } Range2f32;
 typedef union Range2f64 { Vec2f64 v[2]; struct { Vec2f64 min; Vec2f64 max; }; struct { Vec2f64 p0; Vec2f64 p1; }; struct { f64 x0, y0; f64 x1, y1; }; } Range2f64;
 
-// TODO(Fz): Colors should not be here, I think.
-#define Color_Red        vec4f32(1.0f,  0.0f,  0.0f,  1.0f)
-#define Color_Green      vec4f32(0.0f,  1.0f,  0.0f,  1.0f)
-#define Color_Blue       vec4f32(0.0f,  0.0f,  1.0f,  1.0f)
-#define Color_Yellow     vec4f32(1.0f,  1.0f,  0.0f,  1.0f)
-#define Color_Cyan       vec4f32(0.0f,  1.0f,  1.0f,  1.0f)
-#define Color_Magenta    vec4f32(1.0f,  0.0f,  1.0f,  1.0f)
-#define Color_White      vec4f32(1.0f,  1.0f,  1.0f,  1.0f)
-#define Color_Black      vec4f32(0.0f,  0.0f,  0.0f,  1.0f)
-#define Color_Gray       vec4f32(0.5f,  0.5f,  0.5f,  1.0f)
-#define Color_LightGray  vec4f32(0.75f, 0.75f, 0.75f, 1.0f)
-#define Color_DarkGray   vec4f32(0.25f, 0.25f, 0.25f, 1.0f)
-#define Color_Orange     vec4f32(1.0f,  0.5f,  0.0f,  1.0f)
-#define Color_Purple     vec4f32(0.5f,  0.0f,  0.5f,  1.0f)
-#define Color_Brown      vec4f32(0.6f,  0.4f,  0.2f,  1.0f)
-#define Color_Pink       vec4f32(1.0f,  0.75f, 0.8f,  1.0f)
-
-#define AXIS_X vec3f32(1.0f, 0.0f, 0.0f)
-#define AXIS_Y vec3f32(0.0f, 1.0f, 0.0f)
-#define AXIS_Z vec3f32(0.0f, 0.0f, 1.0f)
-
 function f32 f32_min(f32 a, f32 b);
 function f32 f32_max(f32 a, f32 b);
 function f32 f32_abs(f32 value);

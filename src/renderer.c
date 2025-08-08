@@ -241,7 +241,7 @@ r_init()
   {
     // 3D Triangles
     {
-      Render_Batch_Kind batch_kind = Render_Batch_WS_triangle;
+      Render_Batch_Kind batch_kind = Render_Batch_WS_Triangle;
 
       Render_Batch* batch = r_new_render_batch(g_renderer.arena, batch_kind, Thousand(1));
       g_renderer.batches[batch_kind] = batch;
@@ -321,7 +321,7 @@ r_init()
 
     // 3D Quads
     {
-      Render_Batch_Kind batch_kind = Render_Batch_WS_quad;
+      Render_Batch_Kind batch_kind = Render_Batch_WS_Quad;
 
       Render_Batch* batch = r_new_render_batch(g_renderer.arena, batch_kind, Thousand(1));
       g_renderer.batches[batch_kind] = batch;
@@ -399,9 +399,7 @@ r_init()
       glVertexArrayBindingDivisor(batch->vao, 8, 1);
     }
 
-    //
     // 3D Text
-    //
     {
       Render_Batch_Kind batch_kind = Render_Batch_WS_text;
 
@@ -564,8 +562,8 @@ r_new_render_batch(Arena* arena, Render_Batch_Kind kind, u32 max_instances)
     {
       stride = sizeof(Primitive2D);
     } break;
-    case Render_Batch_WS_triangle:
-    case Render_Batch_WS_quad:
+    case Render_Batch_WS_Triangle:
+    case Render_Batch_WS_Quad:
     case Render_Batch_WS_text:
     {
       stride = sizeof(Primitive3D);
@@ -600,28 +598,28 @@ r_render(Mat4f32 view, Mat4f32 projection)
 
   ///////////////////////////////////////////////////////
   // @Section: Worldspace
-  if (g_renderer.batches[Render_Batch_WS_triangle]->count > 0)
+  if (g_renderer.batches[Render_Batch_WS_Triangle]->count > 0)
   {
-    glBindProgramPipeline(g_renderer.batches[Render_Batch_WS_triangle]->pipeline);
-    glBindVertexArray(g_renderer.batches[Render_Batch_WS_triangle]->vao);
+    glBindProgramPipeline(g_renderer.batches[Render_Batch_WS_Triangle]->pipeline);
+    glBindVertexArray(g_renderer.batches[Render_Batch_WS_Triangle]->vao);
 
-    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.batches[Render_Batch_WS_triangle]->u_view_location, 1, GL_TRUE, &view.data[0][0]);
-    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.batches[Render_Batch_WS_triangle]->u_projection_location, 1, GL_TRUE, &projection.data[0][0]);
+    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.batches[Render_Batch_WS_Triangle]->u_view_location, 1, GL_TRUE, &view.data[0][0]);
+    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.batches[Render_Batch_WS_Triangle]->u_projection_location, 1, GL_TRUE, &projection.data[0][0]);
 
-    glNamedBufferSubData(g_renderer.batches[Render_Batch_WS_triangle]->instance_vbo, 0, sizeof(Primitive3D) * g_renderer.batches[Render_Batch_WS_triangle]->count, g_renderer.batches[Render_Batch_WS_triangle]->data);
-    glDrawArraysInstanced(GL_TRIANGLES, 0, 3, g_renderer.batches[Render_Batch_WS_triangle]->count);
+    glNamedBufferSubData(g_renderer.batches[Render_Batch_WS_Triangle]->instance_vbo, 0, sizeof(Primitive3D) * g_renderer.batches[Render_Batch_WS_Triangle]->count, g_renderer.batches[Render_Batch_WS_Triangle]->data);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 3, g_renderer.batches[Render_Batch_WS_Triangle]->count);
   }
 
-  if (g_renderer.batches[Render_Batch_WS_quad]->count > 0)
+  if (g_renderer.batches[Render_Batch_WS_Quad]->count > 0)
   {
-    glBindProgramPipeline(g_renderer.batches[Render_Batch_WS_quad]->pipeline);
-    glBindVertexArray(g_renderer.batches[Render_Batch_WS_quad]->vao);
+    glBindProgramPipeline(g_renderer.batches[Render_Batch_WS_Quad]->pipeline);
+    glBindVertexArray(g_renderer.batches[Render_Batch_WS_Quad]->vao);
 
-    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.batches[Render_Batch_WS_quad]->u_view_location, 1, GL_TRUE, &view.data[0][0]);
-    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.batches[Render_Batch_WS_quad]->u_projection_location, 1, GL_TRUE, &projection.data[0][0]);
+    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.batches[Render_Batch_WS_Quad]->u_view_location, 1, GL_TRUE, &view.data[0][0]);
+    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.batches[Render_Batch_WS_Quad]->u_projection_location, 1, GL_TRUE, &projection.data[0][0]);
 
-    glNamedBufferSubData(g_renderer.batches[Render_Batch_WS_quad]->instance_vbo, 0, sizeof(Primitive3D) * g_renderer.batches[Render_Batch_WS_quad]->count, g_renderer.batches[Render_Batch_WS_quad]->data);
-    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.batches[Render_Batch_WS_quad]->count);
+    glNamedBufferSubData(g_renderer.batches[Render_Batch_WS_Quad]->instance_vbo, 0, sizeof(Primitive3D) * g_renderer.batches[Render_Batch_WS_Quad]->count, g_renderer.batches[Render_Batch_WS_Quad]->data);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.batches[Render_Batch_WS_Quad]->count);
   }
 
   if (g_renderer.batches[Render_Batch_WS_text]->count > 0)
@@ -797,7 +795,7 @@ _r_draw_3d_primitive(Render_Batch* render_batch, Transformf32 transform, Vec2f32
   Vec3f32 normal = vec3f32_normalize(vec3f32_from_vec4f32(normal4));
 
   Vec3f32 end = vec3f32_add(transform.translation, vec3f32_scale(normal, 1.0f));
-  r_draw_3d_line(transform.translation, end, Color_Yellow);
+  r_draw_3d_line(transform.translation, end, Color_Yellow(0.5f));
 
   Primitive3D *data = (Primitive3D*)render_batch->data;
   data[render_batch->count].transform = transform;
@@ -812,13 +810,13 @@ _r_draw_3d_primitive(Render_Batch* render_batch, Transformf32 transform, Vec2f32
 function void
 r_draw_3d_triangle(Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
 {
-  _r_draw_3d_primitive(g_renderer.batches[Render_Batch_WS_triangle], transform, uv_min, uv_max, color, texture_id);
+  _r_draw_3d_primitive(g_renderer.batches[Render_Batch_WS_Triangle], transform, uv_min, uv_max, color, texture_id);
 }
 
 function void
 r_draw_3d_quad(Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
 {
-  _r_draw_3d_primitive(g_renderer.batches[Render_Batch_WS_quad], transform, uv_min, uv_max, color, texture_id);
+  _r_draw_3d_primitive(g_renderer.batches[Render_Batch_WS_Quad], transform, uv_min, uv_max, color, texture_id);
 }
 
 function void
@@ -915,6 +913,34 @@ r_draw_3d_arrow(Vec3f32 start, Vec3f32 end, Vec4f32 color)
   r_draw_3d_line(tip, vec3f32_sub(base, right),   color);
   r_draw_3d_line(tip, vec3f32_add(base, forward), color);
   r_draw_3d_line(tip, vec3f32_sub(base, forward), color);
+}
+
+function void
+r_draw_grid(Vec3f32 center, Vec3f32 normal, Vec3f32 forward, u32 square_size, u32 square_per_side, Vec4f32 color)
+{
+  u32 width = square_per_side * square_size;
+
+  Vec3f32 left  = vec3f32_cross(normal, forward);
+  Vec3f32 right = vec3f32_scale(left, -1);
+  
+  Vec3f32 p0_v = vec3f32_add(center, vec3f32_scale(left, width / 2));
+  p0_v = vec3f32_add(p0_v, vec3f32_scale(vec3f32_scale(forward, -1), width / 2));
+  Vec3f32 p0_h = p0_v;
+  
+  Vec3f32 p1_v = vec3f32_add(p0_v, vec3f32_scale(forward, width));
+  Vec3f32 p1_h = vec3f32_add(p0_h, vec3f32_scale(right, width));
+
+  for (u32 idx = 0; idx <= square_per_side; idx += 1)
+  {
+    r_draw_3d_line(p0_v, p1_v, color);
+    r_draw_3d_line(p0_h, p1_h, color);
+
+    p0_v = vec3f32_add(p0_v, vec3f32_scale(right, square_size));
+    p1_v = vec3f32_add(p1_v, vec3f32_scale(right, square_size));
+
+    p0_h = vec3f32_add(p0_h, vec3f32_scale(forward, square_size));
+    p1_h = vec3f32_add(p1_h, vec3f32_scale(forward, square_size));
+  }
 }
 
 function void
