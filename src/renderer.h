@@ -126,20 +126,23 @@ struct Font
 // @Section: Instanced Target
 typedef enum
 {
-  IT_Kind_None,
-  IT_Kind_Screenspace_triangle,
-  IT_Kind_Screenspace_quad,
-  IT_Kind_Screenspace_text,
-  IT_Kind_Worldspace_triangle,
-  IT_Kind_Worldspace_quad,
-  IT_Kind_Worldspace_text,
-  IT_Kind_Worldspace_line,
-} Instanced_Target_Kind;
+  Render_Batch_None,
+
+  Render_Batch_SS_triangle,
+  Render_Batch_SS_quad,
+  Render_Batch_SS_text,
+  Render_Batch_WS_triangle,
+  Render_Batch_WS_quad,
+  Render_Batch_WS_text,
+  Render_Batch_WS_line,
+
+  Render_Batch_Count,
+} Render_Batch_Kind;
 
 typedef struct Render_Batch Render_Batch;
 struct Render_Batch
 {
-  Instanced_Target_Kind kind;
+  Render_Batch_Kind kind;
 
   u32 pipeline;
 
@@ -178,16 +181,7 @@ struct Renderer
     u32 f_text;
   } shaders;
 
-  // Screenspace
-  Render_Batch* ss_triangle;
-  Render_Batch* ss_quad;
-  Render_Batch* ss_text;
-
-  // Worldspace
-  Render_Batch* ws_triangle;
-  Render_Batch* ws_quad;
-  Render_Batch* ws_text;
-  Render_Batch* ws_line;
+  Render_Batch* batches[Render_Batch_Count];
 
   // Textures
   u32* textures;
@@ -221,7 +215,7 @@ function Texture_Info  r_load_texture(String8 path);
 function Texture_Info  r_create_color_texture(Vec4f32 color);
 function void          r_create_fallback_texture();
 function void          r_load_font(String8 relative_path, f32 font_height);
-function Render_Batch* r_new_render_batch(Arena* arena, Instanced_Target_Kind kind, u32 max_instances);
+function Render_Batch* r_new_render_batch(Arena* arena, Render_Batch_Kind kind, u32 max_instances);
 
 function void r_toggle_wireframe();
 function void r_toggle_facecull();

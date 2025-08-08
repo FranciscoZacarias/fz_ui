@@ -16,7 +16,7 @@ r_init()
 
   MemoryZeroStruct(&g_renderer);
   g_renderer.arena = arena_alloc();
-
+  
   g_renderer.shaders.v_ss_quad = r_compile_shader(V_SS_Quad_Path, GL_VERTEX_SHADER);
   g_renderer.shaders.v_ss_text = r_compile_shader(V_SS_Text_Path, GL_VERTEX_SHADER);
   g_renderer.shaders.v_ws_quad = r_compile_shader(V_WS_Quad_Path, GL_VERTEX_SHADER);
@@ -30,8 +30,10 @@ r_init()
   {
     // 2D Triangles
     {
-      Render_Batch* batch = r_new_render_batch(g_renderer.arena, IT_Kind_Screenspace_triangle, Thousand(1));
-      g_renderer.ss_triangle= batch;
+      Render_Batch_Kind batch_kind = Render_Batch_SS_triangle;
+
+      Render_Batch* batch = r_new_render_batch(g_renderer.arena, batch_kind, Thousand(1));
+      g_renderer.batches[batch_kind] = batch;
 
       // Uniforms
       batch->u_screen_size_location = glGetUniformLocation(g_renderer.shaders.v_ss_quad, "u_screen_size");
@@ -98,8 +100,10 @@ r_init()
 
     // 2D Quads
     {
-      Render_Batch* batch = r_new_render_batch(g_renderer.arena, IT_Kind_Screenspace_quad, Thousand(1));
-      g_renderer.ss_quad = batch;
+      Render_Batch_Kind batch_kind = Render_Batch_SS_quad;
+
+      Render_Batch* batch = r_new_render_batch(g_renderer.arena, batch_kind, Thousand(1));
+      g_renderer.batches[batch_kind] = batch;
 
       // Uniforms
       batch->u_screen_size_location = glGetUniformLocation(g_renderer.shaders.v_ss_quad, "u_screen_size");
@@ -165,8 +169,10 @@ r_init()
 
     // 2D Text
     {
-      Render_Batch* batch = r_new_render_batch(g_renderer.arena, IT_Kind_Screenspace_text, Thousand(1));
-      g_renderer.ss_text = batch;
+      Render_Batch_Kind batch_kind = Render_Batch_SS_text;
+
+      Render_Batch* batch = r_new_render_batch(g_renderer.arena, batch_kind, Thousand(1));
+      g_renderer.batches[batch_kind] = batch;
 
       // Uniforms
       batch->u_screen_size_location = glGetUniformLocation(g_renderer.shaders.v_ss_text, "u_screen_size");
@@ -235,8 +241,10 @@ r_init()
   {
     // 3D Triangles
     {
-      Render_Batch* batch = r_new_render_batch(g_renderer.arena, IT_Kind_Worldspace_triangle, Thousand(1));
-      g_renderer.ws_triangle = batch;
+      Render_Batch_Kind batch_kind = Render_Batch_WS_triangle;
+
+      Render_Batch* batch = r_new_render_batch(g_renderer.arena, batch_kind, Thousand(1));
+      g_renderer.batches[batch_kind] = batch;
 
       // Uniforms
       batch->u_projection_location = glGetUniformLocation(g_renderer.shaders.v_ws_quad, "u_projection");
@@ -313,8 +321,10 @@ r_init()
 
     // 3D Quads
     {
-      Render_Batch* batch = r_new_render_batch(g_renderer.arena, IT_Kind_Worldspace_quad, Thousand(1));
-      g_renderer.ws_quad = batch;
+      Render_Batch_Kind batch_kind = Render_Batch_WS_quad;
+
+      Render_Batch* batch = r_new_render_batch(g_renderer.arena, batch_kind, Thousand(1));
+      g_renderer.batches[batch_kind] = batch;
 
       // Uniforms
       batch->u_projection_location = glGetUniformLocation(g_renderer.shaders.v_ws_quad, "u_projection");
@@ -363,7 +373,6 @@ r_init()
       glVertexArrayAttribBinding(batch->vao, 3, 1);
       glVertexArrayBindingDivisor(batch->vao, 3, 1);
 
-      glEnableVertexArrayAttrib(batch->vao, 4); // UV Min
       glVertexArrayAttribFormat(batch->vao, 4, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive3D, uv_min));
       glVertexArrayAttribBinding(batch->vao, 4, 1);
       glVertexArrayBindingDivisor(batch->vao, 4, 1);
@@ -371,6 +380,7 @@ r_init()
       glEnableVertexArrayAttrib(batch->vao, 5); // UV Max
       glVertexArrayAttribFormat(batch->vao, 5, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive3D, uv_max));
       glVertexArrayAttribBinding(batch->vao, 5, 1);
+      glEnableVertexArrayAttrib(batch->vao, 4); // UV Min
       glVertexArrayBindingDivisor(batch->vao, 5, 1);
 
       glEnableVertexArrayAttrib(batch->vao, 6); // Normal
@@ -393,8 +403,10 @@ r_init()
     // 3D Text
     //
     {
-      Render_Batch* batch = r_new_render_batch(g_renderer.arena, IT_Kind_Worldspace_text, Thousand(1));
-      g_renderer.ws_text = batch;
+      Render_Batch_Kind batch_kind = Render_Batch_WS_text;
+
+      Render_Batch* batch = r_new_render_batch(g_renderer.arena, batch_kind, Thousand(1));
+      g_renderer.batches[batch_kind] = batch;
       
       // Uniforms
       batch->u_projection_location = glGetUniformLocation(g_renderer.shaders.v_ws_quad, "u_projection");
@@ -467,8 +479,10 @@ r_init()
 
     // Lines
     {
-      Render_Batch* batch = r_new_render_batch(g_renderer.arena, IT_Kind_Worldspace_line, Thousand(1));
-      g_renderer.ws_line = batch;
+      Render_Batch_Kind batch_kind = Render_Batch_WS_line;
+
+      Render_Batch* batch = r_new_render_batch(g_renderer.arena, batch_kind, Thousand(1));
+      g_renderer.batches[batch_kind] = batch;
 
       batch->u_projection_location = glGetUniformLocation(g_renderer.shaders.v_ws_line, "u_projection");
       batch->u_view_location = glGetUniformLocation(g_renderer.shaders.v_ws_line, "u_view");
@@ -537,26 +551,26 @@ r_init()
 }
 
 function Render_Batch*
-r_new_render_batch(Arena* arena, Instanced_Target_Kind kind, u32 max_instances)
+r_new_render_batch(Arena* arena, Render_Batch_Kind kind, u32 max_instances)
 {
   Render_Batch* result = push_array(arena, Render_Batch, 1);
 
   u32 stride = 0;
   switch (kind)
   {
-    case IT_Kind_Screenspace_triangle:
-    case IT_Kind_Screenspace_quad:
-    case IT_Kind_Screenspace_text:
+    case Render_Batch_SS_triangle:
+    case Render_Batch_SS_quad:
+    case Render_Batch_SS_text:
     {
       stride = sizeof(Primitive2D);
     } break;
-    case IT_Kind_Worldspace_triangle:
-    case IT_Kind_Worldspace_quad:
-    case IT_Kind_Worldspace_text:
+    case Render_Batch_WS_triangle:
+    case Render_Batch_WS_quad:
+    case Render_Batch_WS_text:
     {
       stride = sizeof(Primitive3D);
     } break;
-    case IT_Kind_Worldspace_line:
+    case Render_Batch_WS_line:
     {
       stride = sizeof(Line3D);
     } break;
@@ -586,88 +600,88 @@ r_render(Mat4f32 view, Mat4f32 projection)
 
   ///////////////////////////////////////////////////////
   // @Section: Worldspace
-  if (g_renderer.ws_triangle->count > 0)
+  if (g_renderer.batches[Render_Batch_WS_triangle]->count > 0)
   {
-    glBindProgramPipeline(g_renderer.ws_triangle->pipeline);
-    glBindVertexArray(g_renderer.ws_triangle->vao);
+    glBindProgramPipeline(g_renderer.batches[Render_Batch_WS_triangle]->pipeline);
+    glBindVertexArray(g_renderer.batches[Render_Batch_WS_triangle]->vao);
 
-    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.ws_triangle->u_view_location, 1, GL_TRUE, &view.data[0][0]);
-    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.ws_triangle->u_projection_location, 1, GL_TRUE, &projection.data[0][0]);
+    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.batches[Render_Batch_WS_triangle]->u_view_location, 1, GL_TRUE, &view.data[0][0]);
+    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.batches[Render_Batch_WS_triangle]->u_projection_location, 1, GL_TRUE, &projection.data[0][0]);
 
-    glNamedBufferSubData(g_renderer.ws_triangle->instance_vbo, 0, sizeof(Primitive3D) * g_renderer.ws_triangle->count, g_renderer.ws_triangle->data);
-    glDrawArraysInstanced(GL_TRIANGLES, 0, 3, g_renderer.ws_triangle->count);
+    glNamedBufferSubData(g_renderer.batches[Render_Batch_WS_triangle]->instance_vbo, 0, sizeof(Primitive3D) * g_renderer.batches[Render_Batch_WS_triangle]->count, g_renderer.batches[Render_Batch_WS_triangle]->data);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 3, g_renderer.batches[Render_Batch_WS_triangle]->count);
   }
 
-  if (g_renderer.ws_quad->count > 0)
+  if (g_renderer.batches[Render_Batch_WS_quad]->count > 0)
   {
-    glBindProgramPipeline(g_renderer.ws_quad->pipeline);
-    glBindVertexArray(g_renderer.ws_quad->vao);
+    glBindProgramPipeline(g_renderer.batches[Render_Batch_WS_quad]->pipeline);
+    glBindVertexArray(g_renderer.batches[Render_Batch_WS_quad]->vao);
 
-    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.ws_quad->u_view_location, 1, GL_TRUE, &view.data[0][0]);
-    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.ws_quad->u_projection_location, 1, GL_TRUE, &projection.data[0][0]);
+    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.batches[Render_Batch_WS_quad]->u_view_location, 1, GL_TRUE, &view.data[0][0]);
+    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.batches[Render_Batch_WS_quad]->u_projection_location, 1, GL_TRUE, &projection.data[0][0]);
 
-    glNamedBufferSubData(g_renderer.ws_quad->instance_vbo, 0, sizeof(Primitive3D) * g_renderer.ws_quad->count, g_renderer.ws_quad->data);
-    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.ws_quad->count);
+    glNamedBufferSubData(g_renderer.batches[Render_Batch_WS_quad]->instance_vbo, 0, sizeof(Primitive3D) * g_renderer.batches[Render_Batch_WS_quad]->count, g_renderer.batches[Render_Batch_WS_quad]->data);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.batches[Render_Batch_WS_quad]->count);
   }
 
-  if (g_renderer.ws_text->count > 0)
+  if (g_renderer.batches[Render_Batch_WS_text]->count > 0)
   {
-    glBindProgramPipeline(g_renderer.ws_text->pipeline);
-    glBindVertexArray(g_renderer.ws_text->vao);
+    glBindProgramPipeline(g_renderer.batches[Render_Batch_WS_text]->pipeline);
+    glBindVertexArray(g_renderer.batches[Render_Batch_WS_text]->vao);
 
-    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.ws_text->u_view_location, 1, GL_TRUE, &view.data[0][0]);
-    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.ws_text->u_projection_location, 1, GL_TRUE, &projection.data[0][0]);
+    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.batches[Render_Batch_WS_text]->u_view_location, 1, GL_TRUE, &view.data[0][0]);
+    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.batches[Render_Batch_WS_text]->u_projection_location, 1, GL_TRUE, &projection.data[0][0]);
 
-    glNamedBufferSubData(g_renderer.ws_text->instance_vbo, 0, sizeof(Primitive3D) * g_renderer.ws_text->count, g_renderer.ws_text->data);
-    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.ws_text->count);
+    glNamedBufferSubData(g_renderer.batches[Render_Batch_WS_text]->instance_vbo, 0, sizeof(Primitive3D) * g_renderer.batches[Render_Batch_WS_text]->count, g_renderer.batches[Render_Batch_WS_text]->data);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.batches[Render_Batch_WS_text]->count);
   }
 
-  if (g_renderer.ws_line->count > 0)
+  if (g_renderer.batches[Render_Batch_WS_line]->count > 0)
   {
     // Lines
-    glBindProgramPipeline(g_renderer.ws_line->pipeline);
-    glBindVertexArray(g_renderer.ws_line->vao);
+    glBindProgramPipeline(g_renderer.batches[Render_Batch_WS_line]->pipeline);
+    glBindVertexArray(g_renderer.batches[Render_Batch_WS_line]->vao);
 
-    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_line, g_renderer.ws_line->u_view_location, 1, GL_TRUE, (f32*)&view);
-    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_line, g_renderer.ws_line->u_projection_location, 1, GL_TRUE, (f32*)&projection);
+    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_line, g_renderer.batches[Render_Batch_WS_line]->u_view_location, 1, GL_TRUE, (f32*)&view);
+    glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_line, g_renderer.batches[Render_Batch_WS_line]->u_projection_location, 1, GL_TRUE, (f32*)&projection);
     
-    glNamedBufferSubData(g_renderer.ws_line->instance_vbo, 0, sizeof(Line3D) * g_renderer.ws_line->count, g_renderer.ws_line->data);
-    glDrawArraysInstanced(GL_LINES, 0, 2, g_renderer.ws_line->count);
+    glNamedBufferSubData(g_renderer.batches[Render_Batch_WS_line]->instance_vbo, 0, sizeof(Line3D) * g_renderer.batches[Render_Batch_WS_line]->count, g_renderer.batches[Render_Batch_WS_line]->data);
+    glDrawArraysInstanced(GL_LINES, 0, 2, g_renderer.batches[Render_Batch_WS_line]->count);
   }
 
   ///////////////////////////////////////////////////////
   // @Section: Screenspace
-  if (g_renderer.ss_triangle->count > 0)
+  if (g_renderer.batches[Render_Batch_SS_triangle]->count > 0)
   {
-    glBindProgramPipeline(g_renderer.ss_triangle->pipeline);
-    glBindVertexArray(g_renderer.ss_triangle->vao);
+    glBindProgramPipeline(g_renderer.batches[Render_Batch_SS_triangle]->pipeline);
+    glBindVertexArray(g_renderer.batches[Render_Batch_SS_triangle]->vao);
 
-    glProgramUniform2f(g_renderer.shaders.v_ss_quad, g_renderer.ss_triangle->u_screen_size_location, (f32)g_os_window->dimensions.x, (f32)g_os_window->dimensions.y);
+    glProgramUniform2f(g_renderer.shaders.v_ss_quad, g_renderer.batches[Render_Batch_SS_triangle]->u_screen_size_location, (f32)g_os_window->dimensions.x, (f32)g_os_window->dimensions.y);
 
-    glNamedBufferSubData(g_renderer.ss_triangle->instance_vbo, 0, sizeof(Primitive2D) * g_renderer.ss_triangle->count, g_renderer.ss_triangle->data);
-    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.ss_triangle->count);
+    glNamedBufferSubData(g_renderer.batches[Render_Batch_SS_triangle]->instance_vbo, 0, sizeof(Primitive2D) * g_renderer.batches[Render_Batch_SS_triangle]->count, g_renderer.batches[Render_Batch_SS_triangle]->data);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.batches[Render_Batch_SS_triangle]->count);
   }
 
-  if (g_renderer.ss_quad->count > 0)
+  if (g_renderer.batches[Render_Batch_SS_quad]->count > 0)
   {
-    glBindProgramPipeline(g_renderer.ss_quad->pipeline);
-    glBindVertexArray(g_renderer.ss_quad->vao);
+    glBindProgramPipeline(g_renderer.batches[Render_Batch_SS_quad]->pipeline);
+    glBindVertexArray(g_renderer.batches[Render_Batch_SS_quad]->vao);
 
-    glProgramUniform2f(g_renderer.shaders.v_ss_quad, g_renderer.ss_quad->u_screen_size_location, (f32)g_os_window->dimensions.x, (f32)g_os_window->dimensions.y);
+    glProgramUniform2f(g_renderer.shaders.v_ss_quad, g_renderer.batches[Render_Batch_SS_quad]->u_screen_size_location, (f32)g_os_window->dimensions.x, (f32)g_os_window->dimensions.y);
 
-    glNamedBufferSubData(g_renderer.ss_quad->instance_vbo, 0, sizeof(Primitive2D) * g_renderer.ss_quad->count, g_renderer.ss_quad->data);
-    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.ss_quad->count);
+    glNamedBufferSubData(g_renderer.batches[Render_Batch_SS_quad]->instance_vbo, 0, sizeof(Primitive2D) * g_renderer.batches[Render_Batch_SS_quad]->count, g_renderer.batches[Render_Batch_SS_quad]->data);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.batches[Render_Batch_SS_quad]->count);
   }
 
-  if (g_renderer.ss_text->count > 0)
+  if (g_renderer.batches[Render_Batch_SS_text]->count > 0)
   {
-    glBindProgramPipeline(g_renderer.ss_text->pipeline);
-    glBindVertexArray(g_renderer.ss_text->vao);
+    glBindProgramPipeline(g_renderer.batches[Render_Batch_SS_text]->pipeline);
+    glBindVertexArray(g_renderer.batches[Render_Batch_SS_text]->vao);
 
-    glProgramUniform2f(g_renderer.shaders.v_ss_text, g_renderer.ss_text->u_screen_size_location, (f32)g_os_window->dimensions.x, (f32)g_os_window->dimensions.y);
+    glProgramUniform2f(g_renderer.shaders.v_ss_text, g_renderer.batches[Render_Batch_SS_text]->u_screen_size_location, (f32)g_os_window->dimensions.x, (f32)g_os_window->dimensions.y);
 
-    glNamedBufferSubData(g_renderer.ss_text->instance_vbo, 0, sizeof(Primitive2D) * g_renderer.ss_text->count, g_renderer.ss_text->data);
-    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.ss_text->count);
+    glNamedBufferSubData(g_renderer.batches[Render_Batch_SS_text]->instance_vbo, 0, sizeof(Primitive2D) * g_renderer.batches[Render_Batch_SS_text]->count, g_renderer.batches[Render_Batch_SS_text]->data);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.batches[Render_Batch_SS_text]->count);
   }
 
   os_swap_buffers();
@@ -675,13 +689,10 @@ r_render(Mat4f32 view, Mat4f32 projection)
   glClearColor(0.5f, 0.96f, 1.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-  g_renderer.ss_triangle->count = 0;
-  g_renderer.ss_quad->count     = 0;
-  g_renderer.ss_text->count     = 0;
-  g_renderer.ws_triangle->count = 0;
-  g_renderer.ws_quad->count     = 0;
-  g_renderer.ws_text->count     = 0;
-  g_renderer.ws_line->count     = 0;
+  for (u32 idx = 1; idx < Render_Batch_Count; idx += 1)
+  {
+    g_renderer.batches[idx]->count = 0;
+  }
 }
 
 function void
@@ -706,13 +717,13 @@ _r_draw_2d_primitive(Render_Batch* render_batch, Vec2f32 position, Vec2f32 scale
 function void
 r_draw_2d_triangle(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
 {
-  _r_draw_2d_primitive(g_renderer.ss_triangle, position, scale, uv_min, uv_max, color, texture_id);
+  _r_draw_2d_primitive(g_renderer.batches[Render_Batch_SS_triangle], position, scale, uv_min, uv_max, color, texture_id);
 }
 
 function void
 r_draw_2d_quad(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
 {
-  _r_draw_2d_primitive(g_renderer.ss_quad, position, scale, uv_min, uv_max, color, texture_id);
+  _r_draw_2d_primitive(g_renderer.batches[Render_Batch_SS_quad], position, scale, uv_min, uv_max, color, texture_id);
 }
 
 function Vec2f32
@@ -754,16 +765,16 @@ r_draw_2d_text(Vec2f32 position, Vec4f32 color, f32 scale, String8 text)
     Vec2f32 pos  = vec2f32(position.x + glyph->offset.x * scale, y_cursor - glyph->offset.y * scale - glyph->size.y * scale);
     Vec2f32 size = vec2f32(glyph->size.x * scale, glyph->size.y * scale);
 
-    if (g_renderer.ss_text->count >= g_renderer.ss_text->max)
+    if (g_renderer.batches[Render_Batch_SS_text]->count >= g_renderer.batches[Render_Batch_SS_text]->max)
     {
-      emit_fatal(S("Tried to render more textured quads than g_renderer.ss_quad_texture->max"));
+      emit_fatal(S("Tried to render more textured quads than g_renderer.batches[Render_Batch_SS_quad]_texture->max"));
       return vec2f32(0, 0);
     }
     
     Vec2f32 screen_pos = vec2f32(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f);
     Vec2f32 uv_min     = vec2f32(glyph->uv_min.x, glyph->uv_max.y);
     Vec2f32 uv_max     = vec2f32(glyph->uv_max.x, glyph->uv_min.y);
-    _r_draw_2d_primitive(g_renderer.ss_text, screen_pos, size, uv_min, uv_max, color, font->texture_index);
+    _r_draw_2d_primitive(g_renderer.batches[Render_Batch_SS_text], screen_pos, size, uv_min, uv_max, color, font->texture_index);
 
     position.x += glyph->advance * scale;
     current_line_width = position.x - x_start;
@@ -801,13 +812,13 @@ _r_draw_3d_primitive(Render_Batch* render_batch, Transformf32 transform, Vec2f32
 function void
 r_draw_3d_triangle(Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
 {
-  _r_draw_3d_primitive(g_renderer.ws_triangle, transform, uv_min, uv_max, color, texture_id);
+  _r_draw_3d_primitive(g_renderer.batches[Render_Batch_WS_triangle], transform, uv_min, uv_max, color, texture_id);
 }
 
 function void
 r_draw_3d_quad(Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
 {
-  _r_draw_3d_primitive(g_renderer.ws_quad, transform, uv_min, uv_max, color, texture_id);
+  _r_draw_3d_primitive(g_renderer.batches[Render_Batch_WS_quad], transform, uv_min, uv_max, color, texture_id);
 }
 
 function void
@@ -847,7 +858,7 @@ r_draw_3d_text(Transformf32 transform, Vec4f32 color, f32 font_scale, String8 te
       1.0f
     );
     
-    if (g_renderer.ws_text->count >= g_renderer.ws_text->max)
+    if (g_renderer.batches[Render_Batch_WS_text]->count >= g_renderer.batches[Render_Batch_WS_text]->max)
     {
       emit_fatal(S("Tried to render more 3D text quads than max"));
       return;
@@ -856,7 +867,7 @@ r_draw_3d_text(Transformf32 transform, Vec4f32 color, f32 font_scale, String8 te
     Transformf32 text_transform = transformf32(glyph_translation, transform.rotation, glyph_scale);
     Vec2f32 uv_min = vec2f32(glyph->uv_min.x, glyph->uv_max.y);
     Vec2f32 uv_max = vec2f32(glyph->uv_max.x, glyph->uv_min.y);
-    _r_draw_3d_primitive(g_renderer.ws_text, text_transform, uv_min, uv_max, color, font->texture_index);
+    _r_draw_3d_primitive(g_renderer.batches[Render_Batch_WS_text], text_transform, uv_min, uv_max, color, font->texture_index);
     
     cursor_x += glyph->advance * font_scale;
   }
@@ -865,16 +876,16 @@ r_draw_3d_text(Transformf32 transform, Vec4f32 color, f32 font_scale, String8 te
 function void
 r_draw_3d_line(Vec3f32 p0, Vec3f32 p1, Vec4f32 color)
 {
-  if (g_renderer.ws_line->count >= g_renderer.ws_line->max)
+  if (g_renderer.batches[Render_Batch_WS_line]->count >= g_renderer.batches[Render_Batch_WS_line]->max)
   {
-    emit_fatal(S("Tried to render more lines than g_renderer.ws_line->max"));
+    emit_fatal(S("Tried to render more lines than g_renderer.batches[Render_Batch_WS_line]->max"));
     return;
   }
-  Line3D* data = (Line3D*)g_renderer.ws_line->data;
-  data[g_renderer.ws_line->count].p0    = p0;
-  data[g_renderer.ws_line->count].p1    = p1;
-  data[g_renderer.ws_line->count].color = color;
-  g_renderer.ws_line->count += 1;
+  Line3D* data = (Line3D*)g_renderer.batches[Render_Batch_WS_line]->data;
+  data[g_renderer.batches[Render_Batch_WS_line]->count].p0    = p0;
+  data[g_renderer.batches[Render_Batch_WS_line]->count].p1    = p1;
+  data[g_renderer.batches[Render_Batch_WS_line]->count].color = color;
+  g_renderer.batches[Render_Batch_WS_line]->count += 1;
 }
 
 function void
