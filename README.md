@@ -47,3 +47,10 @@
 - [ ] Frustum culling - Skip rendering objects outside camera view
 - [ ] Texture atlasing system - Combine multiple textures to reduce binding overhead
 - [ ] GPU Timer queries - Measure GPU performance for bottleneck identification
+
+## Game
+
+## fz_std
+
+- [ ] Window and Input should not be globals, they should be returned to userspace on initialization.
+- [ ] Put all functions definitions together and structs at the top 

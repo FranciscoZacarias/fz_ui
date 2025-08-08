@@ -56,7 +56,7 @@ entry_point(Command_Line* command_line)
     r_draw_3dquad(transformf32(vec3f32(-2.0f, -2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_White, tex_yelow.index);
 
     r_draw_3dtext(transformf32(vec3f32(0.0f, 0.0f, 0.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_Black, 4.0f, S("ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-    r_draw_3dtext(transformf32(vec3f32(0.0f, -0.2f, 0.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_Black, 4.0f, S("abcdefghijklmnopqrstuvwxyz"));
+    r_draw_3dtext(transformf32(vec3f32(0.0f, -0.4f, 0.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_Black, 4.0f, S("abcdefghijklmnopqrstuvwxyz"));
 
     r_draw_2dquad(vec2f32(30.f,  100.f), vec2f32(50.f, 50.f), Color_Red,   tex_black.index);
     r_draw_2dquad(vec2f32(90.f,  100.f), vec2f32(50.f, 50.f), Color_Green, tex_red.index);

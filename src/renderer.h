@@ -87,11 +87,11 @@ struct Line3D
 typedef struct Glyph Glyph;
 struct Glyph
 {
-  Vec2f32 uv_min;
-  Vec2f32 uv_max;
-  Vec2f32 size;
-  Vec2f32 offset;
-  f32     advance;
+  Vec2f32 uv_min; /* Top left texture coordinate in atlas */
+  Vec2f32 uv_max; /* Bottom right texture coordinate in atlas */
+  Vec2f32 size; /* Pixel dimensions */
+  Vec2f32 offset; /* Pixel offset from the baseline cursor position to where the glyph should be drawn. X is horizontal offset from cursor, Y is vertical offset from baseline (negative Y means above baseline) */
+  f32     advance; /* How far - horizontally - to move the cursor after drawing this glyph */
 };
 
 typedef struct Font Font;
@@ -99,14 +99,15 @@ struct Font
 {
   #define MaxFontGlyphs 95
   Glyph glyphs[MaxFontGlyphs];
-  u32   texture_id;
-  u32   texture_index;
-  f32   height;
-  f32   line_height;
-  f32   ascent;
-  f32   descent;
-  f32   line_gap;
+  u32   texture_id; /* Opengl texture handle for the atlas */
+  u32   texture_index; /* Index into renderer's texture array */
+  f32   height; /* Pixel size requested when loading the font */
+  f32   line_height; /* Total pixels between baselines when stacking text */
+  f32   ascent; /* Pixels from baseline to highest any glyph can reach */
+  f32   descent; /* Pixels brom baseline to lowest any glyph can reach */
+  f32   line_gap; /* Additional spacing between lines */
 };
+
 ///////////////////////////////////////////////////////
 // @Section: Instanced Target
 typedef enum

@@ -365,7 +365,7 @@ r_init()
     g_renderer.fonts_max   = 4;
     g_renderer.fonts       = push_array(g_renderer.arena, Font, g_renderer.fonts_max);
     g_renderer.fonts_count = 0;
-    r_load_font(Font_Karmina, 32.0f);
+    r_load_font(Font_ProggyClean, 32.0f);
   }
 
   scratch_end(&scratch);
@@ -486,7 +486,6 @@ r_render(Mat4f32 view, Mat4f32 projection)
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
   g_renderer.ss_quad->count = 0;
-  g_renderer.ss_quad->count = 0;
   g_renderer.ss_text->count = 0;
   g_renderer.ws_quad->count = 0;
   g_renderer.ws_text->count = 0;
@@ -516,7 +515,7 @@ r_draw_2dtext(Vec2f32 position, Vec4f32 color, f32 scale, String8 text)
 {
   scale *= 0.1f;
 
-  f32 x_start = position.x;
+  f32 x_start  = position.x;
   f32 y_cursor = position.y;
 
   Font* font = &g_renderer.fonts[0];
@@ -697,42 +696,49 @@ function void
 r_load_font(String8 relative_path, f32 font_height) 
 {
   Scratch scratch = scratch_begin(0, 0);
-
+ 
   if (g_renderer.texture_count >= g_renderer.texture_max)
   {
     emit_error(S("Error loading font. More textures than g_renderer.texture_max"));
     return;
   }
-
+ 
   String8 project_path = os_executable_path(scratch.arena);
-  project_path = os_directory_pop(project_path); // Pop *.exe
-  project_path = os_directory_pop(project_path); // Pop from build/
-
+  project_path = os_directory_pop(project_path);
+  project_path = os_directory_pop(project_path);
   String8 font_path = string8_concat(scratch.arena, project_path, relative_path);
   File_Data file_data = os_file_load(scratch.arena, font_path);
+ 
   if (!file_data.data.str || file_data.data.size == 0)
   {
-    emit_error(Sf(scratch.arena, "Error loading font. Failed toload file: %.*s", font_path.size, font_path.str));
+    emit_error(Sf(scratch.arena, "Error loading font. Failed to load file: %.*s", font_path.size, font_path.str));
     return;
   }
-
+ 
   stbtt_fontinfo font_info;
   if (!stbtt_InitFont(&font_info, (u8*)file_data.data.str, 0))
   {
-    emit_error(S("Error initializing font with stbtt_InitFont. "));
+    emit_error(S("Error initializing font with stbtt_InitFont"));
     return;
   }
-
+ 
+  // Get font metrics in font units
+  s32 ascent, descent, line_gap;
+  stbtt_GetFontVMetrics(&font_info, &ascent, &descent, &line_gap);
+ 
+  // Calculate scale to convert font units to pixels
+  f32 scale = stbtt_ScaleForPixelHeight(&font_info, font_height);
+ 
   s32 atlas_width = 512, atlas_height = 512;
   u8* atlas_bitmap = push_array(scratch.arena, u8, atlas_width * atlas_height);
-
   stbtt_packedchar char_data[MaxFontGlyphs];
+ 
   stbtt_pack_context pack;
   stbtt_PackBegin(&pack, atlas_bitmap, atlas_width, atlas_height, atlas_width, 1, NULL);
   stbtt_PackSetOversampling(&pack, 1, 1);
   stbtt_PackFontRange(&pack, (u8*)file_data.data.str, 0, font_height, 32, MaxFontGlyphs, char_data);
   stbtt_PackEnd(&pack);
-
+ 
   GLuint texture;
   glGenTextures(1, &texture);
   glBindTexture(GL_TEXTURE_2D, texture);
@@ -741,52 +747,34 @@ r_load_font(String8 relative_path, f32 font_height)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-  f32 max_height = 0.0f;
-  f32 min_y = 0.0f;
-
+ 
+  // Fill glyph data
   for (s32 i = 0; i < MaxFontGlyphs; i++)
   {
     Glyph* glyph = &g_renderer.fonts[g_renderer.fonts_count].glyphs[i];
     stbtt_packedchar* ch = &char_data[i];
-
+   
     glyph->uv_min  = vec2f32((f32)ch->x0 / atlas_width, (f32)ch->y0 / atlas_height);
     glyph->uv_max  = vec2f32((f32)ch->x1 / atlas_width, (f32)ch->y1 / atlas_height);
     glyph->size    = vec2f32(ch->x1 - ch->x0, ch->y1 - ch->y0);
     glyph->offset  = vec2f32(ch->xoff, ch->yoff);
     glyph->advance = ch->xadvance;
-
-    f32 y_top    = ch->yoff;
-    f32 y_bottom = ch->yoff + (ch->y1 - ch->y0);
-
-    if (y_top < min_y)
-    {
-      min_y = y_top;
-    }
-    if (y_bottom > max_height)
-    {
-      max_height = y_bottom;
-    }
   }
-
+ 
   scratch_end(&scratch);
-
-  // Add to textures
+ 
+  // Store font data
   g_renderer.textures[g_renderer.texture_count] = texture;
-
-  // Add to font
-  g_renderer.fonts[g_renderer.fonts_count].line_height   = max_height - min_y;
-  g_renderer.fonts[g_renderer.fonts_count].height        = font_height;
-  g_renderer.fonts[g_renderer.fonts_count].texture_id    = texture;
-  g_renderer.fonts[g_renderer.fonts_count].texture_index = g_renderer.texture_count;
-
-  s32 ascent, descent, line_gap;
-  stbtt_GetFontVMetrics(&font_info, &ascent, &descent, &line_gap);
-
-  g_renderer.fonts[g_renderer.fonts_count].ascent   = (f32)ascent;
-  g_renderer.fonts[g_renderer.fonts_count].descent  = (f32)descent;
-  g_renderer.fonts[g_renderer.fonts_count].line_gap = (f32)line_gap;
-
+ 
+  Font* font = &g_renderer.fonts[g_renderer.fonts_count];
+  font->texture_id    = texture;
+  font->texture_index = g_renderer.texture_count;
+  font->height        = font_height;
+  font->ascent        = ascent * scale;   // Pixels above baseline
+  font->descent       = descent * scale;  // Pixels below baseline (negative)
+  font->line_gap      = line_gap * scale; // Extra spacing between lines
+  font->line_height   = (ascent - descent + line_gap) * scale; // Proper line spacing
+ 
   g_renderer.texture_count += 1;
   g_renderer.fonts_count += 1;
 }
