@@ -45,37 +45,37 @@ entry_point(Command_Line* command_line)
     input_update();
     camera_update(&g_camera, g_delta_time);
 
-    r_draw_3darrow(vec3f32(-16.0f,  0.0f,  0.0f), vec3f32(16.0f, 0.0f, 0.0), Color_Red);
-    r_draw_3darrow(vec3f32( 0.0f, -16.0f,  0.0f), vec3f32(0.0f, 16.0f, 0.0), Color_Green);
-    r_draw_3darrow(vec3f32( 0.0f,  0.0f, -16.0f), vec3f32(0.0f, 0.0f, 16.0), Color_Blue);
+    r_draw_3d_arrow(vec3f32(-16.0f,  0.0f,  0.0f), vec3f32(16.0f, 0.0f, 0.0), Color_Red);
+    r_draw_3d_arrow(vec3f32( 0.0f, -16.0f,  0.0f), vec3f32(0.0f, 16.0f, 0.0), Color_Green);
+    r_draw_3d_arrow(vec3f32( 0.0f,  0.0f, -16.0f), vec3f32(0.0f, 0.0f, 16.0), Color_Blue);
 
-    r_draw_3dquad(transformf32(vec3f32(0.0f, 0.0f, 2.0f), quatf32_from_euler(Radians(g_frame_counter), Radians(g_frame_counter), Radians(0.0f)), vec3f32(1.0f, 1.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, green.index);
+    r_draw_3d_quad(transformf32(vec3f32(0.0f, 0.0f, 2.0f), quatf32_from_euler(Radians(g_frame_counter), Radians(g_frame_counter), Radians(0.0f)), vec3f32(1.0f, 1.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, green.index);
 
-    r_draw_3dtriangle(transformf32(vec3f32(0.0f, 0.0f, -2.0f), quatf32_from_euler(Radians(g_frame_counter), Radians(g_frame_counter), Radians(0.0f)), vec3f32(1.0f, 1.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, tex_blue.index);
-    r_draw_3dtriangle(transformf32(vec3f32(-2.0f, 0.0f, -2.0f), quatf32_identity(), vec3f32(1.0f, 1.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, tex_pink.index);
+    r_draw_3d_triangle(transformf32(vec3f32(0.0f, 0.0f, -2.0f), quatf32_from_euler(Radians(g_frame_counter), Radians(g_frame_counter), Radians(0.0f)), vec3f32(1.0f, 1.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, tex_blue.index);
+    r_draw_3d_triangle(transformf32(vec3f32(-2.0f, 0.0f, -2.0f), quatf32_identity(), vec3f32(1.0f, 1.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, tex_pink.index);
     
-    r_draw_3dquad(transformf32(vec3f32( 2.0f,  2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, tex_black.index);
-    r_draw_3dquad(transformf32(vec3f32(-2.0f,  2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, tex_red.index);
-    r_draw_3dquad(transformf32(vec3f32( 2.0f, -2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, tex_pink.index);
-    r_draw_3dquad(transformf32(vec3f32(-2.0f, -2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, tex_yelow.index);
+    r_draw_3d_quad(transformf32(vec3f32( 2.0f,  2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, tex_black.index);
+    r_draw_3d_quad(transformf32(vec3f32(-2.0f,  2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, tex_red.index);
+    r_draw_3d_quad(transformf32(vec3f32( 2.0f, -2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, tex_pink.index);
+    r_draw_3d_quad(transformf32(vec3f32(-2.0f, -2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, tex_yelow.index);
 
-    r_draw_3dtext(transformf32(vec3f32(0.0f, 0.0f, 0.0f),  quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_Black, 4.0f, S("ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-    r_draw_3dtext(transformf32(vec3f32(0.0f, -0.4f, 0.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_Black, 4.0f, S("abcdefghijklmnopqrstuvwxyz"));
+    r_draw_3d_text(transformf32(vec3f32(0.0f, 0.0f, 0.0f),  quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_Black, 4.0f, S("ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
+    r_draw_3d_text(transformf32(vec3f32(0.0f, -0.4f, 0.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_Black, 4.0f, S("abcdefghijklmnopqrstuvwxyz"));
 
-    r_draw_2dquad(vec2f32(30.f,  100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_Red,   tex_black.index);
-    r_draw_2dquad(vec2f32(90.f,  100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_Green, tex_red.index);
-    r_draw_2dquad(vec2f32(150.f, 100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_Blue,  tex_pink.index);
-    r_draw_2dquad(vec2f32(210.f, 100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, yellow.index);
-    r_draw_2dquad(vec2f32(270.f, 100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, green.index);
+    r_draw_2d_quad(vec2f32(30.f,  100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_Red,   tex_black.index);
+    r_draw_2d_quad(vec2f32(90.f,  100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_Green, tex_red.index);
+    r_draw_2d_quad(vec2f32(150.f, 100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_Blue,  tex_pink.index);
+    r_draw_2d_quad(vec2f32(210.f, 100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, yellow.index);
+    r_draw_2d_quad(vec2f32(270.f, 100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, green.index);
 
-    r_draw_2dquad(vec2f32(30.f, 30.f), vec2f32(50.f, 50.f),  vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, tex_black.index);
-    r_draw_2dquad(vec2f32(90.f, 30.f), vec2f32(50.f, 50.f),  vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, tex_red.index);
-    r_draw_2dquad(vec2f32(150.f, 30.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, tex_pink.index);
-    r_draw_2dquad(vec2f32(210.f, 30.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, tex_yelow.index);
-    r_draw_2dquad(vec2f32(270.f, 30.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, tex_blue.index);
+    r_draw_2d_quad(vec2f32(30.f, 30.f), vec2f32(50.f, 50.f),  vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, tex_black.index);
+    r_draw_2d_quad(vec2f32(90.f, 30.f), vec2f32(50.f, 50.f),  vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, tex_red.index);
+    r_draw_2d_quad(vec2f32(150.f, 30.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, tex_pink.index);
+    r_draw_2d_quad(vec2f32(210.f, 30.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, tex_yelow.index);
+    r_draw_2d_quad(vec2f32(270.f, 30.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White, tex_blue.index);
 
-    r_draw_2dtext(vec2f32(10.0f, 140.0f), Color_Black, 8.0f, S("We are not your kind."));
-    r_draw_2dtext(vec2f32(5.0f, g_os_window->dimensions.y - 15.0f), Color_Black, 4.0f, Sf(frame_arena, "FPS: %.2f", g_fps));
+    r_draw_2d_text(vec2f32(10.0f, 140.0f), Color_Black, 8.0f, S("We are not your kind."));
+    r_draw_2d_text(vec2f32(5.0f, g_os_window->dimensions.y - 15.0f), Color_Black, 4.0f, Sf(frame_arena, "FPS: %.2f", g_fps));
 
     Mat4f32 view       = camera_get_view_matrix(&g_camera);
     Mat4f32 projection = mat4f32_perspective(g_camera.fov, g_os_window->dimensions.x, g_os_window->dimensions.y, 0.1f, 100.0f);

@@ -40,9 +40,9 @@ struct Texture_Info
 };
 
 ///////////////////////////////////////////////////////
-// @Section: Screenspace primitives
-typedef struct Quad2D Quad2D;
-struct Quad2D
+// @Section: Screenspace primitives]
+typedef struct Primitive2D Primitive2D;
+struct Primitive2D
 {
   Vec2f32 position;
   Vec2f32 scale;
@@ -122,6 +122,7 @@ struct Font
 // @Section: Instanced Target
 typedef enum
 {
+  IT_Kind_None,
   IT_Kind_Screenspace_quad,
   IT_Kind_Screenspace_text,
   IT_Kind_Worldspace_quad,
@@ -197,18 +198,20 @@ global Renderer g_renderer;
 function void r_init();
 function void r_render(Mat4f32 view, Mat4f32 projection);
 
-function void    r_draw_2dquad(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
-function Vec2f32 r_draw_2dtext(Vec2f32 position, Vec4f32 color, f32 scale, String8 text);
+function void    r_draw_2d_primitive(Render_Batch* render_batch, Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
+function void    r_draw_2d_quad(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
+function Vec2f32 r_draw_2d_text(Vec2f32 position, Vec4f32 color, f32 scale, String8 text);
 
-function void    r_draw_3dtriangle(Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
-function void    r_draw_3dquad(Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
-function void    r_draw_3dtext(Transformf32 transform, Vec4f32 color, f32 font_scale, String8 text);
-function void    r_draw_3dline(Vec3f32 p0, Vec3f32 p1, Vec4f32 color);
-function void    r_draw_3darrow(Vec3f32 start, Vec3f32 end, Vec4f32 color);
+function void    r_draw_3d_primitive(Render_Batch* render_batch, Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
+function void    r_draw_3d_triangle(Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
+function void    r_draw_3d_quad(Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
+function void    r_draw_3d_text(Transformf32 transform, Vec4f32 color, f32 font_scale, String8 text);
+function void    r_draw_3d_line(Vec3f32 p0, Vec3f32 p1, Vec4f32 color);
+function void    r_draw_3d_arrow(Vec3f32 start, Vec3f32 end, Vec4f32 color);
 
 function Texture_Info  r_load_texture(String8 path);
-function void          r_create_fallback_texture();
 function Texture_Info  r_create_color_texture(Vec4f32 color);
+function void          r_create_fallback_texture();
 function void          r_load_font(String8 relative_path, f32 font_height);
 function Render_Batch* r_new_render_batch(Arena* arena, Instanced_Target_Kind kind, u32 max_instances);
 
