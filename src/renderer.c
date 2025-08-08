@@ -19,21 +19,13 @@ r_init()
 
   g_renderer.shaders.v_ss_quad = r_compile_shader(V_SS_Quad_Path, GL_VERTEX_SHADER);
   g_renderer.shaders.v_ss_text = r_compile_shader(V_SS_Text_Path, GL_VERTEX_SHADER);
-  g_renderer.shaders.v_ws_quad  = r_compile_shader(V_WS_Quad_Path, GL_VERTEX_SHADER);
-  g_renderer.shaders.v_ws_line  = r_compile_shader(V_WS_Line_Path, GL_VERTEX_SHADER);
+  g_renderer.shaders.v_ws_quad = r_compile_shader(V_WS_Quad_Path, GL_VERTEX_SHADER);
+  g_renderer.shaders.v_ws_line = r_compile_shader(V_WS_Line_Path, GL_VERTEX_SHADER);
 
-  g_renderer.shaders.f_default = r_compile_shader(F_Default_Path, GL_FRAGMENT_SHADER);
+  g_renderer.shaders.f_line    = r_compile_shader(F_Line_Path, GL_FRAGMENT_SHADER);
   g_renderer.shaders.f_texture = r_compile_shader(F_Texture_Path, GL_FRAGMENT_SHADER);
   g_renderer.shaders.f_text    = r_compile_shader(F_Text_Path,    GL_FRAGMENT_SHADER);
   
-  // Set texture sampler
-  GLint sampler_locations[32];
-  for (u32 idx = 0; idx < 32; idx++)
-  {
-    sampler_locations[idx] = idx;
-  }
-  glProgramUniform1iv(g_renderer.shaders.f_texture, glGetUniformLocation(g_renderer.shaders.f_texture, "u_textures"), 32, sampler_locations);
-
   // Screenspace
   {
     //
@@ -336,7 +328,7 @@ r_init()
     // Pipeline
     glCreateProgramPipelines(1, &g_renderer.ws_line->pipeline);
     glUseProgramStages(g_renderer.ws_line->pipeline, GL_VERTEX_SHADER_BIT, g_renderer.shaders.v_ws_line);
-    glUseProgramStages(g_renderer.ws_line->pipeline, GL_FRAGMENT_SHADER_BIT, g_renderer.shaders.f_default);
+    glUseProgramStages(g_renderer.ws_line->pipeline, GL_FRAGMENT_SHADER_BIT, g_renderer.shaders.f_line);
 
 
     // Instance data (per-instance) - use binding 1 and divisor 1
@@ -367,12 +359,21 @@ r_init()
     g_renderer.texture_max   = max_gpu_textures;
     g_renderer.textures      = push_array(g_renderer.arena, GLuint, g_renderer.texture_max);
     g_renderer.texture_count = 0;
+
+    // Set texture sampler
+    GLint* sampler_locations = push_array(scratch.arena, GLint, g_renderer.texture_max);
+    for (u32 idx = 0; idx < g_renderer.texture_max; idx++)
+    {
+      sampler_locations[idx] = idx;
+    }
+    glProgramUniform1iv(g_renderer.shaders.f_texture, glGetUniformLocation(g_renderer.shaders.f_texture, "u_textures"), 32, sampler_locations);
+
     r_create_fallback_texture();
   }
 
   // Font
   {
-    g_renderer.fonts_max   = 4;
+    g_renderer.fonts_max   = 2;
     g_renderer.fonts       = push_array(g_renderer.arena, Font, g_renderer.fonts_max);
     g_renderer.fonts_count = 0;
     r_load_font(Font_ProggyClean, 32.0f);

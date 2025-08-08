@@ -24,9 +24,9 @@
 #define V_WS_Line_Path S("\\src\\shaders\\v_ws_line.glsl")
 
 // Fragment Shaders
-#define F_Default_Path S("\\src\\shaders\\f.glsl")
 #define F_Texture_Path S("\\src\\shaders\\f_texture.glsl")
 #define F_Text_Path    S("\\src\\shaders\\f_text.glsl")
+#define F_Line_Path    S("\\src\\shaders\\f_line.glsl")
 
 ///////////////////////////////////////////////////////
 // @Section: Texture
@@ -157,7 +157,7 @@ struct Renderer
     u32 v_ss_text;
     u32 v_ws_quad;
     u32 v_ws_line;
-    u32 f_default;
+    u32 f_line;
     u32 f_texture;
     u32 f_text;
   } shaders;
