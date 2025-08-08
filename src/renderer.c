@@ -736,11 +736,11 @@ r_draw_2d_text(Vec2f32 position, Vec4f32 color, f32 scale, String8 text)
 
     if (c == '\n')
     {
-      max_width = Max(max_width, current_line_width);
+      max_width          = Max(max_width, current_line_width);
       current_line_width = 0;
-      y_cursor += line_height;
-      total_height += line_height;
-      position.x = x_start;
+      y_cursor          -= line_height;
+      total_height      += line_height;
+      position.x         = x_start;
       continue;
     }
 
