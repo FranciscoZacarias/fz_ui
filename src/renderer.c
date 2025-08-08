@@ -9,7 +9,7 @@ r_init()
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
 
-#if 1
+#if 0
   glEnable(GL_CULL_FACE);
   glCullFace(GL_BACK);
 #endif
@@ -32,7 +32,7 @@ r_init()
     // 2D Quads
     //
 
-    g_renderer.ss_quad = r_new_instanced_target(g_renderer.arena, IT_Kind_Screenspace_quad, Thousand(1));
+    g_renderer.ss_quad = r_new_render_batch(g_renderer.arena, IT_Kind_Screenspace_quad, Thousand(1));
     
     // Unit geometry buffer
     glCreateBuffers(1, &g_renderer.ss_quad->unit_vbo);
@@ -97,7 +97,7 @@ r_init()
     //
     // 2D Text
     //
-    g_renderer.ss_text = r_new_instanced_target(g_renderer.arena, IT_Kind_Screenspace_text, Thousand(1));
+    g_renderer.ss_text = r_new_render_batch(g_renderer.arena, IT_Kind_Screenspace_text, Thousand(1));
     
     // Unit geometry buffer
     glCreateBuffers(1, &g_renderer.ss_text->unit_vbo);
@@ -165,7 +165,7 @@ r_init()
     //
     // 3D Triangles
     //
-    g_renderer.ws_triangle = r_new_instanced_target(g_renderer.arena, IT_Kind_Worldspace_quad, Thousand(1));
+    g_renderer.ws_triangle = r_new_render_batch(g_renderer.arena, IT_Kind_Worldspace_quad, Thousand(1));
 
     // Unit geometry buffer
     glCreateBuffers(1, &g_renderer.ws_triangle->unit_vbo);
@@ -173,7 +173,7 @@ r_init()
     
     // Instance data buffer
     glCreateBuffers(1, &g_renderer.ws_triangle->instance_vbo);
-    glNamedBufferStorage(g_renderer.ws_triangle->instance_vbo, sizeof(Triangle3D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
+    glNamedBufferStorage(g_renderer.ws_triangle->instance_vbo, sizeof(Primitive3D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
     
     // VAO
     glCreateVertexArrays(1, &g_renderer.ws_triangle->vao);
@@ -182,7 +182,7 @@ r_init()
     glVertexArrayVertexBuffer(g_renderer.ws_triangle->vao, 0, g_renderer.ws_triangle->unit_vbo, 0, sizeof(Vec3f32));
     
     // Instance data binding (binding 1)
-    glVertexArrayVertexBuffer(g_renderer.ws_triangle->vao, 1, g_renderer.ws_triangle->instance_vbo, 0, sizeof(Triangle3D));
+    glVertexArrayVertexBuffer(g_renderer.ws_triangle->vao, 1, g_renderer.ws_triangle->instance_vbo, 0, sizeof(Primitive3D));
 
     // Pipeline
     glCreateProgramPipelines(1, &g_renderer.ws_triangle->pipeline);
@@ -196,42 +196,42 @@ r_init()
     
     // Instance data (per-instance)
     glEnableVertexArrayAttrib(g_renderer.ws_triangle->vao, 1); // Translation
-    glVertexArrayAttribFormat(g_renderer.ws_triangle->vao, 1, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Triangle3D, transform.translation));
+    glVertexArrayAttribFormat(g_renderer.ws_triangle->vao, 1, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive3D, transform.translation));
     glVertexArrayAttribBinding(g_renderer.ws_triangle->vao, 1, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_triangle->vao, 1, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ws_triangle->vao, 2); // Rotation
-    glVertexArrayAttribFormat(g_renderer.ws_triangle->vao, 2, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Triangle3D, transform.rotation));
+    glVertexArrayAttribFormat(g_renderer.ws_triangle->vao, 2, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive3D, transform.rotation));
     glVertexArrayAttribBinding(g_renderer.ws_triangle->vao, 2, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_triangle->vao, 2, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ws_triangle->vao, 3); // Scale
-    glVertexArrayAttribFormat(g_renderer.ws_triangle->vao, 3, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Triangle3D, transform.scale));
+    glVertexArrayAttribFormat(g_renderer.ws_triangle->vao, 3, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive3D, transform.scale));
     glVertexArrayAttribBinding(g_renderer.ws_triangle->vao, 3, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_triangle->vao, 3, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ws_triangle->vao, 4); // UV Min
-    glVertexArrayAttribFormat(g_renderer.ws_triangle->vao, 4, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Triangle3D, uv_min));
+    glVertexArrayAttribFormat(g_renderer.ws_triangle->vao, 4, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive3D, uv_min));
     glVertexArrayAttribBinding(g_renderer.ws_triangle->vao, 4, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_triangle->vao, 4, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ws_triangle->vao, 5); // UV Max
-    glVertexArrayAttribFormat(g_renderer.ws_triangle->vao, 5, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Triangle3D, uv_max));
+    glVertexArrayAttribFormat(g_renderer.ws_triangle->vao, 5, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive3D, uv_max));
     glVertexArrayAttribBinding(g_renderer.ws_triangle->vao, 5, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_triangle->vao, 5, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ws_triangle->vao, 6); // Normal
-    glVertexArrayAttribFormat(g_renderer.ws_triangle->vao, 6, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Triangle3D, normal));
+    glVertexArrayAttribFormat(g_renderer.ws_triangle->vao, 6, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive3D, normal));
     glVertexArrayAttribBinding(g_renderer.ws_triangle->vao, 6, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_triangle->vao, 6, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ws_triangle->vao, 7); // Color
-    glVertexArrayAttribFormat(g_renderer.ws_triangle->vao, 7, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Triangle3D, color));
+    glVertexArrayAttribFormat(g_renderer.ws_triangle->vao, 7, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive3D, color));
     glVertexArrayAttribBinding(g_renderer.ws_triangle->vao, 7, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_triangle->vao, 7, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ws_triangle->vao, 8); // Texture ID
-    glVertexArrayAttribIFormat(g_renderer.ws_triangle->vao, 8, 1, GL_UNSIGNED_INT, OffsetOfMember(Triangle3D, texture_id));
+    glVertexArrayAttribIFormat(g_renderer.ws_triangle->vao, 8, 1, GL_UNSIGNED_INT, OffsetOfMember(Primitive3D, texture_id));
     glVertexArrayAttribBinding(g_renderer.ws_triangle->vao, 8, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_triangle->vao, 8, 1);
 
@@ -241,7 +241,7 @@ r_init()
     //
     // 3D Quads
     //
-    g_renderer.ws_quad = r_new_instanced_target(g_renderer.arena, IT_Kind_Worldspace_quad, Thousand(1));
+    g_renderer.ws_quad = r_new_render_batch(g_renderer.arena, IT_Kind_Worldspace_quad, Thousand(1));
 
     // Unit geometry buffer
     glCreateBuffers(1, &g_renderer.ws_quad->unit_vbo);
@@ -249,7 +249,7 @@ r_init()
     
     // Instance data buffer
     glCreateBuffers(1, &g_renderer.ws_quad->instance_vbo);
-    glNamedBufferStorage(g_renderer.ws_quad->instance_vbo, sizeof(Quad3D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
+    glNamedBufferStorage(g_renderer.ws_quad->instance_vbo, sizeof(Primitive3D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
     
     // VAO
     glCreateVertexArrays(1, &g_renderer.ws_quad->vao);
@@ -258,7 +258,7 @@ r_init()
     glVertexArrayVertexBuffer(g_renderer.ws_quad->vao, 0, g_renderer.ws_quad->unit_vbo, 0, sizeof(Vec3f32));
     
     // Instance data binding (binding 1)
-    glVertexArrayVertexBuffer(g_renderer.ws_quad->vao, 1, g_renderer.ws_quad->instance_vbo, 0, sizeof(Quad3D));
+    glVertexArrayVertexBuffer(g_renderer.ws_quad->vao, 1, g_renderer.ws_quad->instance_vbo, 0, sizeof(Primitive3D));
 
     // Pipeline
     glCreateProgramPipelines(1, &g_renderer.ws_quad->pipeline);
@@ -272,42 +272,42 @@ r_init()
     
     // Instance data (per-instance)
     glEnableVertexArrayAttrib(g_renderer.ws_quad->vao, 1); // Translation
-    glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 1, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, transform.translation));
+    glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 1, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive3D, transform.translation));
     glVertexArrayAttribBinding(g_renderer.ws_quad->vao, 1, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_quad->vao, 1, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ws_quad->vao, 2); // Rotation
-    glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 2, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, transform.rotation));
+    glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 2, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive3D, transform.rotation));
     glVertexArrayAttribBinding(g_renderer.ws_quad->vao, 2, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_quad->vao, 2, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ws_quad->vao, 3); // Scale
-    glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 3, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, transform.scale));
+    glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 3, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive3D, transform.scale));
     glVertexArrayAttribBinding(g_renderer.ws_quad->vao, 3, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_quad->vao, 3, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ws_quad->vao, 4); // UV Min
-    glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 4, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, uv_min));
+    glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 4, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive3D, uv_min));
     glVertexArrayAttribBinding(g_renderer.ws_quad->vao, 4, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_quad->vao, 4, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ws_quad->vao, 5); // UV Max
-    glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 5, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, uv_max));
+    glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 5, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive3D, uv_max));
     glVertexArrayAttribBinding(g_renderer.ws_quad->vao, 5, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_quad->vao, 5, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ws_quad->vao, 6); // Normal
-    glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 6, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, normal));
+    glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 6, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive3D, normal));
     glVertexArrayAttribBinding(g_renderer.ws_quad->vao, 6, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_quad->vao, 6, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ws_quad->vao, 7); // Color
-    glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 7, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, color));
+    glVertexArrayAttribFormat(g_renderer.ws_quad->vao, 7, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive3D, color));
     glVertexArrayAttribBinding(g_renderer.ws_quad->vao, 7, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_quad->vao, 7, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ws_quad->vao, 8); // Texture ID
-    glVertexArrayAttribIFormat(g_renderer.ws_quad->vao, 8, 1, GL_UNSIGNED_INT, OffsetOfMember(Quad3D, texture_id));
+    glVertexArrayAttribIFormat(g_renderer.ws_quad->vao, 8, 1, GL_UNSIGNED_INT, OffsetOfMember(Primitive3D, texture_id));
     glVertexArrayAttribBinding(g_renderer.ws_quad->vao, 8, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_quad->vao, 8, 1);
 
@@ -317,7 +317,7 @@ r_init()
     //
     // 3D Text
     //
-    g_renderer.ws_text = r_new_instanced_target(g_renderer.arena, IT_Kind_Worldspace_text, Thousand(2));
+    g_renderer.ws_text = r_new_render_batch(g_renderer.arena, IT_Kind_Worldspace_text, Thousand(2));
 
     // Unit geometry buffer
     glCreateBuffers(1, &g_renderer.ws_text->unit_vbo);
@@ -325,12 +325,12 @@ r_init()
 
     // Instance data buffer  
     glCreateBuffers(1, &g_renderer.ws_text->instance_vbo);
-    glNamedBufferStorage(g_renderer.ws_text->instance_vbo, sizeof(Quad3D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
+    glNamedBufferStorage(g_renderer.ws_text->instance_vbo, sizeof(Primitive3D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
 
     // VAO setup (same pattern as ws_quad_texture but using f_text shader)
     glCreateVertexArrays(1, &g_renderer.ws_text->vao);
     glVertexArrayVertexBuffer(g_renderer.ws_text->vao, 0, g_renderer.ws_text->unit_vbo, 0, sizeof(Vec3f32));
-    glVertexArrayVertexBuffer(g_renderer.ws_text->vao, 1, g_renderer.ws_text->instance_vbo, 0, sizeof(Quad3D));
+    glVertexArrayVertexBuffer(g_renderer.ws_text->vao, 1, g_renderer.ws_text->instance_vbo, 0, sizeof(Primitive3D));
 
     // Pipeline - use f_text fragment shader
     glCreateProgramPipelines(1, &g_renderer.ws_text->pipeline);
@@ -344,42 +344,42 @@ r_init()
     
     // Instance data (per-instance)
     glEnableVertexArrayAttrib(g_renderer.ws_text->vao, 1); // Translation
-    glVertexArrayAttribFormat(g_renderer.ws_text->vao, 1, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, transform.translation));
+    glVertexArrayAttribFormat(g_renderer.ws_text->vao, 1, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive3D, transform.translation));
     glVertexArrayAttribBinding(g_renderer.ws_text->vao, 1, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_text->vao, 1, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ws_text->vao, 2); // Rotation
-    glVertexArrayAttribFormat(g_renderer.ws_text->vao, 2, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, transform.rotation));
+    glVertexArrayAttribFormat(g_renderer.ws_text->vao, 2, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive3D, transform.rotation));
     glVertexArrayAttribBinding(g_renderer.ws_text->vao, 2, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_text->vao, 2, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ws_text->vao, 3); // Scale
-    glVertexArrayAttribFormat(g_renderer.ws_text->vao, 3, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, transform.scale));
+    glVertexArrayAttribFormat(g_renderer.ws_text->vao, 3, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive3D, transform.scale));
     glVertexArrayAttribBinding(g_renderer.ws_text->vao, 3, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_text->vao, 3, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ws_text->vao, 4); // UV Min
-    glVertexArrayAttribFormat(g_renderer.ws_text->vao, 4, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, uv_min));
+    glVertexArrayAttribFormat(g_renderer.ws_text->vao, 4, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive3D, uv_min));
     glVertexArrayAttribBinding(g_renderer.ws_text->vao, 4, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_text->vao, 4, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ws_text->vao, 5); // UV Max
-    glVertexArrayAttribFormat(g_renderer.ws_text->vao, 5, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, uv_max));
+    glVertexArrayAttribFormat(g_renderer.ws_text->vao, 5, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive3D, uv_max));
     glVertexArrayAttribBinding(g_renderer.ws_text->vao, 5, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_text->vao, 5, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ws_text->vao, 6); // Normal
-    glVertexArrayAttribFormat(g_renderer.ws_text->vao, 6, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, normal));
+    glVertexArrayAttribFormat(g_renderer.ws_text->vao, 6, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive3D, normal));
     glVertexArrayAttribBinding(g_renderer.ws_text->vao, 6, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_text->vao, 6, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ws_text->vao, 7); // Color
-    glVertexArrayAttribFormat(g_renderer.ws_text->vao, 7, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Quad3D, color));
+    glVertexArrayAttribFormat(g_renderer.ws_text->vao, 7, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Primitive3D, color));
     glVertexArrayAttribBinding(g_renderer.ws_text->vao, 7, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_text->vao, 7, 1);
 
     glEnableVertexArrayAttrib(g_renderer.ws_text->vao, 8); // Texture ID
-    glVertexArrayAttribIFormat(g_renderer.ws_text->vao, 8, 1, GL_UNSIGNED_INT, OffsetOfMember(Quad3D, texture_id));
+    glVertexArrayAttribIFormat(g_renderer.ws_text->vao, 8, 1, GL_UNSIGNED_INT, OffsetOfMember(Primitive3D, texture_id));
     glVertexArrayAttribBinding(g_renderer.ws_text->vao, 8, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_text->vao, 8, 1);
 
@@ -389,7 +389,7 @@ r_init()
     //
     // Lines
     //
-    g_renderer.ws_line = r_new_instanced_target(g_renderer.arena, IT_Kind_Worldspace_line, Thousand(1));
+    g_renderer.ws_line = r_new_render_batch(g_renderer.arena, IT_Kind_Worldspace_line, Thousand(1));
 
     // Instance data buffer
     glCreateBuffers(1, &g_renderer.ws_line->instance_vbo);
@@ -421,7 +421,6 @@ r_init()
     glVertexArrayAttribFormat(g_renderer.ws_line->vao, 2, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Line3D, color));
     glVertexArrayAttribBinding(g_renderer.ws_line->vao, 2, 1);
     glVertexArrayBindingDivisor(g_renderer.ws_line->vao, 2, 1);
-
 
     g_renderer.ws_line->u_projection_location = glGetUniformLocation(g_renderer.shaders.v_ws_line, "u_projection");
     g_renderer.ws_line->u_view_location = glGetUniformLocation(g_renderer.shaders.v_ws_line, "u_view");
@@ -457,10 +456,10 @@ r_init()
   scratch_end(&scratch);
 }
 
-function Instanced_Target*
-r_new_instanced_target(Arena* arena, Instanced_Target_Kind kind, u32 max_instances)
+function Render_Batch*
+r_new_render_batch(Arena* arena, Instanced_Target_Kind kind, u32 max_instances)
 {
-  Instanced_Target* result = push_array(arena, Instanced_Target, 1);
+  Render_Batch* result = push_array(arena, Render_Batch, 1);
 
   u32 stride = 0;
   switch (kind)
@@ -473,7 +472,7 @@ r_new_instanced_target(Arena* arena, Instanced_Target_Kind kind, u32 max_instanc
     case IT_Kind_Worldspace_quad:
     case IT_Kind_Worldspace_text:
     {
-      stride = sizeof(Quad3D);
+      stride = sizeof(Primitive3D);
     } break;
     case IT_Kind_Worldspace_line:
     {
@@ -513,7 +512,7 @@ r_render(Mat4f32 view, Mat4f32 projection)
     glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.ws_triangle->u_view_location, 1, GL_TRUE, &view.data[0][0]);
     glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.ws_triangle->u_projection_location, 1, GL_TRUE, &projection.data[0][0]);
 
-    glNamedBufferSubData(g_renderer.ws_triangle->instance_vbo, 0, sizeof(Triangle3D) * g_renderer.ws_triangle->count, g_renderer.ws_triangle->data);
+    glNamedBufferSubData(g_renderer.ws_triangle->instance_vbo, 0, sizeof(Primitive3D) * g_renderer.ws_triangle->count, g_renderer.ws_triangle->data);
     glDrawArraysInstanced(GL_TRIANGLES, 0, 3, g_renderer.ws_triangle->count);
   }
 
@@ -525,7 +524,7 @@ r_render(Mat4f32 view, Mat4f32 projection)
     glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.ws_quad->u_view_location, 1, GL_TRUE, &view.data[0][0]);
     glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.ws_quad->u_projection_location, 1, GL_TRUE, &projection.data[0][0]);
 
-    glNamedBufferSubData(g_renderer.ws_quad->instance_vbo, 0, sizeof(Quad3D) * g_renderer.ws_quad->count, g_renderer.ws_quad->data);
+    glNamedBufferSubData(g_renderer.ws_quad->instance_vbo, 0, sizeof(Primitive3D) * g_renderer.ws_quad->count, g_renderer.ws_quad->data);
     glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.ws_quad->count);
   }
 
@@ -537,7 +536,7 @@ r_render(Mat4f32 view, Mat4f32 projection)
     glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.ws_text->u_view_location, 1, GL_TRUE, &view.data[0][0]);
     glProgramUniformMatrix4fv(g_renderer.shaders.v_ws_quad, g_renderer.ws_text->u_projection_location, 1, GL_TRUE, &projection.data[0][0]);
 
-    glNamedBufferSubData(g_renderer.ws_text->instance_vbo, 0, sizeof(Quad3D) * g_renderer.ws_text->count, g_renderer.ws_text->data);
+    glNamedBufferSubData(g_renderer.ws_text->instance_vbo, 0, sizeof(Primitive3D) * g_renderer.ws_text->count, g_renderer.ws_text->data);
     glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.ws_text->count);
   }
 
@@ -672,57 +671,40 @@ r_draw_2dtext(Vec2f32 position, Vec4f32 color, f32 scale, String8 text)
 }
 
 function void
-r_draw_3dtriangle(Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
+r_draw_3dprimitive(Render_Batch* render_batch, Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
 {
-  if (g_renderer.ws_triangle->count >= g_renderer.ws_triangle->max)
+  if (render_batch->count >= render_batch->max)
   {
-    emit_fatal(S("Tried to render more textured quads than g_renderer.ws_triangle_texture->max"));
+    emit_fatal(S("Tried to render more primitives than render_batch->max"));
     return;
   }
-  
+
   Vec4f32 normal4 = vec4f32_mul_mat4f32(vec4f32(0.0f, 0.0f, 1.0f, 0.0f), mat4f32_from_quatf32(transform.rotation));
-  Vec3f32 normal  = vec3f32_normalize(vec3f32_from_vec4f32(normal4));
+  Vec3f32 normal = vec3f32_normalize(vec3f32_from_vec4f32(normal4));
 
   Vec3f32 end = vec3f32_add(transform.translation, vec3f32_scale(normal, 1.0f));
   r_draw_3dline(transform.translation, end, Color_Yellow);
 
-  Quad3D* data = (Quad3D*)g_renderer.ws_triangle->data;
-  data[g_renderer.ws_triangle->count].transform.translation = transform.translation;
-  data[g_renderer.ws_triangle->count].transform.rotation    = transform.rotation;
-  data[g_renderer.ws_triangle->count].transform.scale       = transform.scale;
-  data[g_renderer.ws_triangle->count].uv_min                = uv_min;
-  data[g_renderer.ws_triangle->count].uv_max                = uv_max;
-  data[g_renderer.ws_triangle->count].normal                = normal;
-  data[g_renderer.ws_triangle->count].color                 = color;
-  data[g_renderer.ws_triangle->count].texture_id            = texture_id;
-  g_renderer.ws_triangle->count += 1;
+  Primitive3D *data = (Primitive3D*)render_batch->data;
+  data[render_batch->count].transform = transform;
+  data[render_batch->count].uv_min    = uv_min;
+  data[render_batch->count].uv_max    = uv_max;
+  data[render_batch->count].normal    = normal;
+  data[render_batch->count].color     = color;
+  data[render_batch->count].texture_id= texture_id;
+  render_batch->count += 1;
+}
+
+function void
+r_draw_3dtriangle(Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
+{
+  r_draw_3dprimitive(g_renderer.ws_triangle, transform, uv_min, uv_max, color, texture_id);
 }
 
 function void
 r_draw_3dquad(Transformf32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
 {
-  if (g_renderer.ws_quad->count >= g_renderer.ws_quad->max)
-  {
-    emit_fatal(S("Tried to render more textured quads than g_renderer.ws_quad_texture->max"));
-    return;
-  }
-  
-  Vec4f32 normal4 = vec4f32_mul_mat4f32(vec4f32(0.0f, 0.0f, 1.0f, 0.0f), mat4f32_from_quatf32(transform.rotation));
-  Vec3f32 normal  = vec3f32_normalize(vec3f32_from_vec4f32(normal4));
-
-  Vec3f32 end = vec3f32_add(transform.translation, vec3f32_scale(normal, 1.0f));
-  r_draw_3dline(transform.translation, end, Color_Yellow);
-
-  Quad3D* data = (Quad3D*)g_renderer.ws_quad->data;
-  data[g_renderer.ws_quad->count].transform.translation = transform.translation;
-  data[g_renderer.ws_quad->count].transform.rotation    = transform.rotation;
-  data[g_renderer.ws_quad->count].transform.scale       = transform.scale;
-  data[g_renderer.ws_quad->count].uv_min                = uv_min;
-  data[g_renderer.ws_quad->count].uv_max                = uv_max;
-  data[g_renderer.ws_quad->count].normal                = normal;
-  data[g_renderer.ws_quad->count].color                 = color;
-  data[g_renderer.ws_quad->count].texture_id            = texture_id;
-  g_renderer.ws_quad->count += 1;
+  r_draw_3dprimitive(g_renderer.ws_quad, transform, uv_min, uv_max, color, texture_id);
 }
 
 function void
@@ -768,16 +750,10 @@ r_draw_3dtext(Transformf32 transform, Vec4f32 color, f32 font_scale, String8 tex
       return;
     }
 
-    Quad3D* data = (Quad3D*)g_renderer.ws_text->data;
-    data[g_renderer.ws_text->count].transform.translation = glyph_translation;
-    data[g_renderer.ws_text->count].transform.rotation    = transform.rotation;
-    data[g_renderer.ws_text->count].transform.scale       = glyph_scale;
-    data[g_renderer.ws_text->count].uv_min                = vec2f32(glyph->uv_min.x, glyph->uv_max.y);
-    data[g_renderer.ws_text->count].uv_max                = vec2f32(glyph->uv_max.x, glyph->uv_min.y);
-    data[g_renderer.ws_text->count].normal                = vec3f32(0.0f, 0.0f, 0.0f);
-    data[g_renderer.ws_text->count].color                 = color;
-    data[g_renderer.ws_text->count].texture_id            = font->texture_index;
-    g_renderer.ws_text->count += 1;
+    Transformf32 text_transform = transformf32(glyph_translation, transform.rotation, glyph_scale);
+    Vec2f32 uv_min = vec2f32(glyph->uv_min.x, glyph->uv_max.y);
+    Vec2f32 uv_max = vec2f32(glyph->uv_max.x, glyph->uv_min.y);
+    r_draw_3dprimitive(g_renderer.ws_text, text_transform, uv_min, uv_max, color, font->texture_index);
     
     cursor_x += glyph->advance * font_scale;
   }

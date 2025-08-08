@@ -59,8 +59,8 @@ global Vec2f32 unit_2dquad[6] = {
 
 ///////////////////////////////////////////////////////
 // @Section: Worldspace primitives
-typedef struct Triangle3D Triangle3D;
-struct Triangle3D
+typedef struct Primitive3D Primitive3D;
+struct Primitive3D
 {
   Transformf32 transform;
   Vec2f32 uv_min;
@@ -69,22 +69,15 @@ struct Triangle3D
   Vec4f32 color;
   u32 texture_id;
 };
+
+// Triangles
 global Vec3f32 unit_3dtriangle[3] = {
   { -0.5f, -0.5f, 0.0f }, 
   {  0.5f, -0.5f, 0.0f },
   { -0.5f,  0.5f, 0.0f }
 };
 
-typedef struct Quad3D Quad3D;
-struct Quad3D
-{
-  Transformf32 transform;
-  Vec2f32 uv_min;
-  Vec2f32 uv_max;
-  Vec3f32 normal;
-  Vec4f32 color;
-  u32 texture_id;
-};
+// Quad
 global Vec3f32 unit_3dquad[6] = {
   {  0.5f,  0.5f, 0.0f }, { -0.5f,  0.5f, 0.0f },
   { -0.5f, -0.5f, 0.0f }, {  0.5f, -0.5f, 0.0f },
@@ -136,8 +129,8 @@ typedef enum
   IT_Kind_Worldspace_line,
 } Instanced_Target_Kind;
 
-typedef struct Instanced_Target Instanced_Target;
-struct Instanced_Target
+typedef struct Render_Batch Render_Batch;
+struct Render_Batch
 {
   Instanced_Target_Kind kind;
 
@@ -179,14 +172,14 @@ struct Renderer
   } shaders;
 
   // Screenspace
-  Instanced_Target* ss_quad;
-  Instanced_Target* ss_text;
+  Render_Batch* ss_quad;
+  Render_Batch* ss_text;
 
   // Worldspace
-  Instanced_Target* ws_triangle;
-  Instanced_Target* ws_quad;
-  Instanced_Target* ws_text;
-  Instanced_Target* ws_line;
+  Render_Batch* ws_triangle;
+  Render_Batch* ws_quad;
+  Render_Batch* ws_text;
+  Render_Batch* ws_line;
 
   // Textures
   u32* textures;
@@ -213,13 +206,14 @@ function void    r_draw_3dtext(Transformf32 transform, Vec4f32 color, f32 font_s
 function void    r_draw_3dline(Vec3f32 p0, Vec3f32 p1, Vec4f32 color);
 function void    r_draw_3darrow(Vec3f32 start, Vec3f32 end, Vec4f32 color);
 
-function Texture_Info      r_load_texture(String8 path);
-function void              r_create_fallback_texture();
-function Texture_Info      r_create_color_texture(Vec4f32 color);
-function void              r_load_font(String8 relative_path, f32 font_height);
-function Instanced_Target* r_new_instanced_target(Arena* arena, Instanced_Target_Kind kind, u32 max_instances);
+function Texture_Info  r_load_texture(String8 path);
+function void          r_create_fallback_texture();
+function Texture_Info  r_create_color_texture(Vec4f32 color);
+function void          r_load_font(String8 relative_path, f32 font_height);
+function Render_Batch* r_new_render_batch(Arena* arena, Instanced_Target_Kind kind, u32 max_instances);
 
 function void r_toggle_wireframe();
+function void r_toggle_facecull();
 function u32  r_compile_shader(String8 relative_path, GLenum shader_type);
 
 #endif // RENDERER_H

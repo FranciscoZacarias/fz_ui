@@ -50,8 +50,8 @@ GL_FUNC(void,   glDrawElements,          (GLenum mode, GLsizei count, GLenum typ
 GL_FUNC(void,   glDrawArraysInstanced,   (GLenum mode, GLint first, GLsizei count, GLsizei instancecount))
 GL_FUNC(void,   glDrawElementsInstanced, (GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount))
 GL_FUNC(void,   glClearColor,            (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha))
-GL_FUNC(void,            glDebugMessageCallback, (GLDEBUGPROC callback, const void *userParam))
-GL_FUNC(void,            glEnable,               (GLenum cap)) // e.g., GL_DEBUG_OUTPUT
+GL_FUNC(void,   glDebugMessageCallback,  (GLDEBUGPROC callback, const void *userParam))
+GL_FUNC(void,   glEnable,                (GLenum cap)) // e.g., GL_DEBUG_OUTPUT
 GL_FUNC(const GLubyte *, glGetString,            (GLenum name))
 GL_FUNC(void,   glGetIntegerv,              (GLenum pname, GLint *data))
 GL_FUNC(void,   glVertexArrayAttribIFormat, (GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset))
