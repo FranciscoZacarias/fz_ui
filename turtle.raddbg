@@ -41,8 +41,19 @@ watch_pin:
   expression: "g_renderer.ss_quad.vao"
   source_location: "src/renderer.c:293:1"
 }
+type_view:
+{
+  type: Vec2f32
+  expr: "rows(data, x, y)"
+}
 breakpoint:
 {
-  source_location: "src/renderer.c:754:4"
+  source_location: "src/renderer.c:875:11"
+  hit_count: 0
+  condition: "c == 'q'"
+}
+breakpoint:
+{
+  source_location: "src/renderer.c:1152:25"
   hit_count: 1
 }

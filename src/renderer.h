@@ -120,7 +120,7 @@ struct Glyph
 typedef struct Font Font;
 struct Font
 {
-  #define FontSize 32
+  #define FontSize 96
   #define MaxFontGlyphs 95
   Glyph glyphs[MaxFontGlyphs];
   u32   texture_id; /* Opengl texture handle for the atlas */

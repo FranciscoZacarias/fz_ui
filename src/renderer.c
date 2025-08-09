@@ -32,8 +32,9 @@ r_init()
     // 2D Lines
     {
       Render_Batch_Kind batch_kind = Render_Batch_SS_Line;
+      u32 max_instances = Thousand(2);
 
-      Render_Batch* batch = r_new_render_batch(g_renderer.arena, batch_kind, Thousand(1));
+      Render_Batch* batch = r_new_render_batch(g_renderer.arena, batch_kind, max_instances);
       g_renderer.batches[batch_kind] = batch;
 
       // Uniforms
@@ -41,7 +42,7 @@ r_init()
 
       // Instance data buffer
       glCreateBuffers(1, &batch->instance_vbo);
-      glNamedBufferStorage(batch->instance_vbo, sizeof(Line2D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
+      glNamedBufferStorage(batch->instance_vbo, sizeof(Line2D) * max_instances, NULL, GL_DYNAMIC_STORAGE_BIT);
     
       // VAO
       glCreateVertexArrays(1, &batch->vao);
@@ -74,8 +75,9 @@ r_init()
     // 2D Triangles
     {
       Render_Batch_Kind batch_kind = Render_Batch_SS_triangle;
+      u32 max_instances = Thousand(1);
 
-      Render_Batch* batch = r_new_render_batch(g_renderer.arena, batch_kind, Thousand(1));
+      Render_Batch* batch = r_new_render_batch(g_renderer.arena, batch_kind, max_instances);
       g_renderer.batches[batch_kind] = batch;
 
       // Uniforms
@@ -87,7 +89,7 @@ r_init()
 
       // Instance data buffer
       glCreateBuffers(1, &batch->instance_vbo);
-      glNamedBufferStorage(batch->instance_vbo, sizeof(Primitive2D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
+      glNamedBufferStorage(batch->instance_vbo, sizeof(Primitive2D) * max_instances, NULL, GL_DYNAMIC_STORAGE_BIT);
 
       // VAO
       glCreateVertexArrays(1, &batch->vao);
@@ -144,8 +146,9 @@ r_init()
     // 2D Quads
     {
       Render_Batch_Kind batch_kind = Render_Batch_SS_quad;
+      u32 max_instances = Thousand(1);
 
-      Render_Batch* batch = r_new_render_batch(g_renderer.arena, batch_kind, Thousand(1));
+      Render_Batch* batch = r_new_render_batch(g_renderer.arena, batch_kind, max_instances);
       g_renderer.batches[batch_kind] = batch;
 
       // Uniforms
@@ -157,7 +160,7 @@ r_init()
 
       // Instance data buffer
       glCreateBuffers(1, &batch->instance_vbo);
-      glNamedBufferStorage(batch->instance_vbo, sizeof(Primitive2D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
+      glNamedBufferStorage(batch->instance_vbo, sizeof(Primitive2D) * max_instances, NULL, GL_DYNAMIC_STORAGE_BIT);
 
       // VAO
       glCreateVertexArrays(1, &batch->vao);
@@ -213,8 +216,9 @@ r_init()
     // 2D Text
     {
       Render_Batch_Kind batch_kind = Render_Batch_SS_text;
+      u32 max_instances = Thousand(1);
 
-      Render_Batch* batch = r_new_render_batch(g_renderer.arena, batch_kind, Thousand(1));
+      Render_Batch* batch = r_new_render_batch(g_renderer.arena, batch_kind, max_instances);
       g_renderer.batches[batch_kind] = batch;
 
       // Uniforms
@@ -226,7 +230,7 @@ r_init()
 
       // Instance data buffer
       glCreateBuffers(1, &batch->instance_vbo);
-      glNamedBufferStorage(batch->instance_vbo, sizeof(Primitive2D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
+      glNamedBufferStorage(batch->instance_vbo, sizeof(Primitive2D) * max_instances, NULL, GL_DYNAMIC_STORAGE_BIT);
 
       // VAO
       glCreateVertexArrays(1, &batch->vao);
@@ -285,8 +289,9 @@ r_init()
     // 3D Triangles
     {
       Render_Batch_Kind batch_kind = Render_Batch_WS_Triangle;
+      u32 max_instances = Thousand(1);
 
-      Render_Batch* batch = r_new_render_batch(g_renderer.arena, batch_kind, Thousand(1));
+      Render_Batch* batch = r_new_render_batch(g_renderer.arena, batch_kind, max_instances);
       g_renderer.batches[batch_kind] = batch;
 
       // Uniforms
@@ -299,7 +304,7 @@ r_init()
     
       // Instance data buffer
       glCreateBuffers(1, &batch->instance_vbo);
-      glNamedBufferStorage(batch->instance_vbo, sizeof(Primitive3D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
+      glNamedBufferStorage(batch->instance_vbo, sizeof(Primitive3D) * max_instances, NULL, GL_DYNAMIC_STORAGE_BIT);
     
       // VAO
       glCreateVertexArrays(1, &batch->vao);
@@ -365,8 +370,9 @@ r_init()
     // 3D Quads
     {
       Render_Batch_Kind batch_kind = Render_Batch_WS_Quad;
+      u32 max_instances = Thousand(1);
 
-      Render_Batch* batch = r_new_render_batch(g_renderer.arena, batch_kind, Thousand(1));
+      Render_Batch* batch = r_new_render_batch(g_renderer.arena, batch_kind, max_instances);
       g_renderer.batches[batch_kind] = batch;
 
       // Uniforms
@@ -379,7 +385,7 @@ r_init()
     
       // Instance data buffer
       glCreateBuffers(1, &batch->instance_vbo);
-      glNamedBufferStorage(batch->instance_vbo, sizeof(Primitive3D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
+      glNamedBufferStorage(batch->instance_vbo, sizeof(Primitive3D) * max_instances, NULL, GL_DYNAMIC_STORAGE_BIT);
     
       // VAO
       glCreateVertexArrays(1, &batch->vao);
@@ -445,8 +451,9 @@ r_init()
     // 3D Text
     {
       Render_Batch_Kind batch_kind = Render_Batch_WS_text;
+      u32 max_instances = Thousand(1);
 
-      Render_Batch* batch = r_new_render_batch(g_renderer.arena, batch_kind, Thousand(1));
+      Render_Batch* batch = r_new_render_batch(g_renderer.arena, batch_kind, max_instances);
       g_renderer.batches[batch_kind] = batch;
       
       // Uniforms
@@ -459,7 +466,7 @@ r_init()
 
       // Instance data buffer  
       glCreateBuffers(1, &batch->instance_vbo);
-      glNamedBufferStorage(batch->instance_vbo, sizeof(Primitive3D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
+      glNamedBufferStorage(batch->instance_vbo, sizeof(Primitive3D) * max_instances, NULL, GL_DYNAMIC_STORAGE_BIT);
 
       // VAO setup
       glCreateVertexArrays(1, &batch->vao);
@@ -521,8 +528,9 @@ r_init()
     // Lines
     {
       Render_Batch_Kind batch_kind = Render_Batch_WS_line;
+      u32 max_instances = Thousand(1);
 
-      Render_Batch* batch = r_new_render_batch(g_renderer.arena, batch_kind, Thousand(1));
+      Render_Batch* batch = r_new_render_batch(g_renderer.arena, batch_kind, max_instances);
       g_renderer.batches[batch_kind] = batch;
 
       batch->u_projection_location = glGetUniformLocation(g_renderer.shaders.v_ws_line, "u_projection");
@@ -530,7 +538,7 @@ r_init()
 
       // Instance data buffer
       glCreateBuffers(1, &batch->instance_vbo);
-      glNamedBufferStorage(batch->instance_vbo, sizeof(Line3D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
+      glNamedBufferStorage(batch->instance_vbo, sizeof(Line3D) * max_instances, NULL, GL_DYNAMIC_STORAGE_BIT);
     
       // VAO
       glCreateVertexArrays(1, &batch->vao);
@@ -585,7 +593,7 @@ r_init()
     g_renderer.fonts_max   = 2;
     g_renderer.fonts       = push_array(g_renderer.arena, Font, g_renderer.fonts_max);
     g_renderer.fonts_count = 0;
-    r_load_font(Font_ProggyClean);
+    r_load_font(Font_Inconsolata);
   }
 
   scratch_end(&scratch);
@@ -823,39 +831,49 @@ r_draw_2d_text(Vec2f32 position, f32 scale, Vec4f32 color, String8 text)
   }
 
   Font* font = &g_renderer.fonts[0]; // TODO(fz): Should be arg
+
+  Vec2f32 cursor = position;
   
   for (u64 i = 0; i < text.size; ++i)
   {
     u8 c = text.str[i];
+    Glyph* glyph = &font->glyphs[c - 32];
 
     if (c == '\n' || c < 32 || c > 126)
     {
       continue;
     }
 
-    Glyph* glyph = &font->glyphs[c - 32];
-  
-    // Around the glyph
+    // Around the glyph (Position)
     {
       f32 half_advan  = glyph->advance / 2;
       f32 half_width  = glyph->size.x / 2;
       f32 half_height = glyph->size.y / 2;
-      Vec2f32 p0 = vec2f32(position.x - half_width, position.y - half_height);
-      Vec2f32 p1 = vec2f32(position.x + half_width, position.y + half_height);
+      Vec2f32 p0 = vec2f32(cursor.x - half_width, cursor.y - half_height);
+      Vec2f32 p1 = vec2f32(cursor.x + half_width, cursor.y + half_height);
       r_draw_2d_box(p0, p1, Color_Yellow(1));
     }
 
-    // Red box: advance area (centered on position)
+    // Around the whole quad
     {
       f32 half_advance = glyph->advance / 2;
-      f32 half_line    = font->line_height / 2;
-      Vec2f32 p0 = vec2f32(position.x - half_advance, position.y - half_line);
-      Vec2f32 p1 = vec2f32(position.x + half_advance, position.y + half_line);
+      f32 half_height  = font->line_height / 2;
+      Vec2f32 p0 = vec2f32(cursor.x - half_advance, cursor.y - half_height);
+      Vec2f32 p1 = vec2f32(cursor.x + half_advance, cursor.y + half_height);
       r_draw_2d_box(p0, p1, Color_Red(1));
     }
 
-    _r_draw_2d_primitive(g_renderer.batches[Render_Batch_SS_text], position, glyph->size, glyph->uv_min, glyph->uv_max, color, font->texture_index);
-    position.x += glyph->advance;
+    // baseline
+    {
+      f32 half_advance = glyph->advance / 2;
+      f32 half_height  = font->line_height / 2;
+      Vec2f32 p0 = vec2f32(cursor.x - half_advance, (cursor.y + half_height) - font->ascent);
+      Vec2f32 p1 = vec2f32(cursor.x + half_advance, (cursor.y + half_height) - font->ascent);
+      r_draw_2d_line(p0, p1, Color_Magenta(1));
+    }
+
+    _r_draw_2d_primitive(g_renderer.batches[Render_Batch_SS_text], cursor, glyph->size, glyph->uv_min, glyph->uv_max, color, font->texture_index);
+    cursor.x += glyph->advance + 5;
   }
 
   return vec2f32(0, 0);

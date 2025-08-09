@@ -10,7 +10,6 @@
 - [x] Wireframe mode toggle - Switch between filled and wireframe rendering for debugging
 - [x] Change worldspace quads such that I can transform them - Add rotation support to quad instances
 - [x] Add triangle render primitives
-- [ ] Coordinate system should be top left (0.0) and bot right for vec2 window.dimensions
 
 ### CORE FEATURES - High Priority
 

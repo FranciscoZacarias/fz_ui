@@ -131,6 +131,15 @@ vec2f32_normalize(Vec2f32 v)
   return result;
 }
 
+function Vec2f32
+vec2f32_lerp(Vec2f32 a, Vec2f32 b, f32 t)
+{
+  Vec2f32 result;
+  result.x = a.x + (b.x - a.x) * t;
+  result.y = a.y + (b.y - a.y) * t;
+  return result;
+}
+
 function Vec3f32
 vec3f32_from_vec4f32(Vec4f32 v)
 {

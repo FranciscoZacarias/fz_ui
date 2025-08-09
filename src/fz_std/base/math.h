@@ -145,6 +145,7 @@ function Vec2f32 vec2f32_sub(Vec2f32 a, Vec2f32 b);
 function Vec2f32 vec2f32_mul(Vec2f32 a, Vec2f32 b);
 function Vec2f32 vec2f32_scale(Vec2f32 v, f32 scalar);
 function Vec2f32 vec2f32_normalize(Vec2f32 v);
+function Vec2f32 vec2f32_lerp(Vec2f32 a, Vec2f32 b, f32 t);
 function f32 vec2f32_dot(Vec2f32 a, Vec2f32 b);
 function f32 vec2f32_length(Vec2f32 v);
 

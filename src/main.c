@@ -8,7 +8,7 @@ entry_point(Command_Line* command_line)
   Arena* arena = arena_alloc();
 
   os_console_init();
-  os_window_init(600, 600, Project_Name);
+  os_window_init(1280, 720, Project_Name);
   os_opengl_init();
   os_window_open();
 
@@ -66,21 +66,26 @@ entry_point(Command_Line* command_line)
     r_draw_3d_text(transform3f32(vec3f32(0.0f, 0.0f, 0.0f),  quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_Black(1.0f), 4.0f, S("ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
     r_draw_3d_text(transform3f32(vec3f32(0.0f, -0.4f, 0.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_Black(1.0f), 4.0f, S("abcdefghijklmnopqrstuvwxyz"));
 
-    r_draw_2d_quad(vec2f32(30.f,  100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_Red(1.0f),   tex_black.index);
-    r_draw_2d_quad(vec2f32(90.f,  100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_Green(1.0f), tex_red.index);
-    r_draw_2d_quad(vec2f32(150.f, 100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_Blue(1.0f),  tex_pink.index);
-    r_draw_2d_quad(vec2f32(210.f, 100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), yellow.index);
-    r_draw_2d_quad(vec2f32(270.f, 100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), green.index);
+    r_draw_2d_quad(vec2f32(30.f  + 300,  100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_Red(1.0f),   tex_black.index);
+    r_draw_2d_quad(vec2f32(90.f  + 300,  100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_Green(1.0f), tex_red.index);
+    r_draw_2d_quad(vec2f32(150.f + 300, 100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_Blue(1.0f),  tex_pink.index);
+    r_draw_2d_quad(vec2f32(210.f + 300, 100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), yellow.index);
+    r_draw_2d_quad(vec2f32(270.f + 300, 100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), green.index);
 
-    r_draw_2d_quad(vec2f32(30.f, 30.f), vec2f32(50.f, 50.f),  vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_black.index);
-    r_draw_2d_quad(vec2f32(90.f, 30.f), vec2f32(50.f, 50.f),  vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_red.index);
-    r_draw_2d_quad(vec2f32(150.f, 30.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_pink.index);
-    r_draw_2d_quad(vec2f32(210.f, 30.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_yelow.index);
-    r_draw_2d_quad(vec2f32(270.f, 30.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_blue.index);
+    r_draw_2d_quad(vec2f32(30.f + 300, 30.f), vec2f32(50.f, 50.f),  vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_black.index);
+    r_draw_2d_quad(vec2f32(90.f + 300, 30.f), vec2f32(50.f, 50.f),  vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_red.index);
+    r_draw_2d_quad(vec2f32(150. + 300, 30.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_pink.index);
+    r_draw_2d_quad(vec2f32(210. + 300, 30.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_yelow.index);
+    r_draw_2d_quad(vec2f32(270. + 300, 30.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_blue.index);
 
-    r_draw_2d_triangle(vec2f32(40.f, 300.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_Red(1.0f),   tex_black.index);
+    r_draw_2d_triangle(vec2f32(200.f, 200.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_Red(1.0f),   tex_black.index);
 
-    r_draw_2d_text(vec2f32(10.0f, 200.0f),                           4.0f, Color_Black(1.0f), S("We are not your kind.\nWe are not your kind!"));
+    r_draw_2d_text(vec2f32(50.0f, 500.0f), 4.0f, Color_Black(1.0f), S("AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz"));
+    r_draw_2d_text(vec2f32(50.0f, 600.0f), 4.0f, Color_Black(1.0f), S("The quick fox jumps over 12 lazy dogs."));
+    r_draw_2d_text(vec2f32(50.0f, 400.0f), 4.0f, Color_Black(1.0f), S("We are not our kind."));
+    r_draw_2d_line(vec2f32(0.0f, 400.0f), vec2f32(50.0f, 400.0f), Color_Black(1));
+    r_draw_2d_line(vec2f32(50.0f, 0.0f), vec2f32(50.0f, 400.0f), Color_Black(1));
+
     r_draw_2d_text(vec2f32(5.0f, g_os_window->dimensions.y - 15.0f), 4.0f, Color_Black(1.0f), Sf(frame_arena, "FPS: %.2f", g_fps));
 
     Mat4f32 view       = camera_get_view_matrix(&g_camera);
