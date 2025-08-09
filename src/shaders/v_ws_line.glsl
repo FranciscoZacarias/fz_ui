@@ -16,7 +16,7 @@ out gl_PerVertex
 
 void main()
 {
-vec3 world_pos = (gl_VertexID == 0) ? a_p0 : a_p1;
+  vec3 world_pos = (gl_VertexID == 0) ? a_p0 : a_p1;
   gl_Position = u_projection * u_view * vec4(world_pos, 1.0);
   v_color = a_color;
 }

@@ -1,7 +1,6 @@
-// raddbg 0.9.20 project file
+// raddbg 0.9.21 project file
 
 recent_file: path: "src/renderer.c"
-recent_file: path: "src/fz_std/base/error.c"
 recent_file: path: "src/main.c"
 recent_file: path: "../../Users/francisco.zacarias/Downloads/ProjectUtumno_full.png"
 recent_file: path: "src/fz_std/base/string.c"
@@ -41,4 +40,9 @@ watch_pin:
 {
   expression: "g_renderer.ss_quad.vao"
   source_location: "src/renderer.c:293:1"
+}
+breakpoint:
+{
+  source_location: "src/renderer.c:754:4"
+  hit_count: 1
 }

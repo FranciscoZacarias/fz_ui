@@ -20,6 +20,7 @@
 // Vertex Shaders
 #define V_SS_Quad_Path S("\\src\\shaders\\v_ss_quad.glsl")
 #define V_SS_Text_Path S("\\src\\shaders\\v_ss_text.glsl")
+#define V_SS_Line_Path S("\\src\\shaders\\v_ss_line.glsl")
 #define V_WS_Quad_Path S("\\src\\shaders\\v_ws_quad.glsl")
 #define V_WS_Line_Path S("\\src\\shaders\\v_ws_line.glsl")
 
@@ -59,6 +60,14 @@ global Vec2f32 unit_2d_quad[6] = {
   { -0.5f, -0.5f }, {  0.5f, -0.5f },
   {  0.5f,  0.5f }, { -0.5f, -0.5f },
   {  0.5f,  0.5f }, { -0.5f,  0.5f }
+};
+
+typedef struct Line2D Line2D;
+struct Line2D
+{
+  Vec2f32 p0;
+  Vec2f32 p1;
+  Vec4f32 color;
 };
 
 ///////////////////////////////////////////////////////
@@ -128,6 +137,7 @@ typedef enum
 {
   Render_Batch_None,
 
+  Render_Batch_SS_Line,
   Render_Batch_SS_triangle,
   Render_Batch_SS_quad,
   Render_Batch_SS_text,
@@ -173,6 +183,7 @@ struct Renderer
 
   struct
   {
+    u32 v_ss_line;
     u32 v_ss_quad;
     u32 v_ss_text;
     u32 v_ws_quad;

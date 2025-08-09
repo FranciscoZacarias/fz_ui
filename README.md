@@ -10,6 +10,7 @@
 - [x] Wireframe mode toggle - Switch between filled and wireframe rendering for debugging
 - [x] Change worldspace quads such that I can transform them - Add rotation support to quad instances
 - [x] Add triangle render primitives
+- [ ] Coordinate system should be top left (0.0) and bot right for vec2 window.dimensions
 
 ### CORE FEATURES - High Priority
 
@@ -31,9 +32,11 @@
 
 ### DEBUG/UTILITY - Medium Priority
 
-- [ ] Grid rendering - Draw world-space grid lines for spatial reference
+- [x] Screenspace line rendering
+- [x] Draw normals on primitives
+- [x] Grid rendering - Draw world-space grid lines for spatial reference
 - [ ] Bounding box visualization - Render wireframe boxes around objects for debugging
-- [ ] Draw arrow worldspace - 3D arrows with proper arrowhead geometry
+- [x] Draw arrow worldspace - 3D arrows with proper arrowhead geometry
 
 ### ADVANCED RENDERING - Lower Priority
 

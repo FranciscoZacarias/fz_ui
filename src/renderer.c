@@ -17,6 +17,7 @@ r_init()
   MemoryZeroStruct(&g_renderer);
   g_renderer.arena = arena_alloc();
   
+  g_renderer.shaders.v_ss_line = r_compile_shader(V_SS_Line_Path, GL_VERTEX_SHADER);
   g_renderer.shaders.v_ss_quad = r_compile_shader(V_SS_Quad_Path, GL_VERTEX_SHADER);
   g_renderer.shaders.v_ss_text = r_compile_shader(V_SS_Text_Path, GL_VERTEX_SHADER);
   g_renderer.shaders.v_ws_quad = r_compile_shader(V_WS_Quad_Path, GL_VERTEX_SHADER);
@@ -28,6 +29,48 @@ r_init()
   
   // Screenspace
   {
+    // 2D Lines
+    {
+      Render_Batch_Kind batch_kind = Render_Batch_SS_Line;
+
+      Render_Batch* batch = r_new_render_batch(g_renderer.arena, batch_kind, Thousand(1));
+      g_renderer.batches[batch_kind] = batch;
+
+      // Uniforms
+      batch->u_screen_size_location = glGetUniformLocation(g_renderer.shaders.v_ss_line, "u_screen_size");
+
+      // Instance data buffer
+      glCreateBuffers(1, &batch->instance_vbo);
+      glNamedBufferStorage(batch->instance_vbo, sizeof(Line2D) * Thousand(1), NULL, GL_DYNAMIC_STORAGE_BIT);
+    
+      // VAO
+      glCreateVertexArrays(1, &batch->vao);
+    
+      // Instance data
+      glVertexArrayVertexBuffer(batch->vao, 1, batch->instance_vbo, 0, sizeof(Line2D));
+
+      // Pipeline
+      glCreateProgramPipelines(1, &batch->pipeline);
+      glUseProgramStages(batch->pipeline, GL_VERTEX_SHADER_BIT, g_renderer.shaders.v_ss_line);
+      glUseProgramStages(batch->pipeline, GL_FRAGMENT_SHADER_BIT, g_renderer.shaders.f_line);
+
+      // Instance data (per-instance)
+      glEnableVertexArrayAttrib(batch->vao, 0); // p0
+      glVertexArrayAttribFormat(batch->vao, 0, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Line2D, p0));
+      glVertexArrayAttribBinding(batch->vao, 0, 1);
+      glVertexArrayBindingDivisor(batch->vao, 0, 1);
+
+      glEnableVertexArrayAttrib(batch->vao, 1); // p1
+      glVertexArrayAttribFormat(batch->vao, 1, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Line2D, p1));
+      glVertexArrayAttribBinding(batch->vao, 1, 1);
+      glVertexArrayBindingDivisor(batch->vao, 1, 1);
+
+      glEnableVertexArrayAttrib(batch->vao, 2); // color
+      glVertexArrayAttribFormat(batch->vao, 2, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Line2D, color));
+      glVertexArrayAttribBinding(batch->vao, 2, 1);
+      glVertexArrayBindingDivisor(batch->vao, 2, 1);
+    }
+
     // 2D Triangles
     {
       Render_Batch_Kind batch_kind = Render_Batch_SS_triangle;
@@ -568,6 +611,10 @@ r_new_render_batch(Arena* arena, Render_Batch_Kind kind, u32 max_instances)
     {
       stride = sizeof(Primitive3D);
     } break;
+    case Render_Batch_SS_Line:
+    {
+      stride = sizeof(Line2D);
+    } break;
     case Render_Batch_WS_line:
     {
       stride = sizeof(Line3D);
@@ -682,6 +729,18 @@ r_render(Mat4f32 view, Mat4f32 projection)
     glDrawArraysInstanced(GL_TRIANGLES, 0, 6, g_renderer.batches[Render_Batch_SS_text]->count);
   }
 
+  if (g_renderer.batches[Render_Batch_SS_Line]->count > 0)
+  {
+    // Lines
+    glBindProgramPipeline(g_renderer.batches[Render_Batch_SS_Line]->pipeline);
+    glBindVertexArray(g_renderer.batches[Render_Batch_SS_Line]->vao);
+
+    glProgramUniform2f(g_renderer.shaders.v_ss_line, g_renderer.batches[Render_Batch_SS_Line]->u_screen_size_location, (f32)g_os_window->dimensions.x, (f32)g_os_window->dimensions.y);
+    
+    glNamedBufferSubData(g_renderer.batches[Render_Batch_SS_Line]->instance_vbo, 0, sizeof(Line2D) * g_renderer.batches[Render_Batch_SS_Line]->count, g_renderer.batches[Render_Batch_SS_Line]->data);
+    glDrawArraysInstanced(GL_LINES, 0, 2, g_renderer.batches[Render_Batch_SS_Line]->count);
+  }
+
   os_swap_buffers();
 
   glClearColor(0.5f, 0.96f, 1.0f, 1.0f);
@@ -691,6 +750,21 @@ r_render(Mat4f32 view, Mat4f32 projection)
   {
     g_renderer.batches[idx]->count = 0;
   }
+}
+
+function void
+r_draw_2d_line(Vec2f32 p0, Vec2f32 p1, Vec4f32 color)
+{
+  if (g_renderer.batches[Render_Batch_SS_Line]->count >= g_renderer.batches[Render_Batch_SS_Line]->max)
+  {
+    emit_fatal(S("Tried to render more lines than g_renderer.batches[Render_Batch_SS_Line]->max"));
+    return;
+  }
+  Line2D* data = (Line2D*)g_renderer.batches[Render_Batch_SS_Line]->data;
+  data[g_renderer.batches[Render_Batch_SS_Line]->count].p0    = p0;
+  data[g_renderer.batches[Render_Batch_SS_Line]->count].p1    = p1;
+  data[g_renderer.batches[Render_Batch_SS_Line]->count].color = color;
+  g_renderer.batches[Render_Batch_SS_Line]->count += 1;
 }
 
 function void
