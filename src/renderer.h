@@ -126,7 +126,7 @@ struct Font
   u32   texture_id; /* Opengl texture handle for the atlas */
   u32   texture_index; /* Index into renderer's texture array */
   f32   height; /* Pixel size requested when loading the font */
-  f32   line_height; /* Total pixels between baselines when stacking text */
+  f32   line_height; /* Total pixels between baselines when stacking text. line_height = ascent + |descent| + line_gap */
   f32   ascent; /* Pixels from baseline to highest any glyph can reach */
   f32   descent; /* Pixels from baseline to lowest any glyph can reach */
   f32   line_gap; /* Additional spacing between lines */
@@ -215,10 +215,12 @@ function void r_render(Mat4f32 view, Mat4f32 projection);
 function void   _r_draw_2d_primitive(Render_Batch* render_batch, Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
 function void    r_draw_2d_triangle(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
 function void    r_draw_2d_quad(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
+function void    r_draw_2d_box(Vec2f32 p0, Vec2f32 p1, Vec4f32 color); /* Hollow quad. p0 is bottom left, p1 is top right */
 function Vec2f32 r_draw_2d_text(Vec2f32 position, f32 scale, Vec4f32 color, String8 text);
 
 function void   _r_draw_3d_primitive(Render_Batch* render_batch, Transform3f32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
 function void    r_draw_3d_triangle(Transform3f32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
+function void    r_draw_3d_box(Vec3f32 translation, Quatf32 rotation, f32 size, Vec4f32 color);
 function void    r_draw_3d_quad(Transform3f32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
 function void    r_draw_3d_text(Transform3f32 transform, Vec4f32 color, f32 font_scale, String8 text);
 function void    r_draw_3d_line(Vec3f32 p0, Vec3f32 p1, Vec4f32 color);

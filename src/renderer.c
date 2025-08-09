@@ -731,6 +731,10 @@ r_render(Mat4f32 view, Mat4f32 projection)
 
   if (g_renderer.batches[Render_Batch_SS_Line]->count > 0)
   {
+    // Draw on top of everything
+    glDepthFunc(GL_ALWAYS);
+    glDepthMask(GL_TRUE);
+
     // Lines
     glBindProgramPipeline(g_renderer.batches[Render_Batch_SS_Line]->pipeline);
     glBindVertexArray(g_renderer.batches[Render_Batch_SS_Line]->vao);
@@ -739,6 +743,8 @@ r_render(Mat4f32 view, Mat4f32 projection)
     
     glNamedBufferSubData(g_renderer.batches[Render_Batch_SS_Line]->instance_vbo, 0, sizeof(Line2D) * g_renderer.batches[Render_Batch_SS_Line]->count, g_renderer.batches[Render_Batch_SS_Line]->data);
     glDrawArraysInstanced(GL_LINES, 0, 2, g_renderer.batches[Render_Batch_SS_Line]->count);
+
+    glDepthFunc(GL_LESS); 
   }
 
   os_swap_buffers();
@@ -798,6 +804,15 @@ r_draw_2d_quad(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, 
   _r_draw_2d_primitive(g_renderer.batches[Render_Batch_SS_quad], position, scale, uv_min, uv_max, color, texture_id);
 }
 
+function void
+r_draw_2d_box(Vec2f32 p0, Vec2f32 p1, Vec4f32 color)
+{
+  r_draw_2d_line(p0, vec2f32(p0.x, p1.y), color);
+  r_draw_2d_line(vec2f32(p0.x, p1.y), p1, color);
+  r_draw_2d_line(p1, vec2f32(p1.x, p0.y), color);
+  r_draw_2d_line(vec2f32(p1.x, p0.y), p0, color);
+}
+
 function Vec2f32
 r_draw_2d_text(Vec2f32 position, f32 scale, Vec4f32 color, String8 text)
 {
@@ -808,7 +823,6 @@ r_draw_2d_text(Vec2f32 position, f32 scale, Vec4f32 color, String8 text)
   }
 
   Font* font = &g_renderer.fonts[0]; // TODO(fz): Should be arg
-
   
   for (u64 i = 0; i < text.size; ++i)
   {
@@ -821,11 +835,25 @@ r_draw_2d_text(Vec2f32 position, f32 scale, Vec4f32 color, String8 text)
 
     Glyph* glyph = &font->glyphs[c - 32];
   
-    //Vec2f32 screen_pos = vec2f32(0.0f, 0.0f);
-    //Vec2f32 size       = vec2f32(0.0f, 0.0f);
-    //Vec2f32 uv_min     = vec2f32(0.0f, 0.0f);
-    //Vec2f32 uv_max     = vec2f32(0.0f, 0.0f);
-   
+    // Around the glyph
+    {
+      f32 half_advan  = glyph->advance / 2;
+      f32 half_width  = glyph->size.x / 2;
+      f32 half_height = glyph->size.y / 2;
+      Vec2f32 p0 = vec2f32(position.x - half_width, position.y - half_height);
+      Vec2f32 p1 = vec2f32(position.x + half_width, position.y + half_height);
+      r_draw_2d_box(p0, p1, Color_Yellow(1));
+    }
+
+    // Red box: advance area (centered on position)
+    {
+      f32 half_advance = glyph->advance / 2;
+      f32 half_line    = font->line_height / 2;
+      Vec2f32 p0 = vec2f32(position.x - half_advance, position.y - half_line);
+      Vec2f32 p1 = vec2f32(position.x + half_advance, position.y + half_line);
+      r_draw_2d_box(p0, p1, Color_Red(1));
+    }
+
     _r_draw_2d_primitive(g_renderer.batches[Render_Batch_SS_text], position, glyph->size, glyph->uv_min, glyph->uv_max, color, font->texture_index);
     position.x += glyph->advance;
   }
@@ -868,6 +896,48 @@ function void
 r_draw_3d_quad(Transform3f32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
 {
   _r_draw_3d_primitive(g_renderer.batches[Render_Batch_WS_Quad], transform, uv_min, uv_max, color, texture_id);
+}
+
+function void
+r_draw_3d_box(Vec3f32 translation, Quatf32 rotation, f32 size, Vec4f32 color)
+{
+  f32 half_size = size * 0.5f;
+  
+  // 8 corners of the cube in local space (centered at origin)
+  Vec3f32 corners[8] = {
+    vec3f32(-half_size, -half_size, -half_size), // 0: back-bottom-left
+    vec3f32( half_size, -half_size, -half_size), // 1: back-bottom-right
+    vec3f32( half_size,  half_size, -half_size), // 2: back-top-right
+    vec3f32(-half_size,  half_size, -half_size), // 3: back-top-left
+    vec3f32(-half_size, -half_size,  half_size), // 4: front-bottom-left
+    vec3f32( half_size, -half_size,  half_size), // 5: front-bottom-right
+    vec3f32( half_size,  half_size,  half_size), // 6: front-top-right
+    vec3f32(-half_size,  half_size,  half_size), // 7: front-top-left
+  };
+  
+  // Transform all corners: rotate -> translate
+  for (s32 i = 0; i < 8; i++) {
+    corners[i] = quatf32_rotate_vec3f32(rotation, corners[i]);
+    corners[i] = vec3f32_add(corners[i], translation);
+  }
+  
+  // Back face (z = min)
+  r_draw_3d_line(corners[0], corners[1], color);
+  r_draw_3d_line(corners[1], corners[2], color);
+  r_draw_3d_line(corners[2], corners[3], color);
+  r_draw_3d_line(corners[3], corners[0], color);
+  
+  // Front face (z = max)
+  r_draw_3d_line(corners[4], corners[5], color);
+  r_draw_3d_line(corners[5], corners[6], color);
+  r_draw_3d_line(corners[6], corners[7], color);
+  r_draw_3d_line(corners[7], corners[4], color);
+  
+  // Connecting edges (back to front)
+  r_draw_3d_line(corners[0], corners[4], color);
+  r_draw_3d_line(corners[1], corners[5], color);
+  r_draw_3d_line(corners[2], corners[6], color);
+  r_draw_3d_line(corners[3], corners[7], color);
 }
 
 function void

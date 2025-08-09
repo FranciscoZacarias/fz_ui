@@ -12,7 +12,7 @@ void main()
 {
   vec2 pixel_pos = (gl_VertexID == 0) ? a_p0 : a_p1;
   vec2 ndc = (pixel_pos / u_screen_size) * 2.0 - 1.0;
-  ndc.y = -ndc.y; // For top left.
+  //ndc.y = -ndc.y; // For top left.
   gl_Position = vec4(ndc, 0.0, 1.0);
   v_color = a_color;
 }

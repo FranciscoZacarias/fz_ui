@@ -53,6 +53,8 @@ entry_point(Command_Line* command_line)
 
     r_draw_3d_quad(transform3f32(vec3f32(0.0f, 0.0f, 2.0f), quatf32_from_euler(Radians(g_frame_counter), Radians(g_frame_counter), Radians(0.0f)), vec3f32(1.0f, 1.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), green.index);
 
+    r_draw_3d_box(vec3f32(-2.0f, 2.0f, -2.0f), quatf32_from_euler(Radians(g_frame_counter), Radians(g_frame_counter), Radians(0.0f)), 2.0f, Color_Blue(1));
+
     r_draw_3d_triangle(transform3f32(vec3f32(0.0f, 0.0f, -2.0f), quatf32_from_euler(Radians(g_frame_counter), Radians(g_frame_counter), Radians(0.0f)), vec3f32(1.0f, 1.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_blue.index);
     r_draw_3d_triangle(transform3f32(vec3f32(-2.0f, 0.0f, -2.0f), quatf32_identity(), vec3f32(1.0f, 1.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_pink.index);
     

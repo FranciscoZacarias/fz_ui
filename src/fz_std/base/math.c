@@ -1132,8 +1132,7 @@ quatf32_scale(Quatf32 q, f32 scalar)
 function Quatf32
 quatf32_divide(Quatf32 q1, Quatf32 q2)
 {
-  Quatf32 result = { q1.x/q2.x, q1.y/q2.y, q1.z/q2.z, q1.w/q2.w };
-  return result;
+  return quatf32_multiply(q1, quatf32_invert(q2));
 }
 
 function Quatf32
@@ -1509,21 +1508,18 @@ quatf32_from_euler(f32 pitch, f32 yaw, f32 roll)
 function void
 euler_from_quatf32(Quatf32 q, f32* pitch, f32* yaw, f32* roll)
 {
-  // Roll (x-axis rotation)
   f32 x0 = 2.0f*(q.w*q.x + q.y*q.z);
   f32 x1 = 1.0f - 2.0f*(q.x*q.x + q.y*q.y);
-  *pitch = atan2f(x0, x1);
+  *pitch = atan2f(x0, x1); // y-axis rotation  
 
-  // Pitch (y-axis rotation)
   f32 y0 = 2.0f*(q.w*q.y - q.z*q.x);
   y0 = y0 > 1.0f ? 1.0f : y0;
   y0 = y0 < -1.0f ? -1.0f : y0;
-  *yaw = asinf(y0);
+  *yaw = asinf(y0); // z-axis rotation
 
-  // Yaw (z-axis rotation)
   f32 z0 = 2.0f*(q.w*q.z + q.x*q.y);
   f32 z1 = 1.0f - 2.0f*(q.y*q.y + q.z*q.z);
-  *roll = atan2f(z0, z1);
+  *roll = atan2f(z0, z1); // x-axis rotation
 }
 
 function Quatf32
@@ -1559,7 +1555,7 @@ function Vec3f32
 quatf32_rotate_vec3f32(Quatf32 q, Vec3f32 v)
 {
   Quatf32 q_norm = quatf32_normalize(q);
-  Quatf32 v_q = {0.0f, v.x, v.y, v.z};
+  Quatf32 v_q = {v.x, v.y, v.z, 0.0f};
   Quatf32 q_conj = quatf32_invert(q_norm);
   Quatf32 temp = quatf32_multiply(q_norm, v_q);
   Quatf32 result = quatf32_multiply(temp, q_conj);
@@ -1569,7 +1565,7 @@ quatf32_rotate_vec3f32(Quatf32 q, Vec3f32 v)
 function Quatf32
 quatf32_conjugate(Quatf32 q)
 {
-  return (Quatf32){q.w, -q.x, -q.y, -q.z};
+  return (Quatf32){-q.x, -q.y, -q.z, q.w,};
 }
 
 function f32
