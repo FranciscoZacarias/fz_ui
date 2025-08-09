@@ -18,11 +18,11 @@
 // @Section: Screenspace primitives
 
 // Vertex Shaders
-#define V_SS_Quad_Path S("\\src\\shaders\\v_ss_quad.glsl")
-#define V_SS_Text_Path S("\\src\\shaders\\v_ss_text.glsl")
-#define V_SS_Line_Path S("\\src\\shaders\\v_ss_line.glsl")
-#define V_WS_Quad_Path S("\\src\\shaders\\v_ws_quad.glsl")
-#define V_WS_Line_Path S("\\src\\shaders\\v_ws_line.glsl")
+#define V_SS_Primitive_Path S("\\src\\shaders\\v_ss_primitive.glsl")
+#define V_SS_Text_Path      S("\\src\\shaders\\v_ss_text.glsl")
+#define V_SS_Line_Path      S("\\src\\shaders\\v_ss_line.glsl")
+#define V_WS_Primitive_Path S("\\src\\shaders\\v_ws_primitive.glsl")
+#define V_WS_Line_Path      S("\\src\\shaders\\v_ws_line.glsl")
 
 // Fragment Shaders
 #define F_Texture_Path S("\\src\\shaders\\f_texture.glsl")
@@ -120,6 +120,7 @@ struct Glyph
 typedef struct Font Font;
 struct Font
 {
+  #define FontSize 32
   #define MaxFontGlyphs 95
   Glyph glyphs[MaxFontGlyphs];
   u32   texture_id; /* Opengl texture handle for the atlas */
@@ -127,7 +128,7 @@ struct Font
   f32   height; /* Pixel size requested when loading the font */
   f32   line_height; /* Total pixels between baselines when stacking text */
   f32   ascent; /* Pixels from baseline to highest any glyph can reach */
-  f32   descent; /* Pixels brom baseline to lowest any glyph can reach */
+  f32   descent; /* Pixels from baseline to lowest any glyph can reach */
   f32   line_gap; /* Additional spacing between lines */
 };
 
@@ -214,7 +215,7 @@ function void r_render(Mat4f32 view, Mat4f32 projection);
 function void   _r_draw_2d_primitive(Render_Batch* render_batch, Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
 function void    r_draw_2d_triangle(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
 function void    r_draw_2d_quad(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
-function Vec2f32 r_draw_2d_text(Vec2f32 position, Vec4f32 color, f32 scale, String8 text);
+function Vec2f32 r_draw_2d_text(Vec2f32 position, f32 scale, Vec4f32 color, String8 text);
 
 function void   _r_draw_3d_primitive(Render_Batch* render_batch, Transform3f32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
 function void    r_draw_3d_triangle(Transform3f32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
@@ -228,7 +229,7 @@ function void    r_draw_grid(Vec3f32 center, Vec3f32 normal, Vec3f32 forward, u3
 function Texture_Info  r_load_texture(String8 path);
 function Texture_Info  r_create_color_texture(Vec4f32 color);
 function void          r_create_fallback_texture();
-function void          r_load_font(String8 relative_path, f32 font_height);
+function void          r_load_font(String8 relative_path);
 function Render_Batch* r_new_render_batch(Arena* arena, Render_Batch_Kind kind, u32 max_instances);
 
 function void r_toggle_wireframe();
