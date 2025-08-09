@@ -23,7 +23,7 @@ r_init()
   g_renderer.shaders.v_ws_quad = r_compile_shader(V_WS_Primitive_Path, GL_VERTEX_SHADER);
   g_renderer.shaders.v_ws_line = r_compile_shader(V_WS_Line_Path,      GL_VERTEX_SHADER);
 
-  g_renderer.shaders.f_line    = r_compile_shader(F_Line_Path, GL_FRAGMENT_SHADER);
+  g_renderer.shaders.f_line    = r_compile_shader(F_Line_Path,    GL_FRAGMENT_SHADER);
   g_renderer.shaders.f_texture = r_compile_shader(F_Texture_Path, GL_FRAGMENT_SHADER);
   g_renderer.shaders.f_text    = r_compile_shader(F_Text_Path,    GL_FRAGMENT_SHADER);
   
