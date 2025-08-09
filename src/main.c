@@ -47,8 +47,6 @@ entry_point(Command_Line* command_line)
 
     r_draw_grid(vec3f32(0.0f, 0.0f, 0.0f), WORLD_UP, WORLD_FORWARD, 1, 16, Color_Black(0.2));
 
-    r_draw_2d_line(vec2f32(0.0f, 0.0f), vec2f32((f32)g_os_window->dimensions.x, (f32)g_os_window->dimensions.y), Color_Black(1.0f));
-
     r_draw_3d_arrow(vec3f32(-16.0f,  0.0f,  0.0f), vec3f32(16.0f, 0.0f, 0.0), Color_Red(1.0f));
     r_draw_3d_arrow(vec3f32( 0.0f, -16.0f,  0.0f), vec3f32(0.0f, 16.0f, 0.0), Color_Green(1.0f));
     r_draw_3d_arrow(vec3f32( 0.0f,  0.0f, -16.0f), vec3f32(0.0f, 0.0f, 16.0), Color_Blue(1.0f));
