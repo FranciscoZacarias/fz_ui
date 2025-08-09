@@ -78,8 +78,8 @@ entry_point(Command_Line* command_line)
 
     r_draw_2d_triangle(vec2f32(40.f, 300.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_Red(1.0f),   tex_black.index);
 
-    r_draw_2d_text(vec2f32(10.0f, 200.0f), Color_Black(1.0f), 8.0f, S("We are not your kind.\nWe are not your kind!"));
-    r_draw_2d_text(vec2f32(5.0f, g_os_window->dimensions.y - 15.0f), Color_Black(1.0f), 4.0f, Sf(frame_arena, "FPS: %.2f", g_fps));
+    r_draw_2d_text(vec2f32(10.0f, 200.0f),                           4.0f, Color_Black(1.0f), S("We are not your kind.\nWe are not your kind!"));
+    r_draw_2d_text(vec2f32(5.0f, g_os_window->dimensions.y - 15.0f), 4.0f, Color_Black(1.0f), Sf(frame_arena, "FPS: %.2f", g_fps));
 
     Mat4f32 view       = camera_get_view_matrix(&g_camera);
     Mat4f32 projection = mat4f32_perspective(g_camera.fov, g_os_window->dimensions.x, g_os_window->dimensions.y, 0.1f, 100.0f);
