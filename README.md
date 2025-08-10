@@ -55,7 +55,7 @@
 
 - [ ] Camera is janky, especially when pressing like 2, 3 or more keys at once
 - [x] Screenspace text rendering appears on a base line, is scaled by pixel height and position from the quad center
-- [ ] Worldspace  text rendering appears on a base line, is scaled by pixel height and position from the quad center
+- [x] Worldspace  text rendering appears on a base line, is scaled by pixel height and position from the quad center
 
 ## Game
 
@@ -63,5 +63,5 @@
 
 - [ ] Window and Input should not be globals, they should be returned to userspace on initialization.
 - [ ] Put all functions definitions together and structs at the top 
-- [ ] Implement os_message_box
-- [ ] Add os_message_box to failed asserts and emit_fatal
+- [x] Implement os_message_box
+- [x] Add os_message_box to failed asserts and emit_fatal

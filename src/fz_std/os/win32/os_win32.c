@@ -61,6 +61,14 @@ os_memory_get_page_size()
   return result;
 }
 
+function void
+os_message_box(String8 title, String8 text)
+{
+  Scratch scratch = scratch_begin(0, 0);
+  MessageBoxA(NULL, cstring_from_string8(scratch.arena, text), cstring_from_string8(scratch.arena, title), MB_OK);
+  scratch_end(&scratch);
+}
+
 ///////////////////////////////////////////////////////
 // @Section: Console
 function b32
