@@ -813,6 +813,15 @@ r_draw_2d_quad(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, 
 }
 
 function void
+r_draw_2d_point(Vec2f32 position, Vec4f32 color)
+{
+  f32 len = 10.0f;
+  f32 diag = sqrtf(len);
+  r_draw_2d_line(vec2f32(position.x - diag, position.y - diag), vec2f32(position.x + diag, position.y + diag), color);
+  r_draw_2d_line(vec2f32(position.x - diag, position.y + diag), vec2f32(position.x + diag, position.y - diag), color);
+}
+
+function void
 r_draw_2d_box(Vec2f32 p0, Vec2f32 p1, Vec4f32 color)
 {
   r_draw_2d_line(p0, vec2f32(p0.x, p1.y), color);
@@ -822,60 +831,42 @@ r_draw_2d_box(Vec2f32 p0, Vec2f32 p1, Vec4f32 color)
 }
 
 function Vec2f32
-r_draw_2d_text(Vec2f32 position, f32 scale, Vec4f32 color, String8 text)
+r_draw_2d_text(Vec2f32 position, f32 pixel_height, Vec4f32 color, String8 text)
 {
   if (g_renderer.batches[Render_Batch_SS_text]->count + text.size >= g_renderer.batches[Render_Batch_SS_text]->max)
   {
     emit_fatal(S("Tried to render more textured quads than g_renderer.batches[Render_Batch_SS_quad]_texture->max"));
     return vec2f32(0, 0);
   }
-
-  Font* font = &g_renderer.fonts[0]; // TODO(fz): Should be arg
-
-  Vec2f32 cursor = position;
+  Font* font = &g_renderer.fonts[0];
+  f32 pixel_scale = pixel_height / font->height;
   
-  for (u64 i = 0; i < text.size; ++i)
+  // Get first character to calculate offset
+  u8 first_char = text.str[0];
+  Glyph* first_glyph = &font->glyphs[first_char - 32];
+  
+  // Adjust starting position so first glyph centers on 'position'
+  Vec2f32 start_pos = vec2f32(
+    position.x - (first_glyph->offset.x + first_glyph->size.x * 0.5f) * pixel_scale,
+    position.y + (first_glyph->offset.y + first_glyph->size.y * 0.5f) * pixel_scale
+  );
+  
+  for (u64 idx = 0; idx < text.size; ++idx)
   {
-    u8 c = text.str[i];
+    u8 c = text.str[idx];
     Glyph* glyph = &font->glyphs[c - 32];
-
     if (c == '\n' || c < 32 || c > 126)
     {
       continue;
     }
-
-    // Around the glyph (Position)
-    {
-      f32 half_advan  = glyph->advance / 2;
-      f32 half_width  = glyph->size.x / 2;
-      f32 half_height = glyph->size.y / 2;
-      Vec2f32 p0 = vec2f32(cursor.x - half_width, cursor.y - half_height);
-      Vec2f32 p1 = vec2f32(cursor.x + half_width, cursor.y + half_height);
-      r_draw_2d_box(p0, p1, Color_Yellow(1));
-    }
-
-    // Around the whole quad
-    {
-      f32 half_advance = glyph->advance / 2;
-      f32 half_height  = font->line_height / 2;
-      Vec2f32 p0 = vec2f32(cursor.x - half_advance, cursor.y - half_height);
-      Vec2f32 p1 = vec2f32(cursor.x + half_advance, cursor.y + half_height);
-      r_draw_2d_box(p0, p1, Color_Red(1));
-    }
-
-    // baseline
-    {
-      f32 half_advance = glyph->advance / 2;
-      f32 half_height  = font->line_height / 2;
-      Vec2f32 p0 = vec2f32(cursor.x - half_advance, (cursor.y + half_height) - font->ascent);
-      Vec2f32 p1 = vec2f32(cursor.x + half_advance, (cursor.y + half_height) - font->ascent);
-      r_draw_2d_line(p0, p1, Color_Magenta(1));
-    }
-
-    _r_draw_2d_primitive(g_renderer.batches[Render_Batch_SS_text], cursor, glyph->size, glyph->uv_min, glyph->uv_max, color, font->texture_index);
-    cursor.x += glyph->advance + 5;
+    Vec2f32 glyph_pos = vec2f32(
+      start_pos.x + (glyph->offset.x + glyph->size.x * 0.5f) * pixel_scale,
+      start_pos.y - (glyph->offset.y + glyph->size.y * 0.5f) * pixel_scale
+    );
+    Vec2f32 glyph_size = vec2f32(glyph->size.x * pixel_scale, glyph->size.y * pixel_scale);
+    _r_draw_2d_primitive(g_renderer.batches[Render_Batch_SS_text], glyph_pos, glyph_size, glyph->uv_min, glyph->uv_max, color, font->texture_index);
+    start_pos.x += glyph->advance * pixel_scale;
   }
-
   return vec2f32(0, 0);
 }
 

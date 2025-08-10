@@ -46,14 +46,9 @@ type_view:
   type: Vec2f32
   expr: "rows(data, x, y)"
 }
+type_view
 breakpoint:
 {
-  source_location: "src/renderer.c:875:11"
-  hit_count: 0
-  condition: "c == 'q'"
-}
-breakpoint:
-{
-  source_location: "src/renderer.c:1152:25"
+  source_location: "src/renderer.c:845:18"
   hit_count: 1
 }

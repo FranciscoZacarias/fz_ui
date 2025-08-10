@@ -80,13 +80,11 @@ entry_point(Command_Line* command_line)
 
     r_draw_2d_triangle(vec2f32(200.f, 200.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_Red(1.0f),   tex_black.index);
 
-    r_draw_2d_text(vec2f32(50.0f, 500.0f), 4.0f, Color_Black(1.0f), S("AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz"));
-    r_draw_2d_text(vec2f32(50.0f, 600.0f), 4.0f, Color_Black(1.0f), S("The quick fox jumps over 12 lazy dogs."));
-    r_draw_2d_text(vec2f32(50.0f, 400.0f), 4.0f, Color_Black(1.0f), S("We are not our kind."));
-    r_draw_2d_line(vec2f32(0.0f, 400.0f), vec2f32(50.0f, 400.0f), Color_Black(1));
-    r_draw_2d_line(vec2f32(50.0f, 0.0f), vec2f32(50.0f, 400.0f), Color_Black(1));
+    r_draw_2d_text(vec2f32(50.0f, 500.0f), 32.0f, Color_Black(1.0f), S("The quick fox jumps over 12 lazy dogs."));
+    r_draw_2d_text(vec2f32(50.0f, 400.0f), 64.0f, Color_Black(1.0f), S("AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz"));
+    r_draw_2d_text(vec2f32(50.0f, 300.0f), 32.0f, Color_Black(1.0f), S("We are not your kind."));
 
-    r_draw_2d_text(vec2f32(5.0f, g_os_window->dimensions.y - 15.0f), 4.0f, Color_Black(1.0f), Sf(frame_arena, "FPS: %.2f", g_fps));
+    r_draw_2d_text(vec2f32(5.0f, g_os_window->dimensions.y - 15.0f), 32.0f, Color_Black(1.0f), Sf(frame_arena, "FPS: %.2f", g_fps));
 
     Mat4f32 view       = camera_get_view_matrix(&g_camera);
     Mat4f32 projection = mat4f32_perspective(g_camera.fov, g_os_window->dimensions.x, g_os_window->dimensions.y, 0.1f, 100.0f);

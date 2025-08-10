@@ -10,9 +10,8 @@
 #include "fz_std\\external\\stb_image.h"
 
 // Fonts
-#define Font_ProggyClean S("\\assets\\fonts\\ProggyClean.ttf")
-#define Font_Inconsolata S("\\assets\\fonts\\Inconsolata.ttf")
-#define Font_Karmina     S("\\assets\\fonts\\Karmina.otf")
+#define Font_ProggyClean     S("\\assets\\fonts\\ProggyClean.ttf")
+#define Font_Inconsolata     S("\\assets\\fonts\\Inconsolata.ttf")
 
 ///////////////////////////////////////////////////////
 // @Section: Screenspace primitives
@@ -215,8 +214,9 @@ function void r_render(Mat4f32 view, Mat4f32 projection);
 function void   _r_draw_2d_primitive(Render_Batch* render_batch, Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
 function void    r_draw_2d_triangle(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
 function void    r_draw_2d_quad(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
+function void    r_draw_2d_point(Vec2f32 position, Vec4f32 color);
 function void    r_draw_2d_box(Vec2f32 p0, Vec2f32 p1, Vec4f32 color); /* Hollow quad. p0 is bottom left, p1 is top right */
-function Vec2f32 r_draw_2d_text(Vec2f32 position, f32 scale, Vec4f32 color, String8 text);
+function Vec2f32 r_draw_2d_text(Vec2f32 position, f32 pixel_height, Vec4f32 color, String8 text);
 
 function void   _r_draw_3d_primitive(Render_Batch* render_batch, Transform3f32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
 function void    r_draw_3d_triangle(Transform3f32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
