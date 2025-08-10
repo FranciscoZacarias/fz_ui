@@ -45,7 +45,9 @@ entry_point(Command_Line* command_line)
     input_update();
     camera_update(&g_camera, g_delta_time);
 
-    r_draw_grid(vec3f32(0.0f, 0.0f, 0.0f), WORLD_UP, WORLD_FORWARD, 1, 16, Color_Black(0.2));
+    r_draw_grid(vec3f32(0.0f, 0.0f, 0.0f), WORLD_FORWARD, WORLD_RIGHT,   1, 16, Color_Red(0.2));
+    r_draw_grid(vec3f32(0.0f, 0.0f, 0.0f), WORLD_UP,      WORLD_FORWARD, 1, 16, Color_Green(0.4));
+    r_draw_grid(vec3f32(0.0f, 0.0f, 0.0f), WORLD_RIGHT,   WORLD_UP,      1, 16, Color_Blue(0.2));
 
     r_draw_3d_arrow(vec3f32(-16.0f,  0.0f,  0.0f), vec3f32(16.0f, 0.0f, 0.0), Color_Red(1.0f));
     r_draw_3d_arrow(vec3f32( 0.0f, -16.0f,  0.0f), vec3f32(0.0f, 16.0f, 0.0), Color_Green(1.0f));
@@ -63,8 +65,8 @@ entry_point(Command_Line* command_line)
     r_draw_3d_quad(transform3f32(vec3f32( 2.0f, -2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_pink.index);
     r_draw_3d_quad(transform3f32(vec3f32(-2.0f, -2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_yelow.index);
 
-    r_draw_3d_text(transform3f32(vec3f32(0.0f, 0.0f, 0.0f),  quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_Black(1.0f), 4.0f, S("ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-    r_draw_3d_text(transform3f32(vec3f32(0.0f, -0.4f, 0.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_Black(1.0f), 4.0f, S("abcdefghijklmnopqrstuvwxyz"));
+    r_draw_3d_text(transform3f32(vec3f32(0.5f, 0.5f, 0.0f),  quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_Black(1.0f), 32.0f, S("The quick fox jumps over 12 lazy dogs."));
+    r_draw_3d_text(transform3f32(vec3f32(0.0f, -2.0f, 0.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_Black(1.0f), 32.0f, S("We are not your kind."));
 
     r_draw_2d_quad(vec2f32(30.f  + 300,  100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_Red(1.0f),   tex_black.index);
     r_draw_2d_quad(vec2f32(90.f  + 300,  100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_Green(1.0f), tex_red.index);
@@ -80,9 +82,8 @@ entry_point(Command_Line* command_line)
 
     r_draw_2d_triangle(vec2f32(200.f, 200.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_Red(1.0f),   tex_black.index);
 
-    r_draw_2d_text(vec2f32(50.0f, 500.0f), 32.0f, Color_Black(1.0f), S("The quick fox jumps over 12 lazy dogs."));
-    r_draw_2d_text(vec2f32(50.0f, 400.0f), 64.0f, Color_Black(1.0f), S("AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz"));
-    r_draw_2d_text(vec2f32(50.0f, 300.0f), 32.0f, Color_Black(1.0f), S("We are not your kind."));
+    r_draw_2d_text(vec2f32(50.0f, 600.0f), 32.0f, Color_Black(1.0f), S("The quick fox jumps over 12 lazy dogs."));
+    r_draw_2d_text(vec2f32(50.0f, 550.0f), 32.0f, Color_Black(1.0f), S("We are not your kind."));
 
     r_draw_2d_text(vec2f32(5.0f, g_os_window->dimensions.y - 15.0f), 32.0f, Color_Black(1.0f), Sf(frame_arena, "FPS: %.2f", g_fps));
 

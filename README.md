@@ -34,7 +34,7 @@
 - [x] Screenspace line rendering
 - [x] Draw normals on primitives
 - [x] Grid rendering - Draw world-space grid lines for spatial reference
-- [ ] Bounding box visualization - Render wireframe boxes around objects for debugging
+- [x] Bounding box visualization - Render wireframe boxes around objects for debugging
 - [x] Draw arrow worldspace - 3D arrows with proper arrowhead geometry
 
 ### ADVANCED RENDERING - Lower Priority
@@ -54,7 +54,8 @@
 ### BUGS 
 
 - [ ] Camera is janky, especially when pressing like 2, 3 or more keys at once
-- [ ] We have to properly figure out text rendering. Worldspace is not aligned and text overall is blurry
+- [x] Screenspace text rendering appears on a base line, is scaled by pixel height and position from the quad center
+- [ ] Worldspace  text rendering appears on a base line, is scaled by pixel height and position from the quad center
 
 ## Game
 
@@ -62,3 +63,5 @@
 
 - [ ] Window and Input should not be globals, they should be returned to userspace on initialization.
 - [ ] Put all functions definitions together and structs at the top 
+- [ ] Implement os_message_box
+- [ ] Add os_message_box to failed asserts and emit_fatal
