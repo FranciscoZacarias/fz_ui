@@ -134,7 +134,7 @@ function f32 f32_abs(f32 value);
 function f32 f32_lerp(f32 start, f32 end, f32 amount);
 function f32 f32_normalize(f32 value, f32 start, f32 end);
 function f32 f32_remap(f32 value, f32 inputStart, f32 inputEnd, f32 outputStart, f32 outputEnd);
-function f32 f32_wrap(f32 value, f32 min, f32 max);
+function f32 f32_wrap(f32 value, f32 min, f32 Max);
 
 // TODO(fz): Rename functions to match their type E,g, vec2f32_distance -> vec2f32_distance
 function f32 vec2f32_distance(Vec2f32 a, Vec2f32 b);

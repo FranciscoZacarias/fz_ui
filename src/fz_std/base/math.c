@@ -26,9 +26,9 @@ f32_remap(f32 value, f32 inputStart, f32 inputEnd, f32 outputStart, f32 outputEn
 }
 
 function f32
-f32_wrap(f32 value, f32 min, f32 max)
+f32_wrap(f32 value, f32 min, f32 Max)
 {
-    f32 result = value - (max - min)*floorf((value - min)/(max - min));
+    f32 result = value - (Max - min)*floorf((value - min)/(Max - min));
     return result;
 }
 

@@ -170,7 +170,7 @@ struct Render_Batch
   // Instanced data
   void* data;   
   u32   stride; /* Size of data type used in data */
-  u32   max;    /* Max allocated instances */
+  u32   Max;    /* Max allocated instances */
   u32   count;  /* Current instances count */
 };
 
@@ -217,6 +217,9 @@ function void    r_draw_2d_quad(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min,
 function void    r_draw_2d_point(Vec2f32 position, Vec4f32 color);
 function void    r_draw_2d_box(Vec2f32 p0, Vec2f32 p1, Vec4f32 color); /* Hollow quad. p0 is bottom left, p1 is top right */
 function Vec2f32 r_draw_2d_text(Vec2f32 position, f32 pixel_height, Vec4f32 color, String8 text);
+function Vec2f32 r_draw_2d_text_centered(Vec2f32 position, f32 pixel_height, Vec4f32 color, String8 text);
+function void    r_draw_2d_line(Vec2f32 p0, Vec2f32 p1, Vec4f32 color);
+function void    r_draw_2d_grid(Vec2f32 p0, Vec2f32 p1, u32 square_size_pixel, Vec4f32 color);
 
 function void   _r_draw_3d_primitive(Render_Batch* render_batch, Transform3f32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
 function void    r_draw_3d_triangle(Transform3f32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
@@ -225,8 +228,8 @@ function void    r_draw_3d_quad(Transform3f32 transform, Vec2f32 uv_min, Vec2f32
 function void    r_draw_3d_text(Transform3f32 transform, Vec4f32 color, f32 font_scale, String8 text);
 function void    r_draw_3d_line(Vec3f32 p0, Vec3f32 p1, Vec4f32 color);
 function void    r_draw_3d_arrow(Vec3f32 start, Vec3f32 end, Vec4f32 color);
+function void    r_draw_3d_grid(Vec3f32 center, Vec3f32 normal, Vec3f32 forward, u32 square_size, u32 square_per_side, Vec4f32 color);
 
-function void    r_draw_grid(Vec3f32 center, Vec3f32 normal, Vec3f32 forward, u32 square_size, u32 square_per_side, Vec4f32 color);
 
 function Texture_Info  r_load_texture(String8 path);
 function Texture_Info  r_create_color_texture(Vec4f32 color);
@@ -234,8 +237,9 @@ function void          r_create_fallback_texture();
 function void          r_load_font(String8 relative_path);
 function Render_Batch* r_new_render_batch(Arena* arena, Render_Batch_Kind kind, u32 max_instances);
 
-function void r_toggle_wireframe();
-function void r_toggle_facecull();
-function u32  r_compile_shader(String8 relative_path, GLenum shader_type);
+function Vec2f32 r_get_2d_text_dimensions(String8 text, f32 pixel_height);
+function void    r_toggle_wireframe();
+function void    r_toggle_facecull();
+function u32     r_compile_shader(String8 relative_path, GLenum shader_type);
 
 #endif // RENDERER_H

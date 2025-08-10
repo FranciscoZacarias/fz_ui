@@ -45,9 +45,9 @@ entry_point(Command_Line* command_line)
     input_update();
     camera_update(&g_camera, g_delta_time);
 
-    r_draw_grid(vec3f32(0.0f, 0.0f, 0.0f), WORLD_FORWARD, WORLD_RIGHT,   1, 16, Color_Red(0.2));
-    r_draw_grid(vec3f32(0.0f, 0.0f, 0.0f), WORLD_UP,      WORLD_FORWARD, 1, 16, Color_Green(0.4));
-    r_draw_grid(vec3f32(0.0f, 0.0f, 0.0f), WORLD_RIGHT,   WORLD_UP,      1, 16, Color_Blue(0.2));
+    r_draw_3d_grid(vec3f32(0.0f, 0.0f, 0.0f), WORLD_FORWARD, WORLD_RIGHT,   1, 16, Color_Red(0.2));
+    r_draw_3d_grid(vec3f32(0.0f, 0.0f, 0.0f), WORLD_UP,      WORLD_FORWARD, 1, 16, Color_Green(0.4));
+    r_draw_3d_grid(vec3f32(0.0f, 0.0f, 0.0f), WORLD_RIGHT,   WORLD_UP,      1, 16, Color_Blue(0.2));
 
     r_draw_3d_arrow(vec3f32(-16.0f,  0.0f,  0.0f), vec3f32(16.0f, 0.0f, 0.0), Color_Red(1.0f));
     r_draw_3d_arrow(vec3f32( 0.0f, -16.0f,  0.0f), vec3f32(0.0f, 16.0f, 0.0), Color_Green(1.0f));
@@ -86,6 +86,8 @@ entry_point(Command_Line* command_line)
     r_draw_2d_text(vec2f32(50.0f, 550.0f), 32.0f, Color_Black(1.0f), S("We are not your kind.\nWe are not your kind!"));
 
     r_draw_2d_text(vec2f32(5.0f, g_os_window->dimensions.y - 15.0f), 32.0f, Color_Black(1.0f), Sf(frame_arena, "FPS: %.2f", g_fps));
+
+    r_draw_2d_text_centered(vec2f32(g_os_window->dimensions.x/2, g_os_window->dimensions.y/2), 32.0f, Color_Black(1), S("Centered text should be centered\nEven with line break\nEven more\n And even more!"));
 
     Mat4f32 view       = camera_get_view_matrix(&g_camera);
     Mat4f32 projection = mat4f32_perspective(g_camera.fov, g_os_window->dimensions.x, g_os_window->dimensions.y, 0.1f, 100.0f);

@@ -637,7 +637,7 @@ r_new_render_batch(Arena* arena, Render_Batch_Kind kind, u32 max_instances)
   result->kind   = kind;
   result->data   = arena_push(arena, stride * max_instances);
   result->stride = stride;
-  result->max    = max_instances;
+  result->Max    = max_instances;
     
   return result;
 }
@@ -769,9 +769,9 @@ r_render(Mat4f32 view, Mat4f32 projection)
 function void
 r_draw_2d_line(Vec2f32 p0, Vec2f32 p1, Vec4f32 color)
 {
-  if (g_renderer.batches[Render_Batch_SS_Line]->count >= g_renderer.batches[Render_Batch_SS_Line]->max)
+  if (g_renderer.batches[Render_Batch_SS_Line]->count >= g_renderer.batches[Render_Batch_SS_Line]->Max)
   {
-    emit_fatal(S("Tried to render more lines than g_renderer.batches[Render_Batch_SS_Line]->max"));
+    emit_fatal(S("Tried to render more lines than g_renderer.batches[Render_Batch_SS_Line]->Max"));
     return;
   }
   Line2D* data = (Line2D*)g_renderer.batches[Render_Batch_SS_Line]->data;
@@ -784,9 +784,9 @@ r_draw_2d_line(Vec2f32 p0, Vec2f32 p1, Vec4f32 color)
 function void
 _r_draw_2d_primitive(Render_Batch* render_batch, Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
 {
-  if (render_batch->count >= render_batch->max)
+  if (render_batch->count >= render_batch->Max)
   {
-    emit_fatal(S("Tried to render more quads than render_batch->max"));
+    emit_fatal(S("Tried to render more quads than render_batch->Max"));
     return;
   }
 
@@ -833,75 +833,126 @@ r_draw_2d_box(Vec2f32 p0, Vec2f32 p1, Vec4f32 color)
 function Vec2f32
 r_draw_2d_text(Vec2f32 position, f32 pixel_height, Vec4f32 color, String8 text)
 {
- if (g_renderer.batches[Render_Batch_SS_text]->count + text.size >= g_renderer.batches[Render_Batch_SS_text]->max)
- {
-   emit_fatal(S("Tried to render more textured quads than g_renderer.batches[Render_Batch_SS_quad]_texture->max"));
-   return vec2f32(0, 0);
- }
- Font* font = &g_renderer.fonts[0];
- f32 pixel_scale = pixel_height / font->height;
- f32 line_height = font->line_height * pixel_scale;
+  if (g_renderer.batches[Render_Batch_SS_text]->count + text.size >= g_renderer.batches[Render_Batch_SS_text]->Max)
+  {
+    emit_fatal(S("Tried to render more textured quads than g_renderer.batches[Render_Batch_SS_quad]_texture->Max"));
+    return vec2f32(0, 0);
+  }
+  Font* font = &g_renderer.fonts[0]; // TODO(fz): Font should be arg
+  f32 pixel_scale = pixel_height / font->height;
+  f32 line_height = font->line_height * pixel_scale;
  
- // Get first character to calculate offset
- u8 first_char = text.str[0];
- Glyph* first_glyph = &font->glyphs[first_char - 32];
+  // Get first character to calculate offset
+  u8 first_char = text.str[0];
+  Glyph* first_glyph = &font->glyphs[first_char - 32];
  
- // Adjust starting position so first glyph centers on 'position'
- Vec2f32 start_pos = vec2f32(
-   position.x - (first_glyph->offset.x + first_glyph->size.x * 0.5f) * pixel_scale,
-   position.y + (first_glyph->offset.y + first_glyph->size.y * 0.5f) * pixel_scale
- );
+  // Adjust starting position so first glyph centers on 'position'
+  Vec2f32 start_pos = vec2f32(
+    position.x - (first_glyph->offset.x + first_glyph->size.x * 0.5f) * pixel_scale,
+    position.y + (first_glyph->offset.y + first_glyph->size.y * 0.5f) * pixel_scale
+  );
  
- Vec2f32 cursor = start_pos;
- f32 max_width = 0.0f;
- f32 current_line_width = 0.0f;
- s32 line_count = 1;
+  Vec2f32 cursor = start_pos;
+  f32 max_width = 0.0f;
+  f32 current_line_width = 0.0f;
+  s32 line_count = 1;
  
- for (u64 idx = 0; idx < text.size; ++idx)
- {
-   u8 c = text.str[idx];
+  for (u64 idx = 0; idx < text.size; ++idx)
+  {
+    u8 c = text.str[idx];
    
-   if (c == '\n')
-   {
-     max_width = max(max_width, current_line_width);
-     current_line_width = 0.0f;
-     cursor.x = start_pos.x;
-     cursor.y -= line_height;
-     line_count++;
-     continue;
-   }
+    if (c == '\n')
+    {
+      max_width = Max(max_width, current_line_width);
+      current_line_width = 0.0f;
+      cursor.x = start_pos.x;
+      cursor.y -= line_height;
+      line_count++;
+      continue;
+    }
    
-   if (c < 32 || c > 126)
-   {
-     continue;
-   }
+    if (c < 32 || c > 126)
+    {
+      continue;
+    }
    
-   Glyph* glyph = &font->glyphs[c - 32];
+    Glyph* glyph = &font->glyphs[c - 32];
    
-   Vec2f32 glyph_pos = vec2f32(
-     cursor.x + (glyph->offset.x + glyph->size.x * 0.5f) * pixel_scale,
-     cursor.y - (glyph->offset.y + glyph->size.y * 0.5f) * pixel_scale
-   );
-   Vec2f32 glyph_size = vec2f32(glyph->size.x * pixel_scale, glyph->size.y * pixel_scale);
-   _r_draw_2d_primitive(g_renderer.batches[Render_Batch_SS_text], glyph_pos, glyph_size, glyph->uv_min, glyph->uv_max, color, font->texture_index);
+    Vec2f32 glyph_pos = vec2f32(
+      cursor.x + (glyph->offset.x + glyph->size.x * 0.5f) * pixel_scale,
+      cursor.y - (glyph->offset.y + glyph->size.y * 0.5f) * pixel_scale
+    );
+    Vec2f32 glyph_size = vec2f32(glyph->size.x * pixel_scale, glyph->size.y * pixel_scale);
+    _r_draw_2d_primitive(g_renderer.batches[Render_Batch_SS_text], glyph_pos, glyph_size, glyph->uv_min, glyph->uv_max, color, font->texture_index);
    
-   f32 advance = glyph->advance * pixel_scale;
-   cursor.x += advance;
-   current_line_width += advance;
- }
+    f32 advance = glyph->advance * pixel_scale;
+    cursor.x += advance;
+    current_line_width += advance;
+  }
  
- max_width = max(max_width, current_line_width);
- f32 total_height = line_count * line_height;
+  max_width = Max(max_width, current_line_width);
+  f32 total_height = line_count * line_height;
  
- return vec2f32(max_width, total_height);
+  return vec2f32(max_width, total_height);
+}
+
+function Vec2f32
+r_draw_2d_text_centered(Vec2f32 position, f32 pixel_height, Vec4f32 color, String8 text)
+{
+  if (g_renderer.batches[Render_Batch_SS_text]->count + text.size >= g_renderer.batches[Render_Batch_SS_text]->Max)
+  {
+    emit_fatal(S("Tried to render more textured quads than g_renderer.batches[Render_Batch_SS_quad]_texture->Max"));
+    return vec2f32(0, 0);
+  }
+  
+  Font* font = &g_renderer.fonts[0]; // TODO(fz): Font should be arg
+  u8 first_char = text.str[0];
+  Glyph* first_glyph = &font->glyphs[first_char - 32];
+ 
+  Vec2f32 size = r_get_2d_text_dimensions(text, pixel_height);
+
+  position.x = position.x - (size.x / 2) + (first_glyph->size.x / 2);
+  position.y = position.y + (size.y / 2);
+
+  r_draw_2d_text(position, pixel_height, color, text);
+
+  return vec2f32(0, 0);
+}
+
+function void
+r_draw_2d_grid(Vec2f32 p0, Vec2f32 p1, u32 square_size_pixel, Vec4f32 color)
+{
+  f32 width = p1.x - p0.x;
+  f32 height = p1.y - p0.y;
+ 
+  u32 vertical_lines = (u32)(width / square_size_pixel) + 1;
+  u32 horizontal_lines = (u32)(height / square_size_pixel) + 1;
+ 
+  for (u32 i = 0; i < vertical_lines; ++i)
+  {
+    f32 x = p0.x + i * square_size_pixel;
+    if (x <= p1.x)
+    {
+      r_draw_2d_line(vec2f32(x, p0.y), vec2f32(x, p1.y), color);
+    }
+  }
+ 
+  for (u32 i = 0; i < horizontal_lines; ++i)
+  {
+    f32 y = p0.y + i * square_size_pixel;
+    if (y <= p1.y)
+    {
+      r_draw_2d_line(vec2f32(p0.x, y), vec2f32(p1.x, y), color);
+    }
+  }
 }
 
 function void
 _r_draw_3d_primitive(Render_Batch* render_batch, Transform3f32 transform, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
 {
-  if (render_batch->count >= render_batch->max)
+  if (render_batch->count >= render_batch->Max)
   {
-    emit_fatal(S("Tried to render more primitives than render_batch->max"));
+    emit_fatal(S("Tried to render more primitives than render_batch->Max"));
     return;
   }
 
@@ -962,7 +1013,7 @@ r_draw_3d_box(Vec3f32 translation, Quatf32 rotation, f32 size, Vec4f32 color)
   r_draw_3d_line(corners[2], corners[3], color);
   r_draw_3d_line(corners[3], corners[0], color);
   
-  // Front face (z = max)
+  // Front face (z = Max)
   r_draw_3d_line(corners[4], corners[5], color);
   r_draw_3d_line(corners[5], corners[6], color);
   r_draw_3d_line(corners[6], corners[7], color);
@@ -978,72 +1029,72 @@ r_draw_3d_box(Vec3f32 translation, Quatf32 rotation, f32 size, Vec4f32 color)
 function void
 r_draw_3d_text(Transform3f32 transform, Vec4f32 color, f32 font_scale, String8 text)
 {
- if (g_renderer.batches[Render_Batch_WS_text]->count + text.size >= g_renderer.batches[Render_Batch_WS_text]->max)
- {
-   emit_fatal(S("Tried to render more textured quads than g_renderer.batches[Render_Batch_WS_text]_texture->max"));
-   return;
- }
+  if (g_renderer.batches[Render_Batch_WS_text]->count + text.size >= g_renderer.batches[Render_Batch_WS_text]->Max)
+  {
+  emit_fatal(S("Tried to render more textured quads than g_renderer.batches[Render_Batch_WS_text]_texture->Max"));
+  return;
+  }
 
- Font* font = &g_renderer.fonts[0];
- f32 pixel_scale = (font_scale * 0.02f) / font->height;
- f32 line_height = font->line_height * pixel_scale;
+  Font* font = &g_renderer.fonts[0]; // TODO(fz): Font should be arg
+  f32 pixel_scale = (font_scale * 0.02f) / font->height;
+  f32 line_height = font->line_height * pixel_scale;
 
- // Get first character to calculate offset
- u8 first_char = text.str[0];
- Glyph* first_glyph = &font->glyphs[first_char - 32];
+  // Get first character to calculate offset
+  u8 first_char = text.str[0];
+  Glyph* first_glyph = &font->glyphs[first_char - 32];
 
- // Adjust starting position so first glyph centers on transform position
- Vec3f32 start_pos = vec3f32_add(transform.translation, vec3f32(
-   -(first_glyph->offset.x + first_glyph->size.x * 0.5f) * pixel_scale,
-   (first_glyph->offset.y + first_glyph->size.y * 0.5f) * pixel_scale,
-   0.0f
- ));
+  // Adjust starting position so first glyph centers on transform position
+  Vec3f32 start_pos = vec3f32_add(transform.translation, vec3f32(
+  -(first_glyph->offset.x + first_glyph->size.x * 0.5f) * pixel_scale,
+  (first_glyph->offset.y + first_glyph->size.y * 0.5f) * pixel_scale,
+  0.0f
+  ));
  
- Vec3f32 cursor = start_pos;
+  Vec3f32 cursor = start_pos;
 
- for (u64 idx = 0; idx < text.size; ++idx)
- {
-   u8 c = text.str[idx];
+  for (u64 idx = 0; idx < text.size; ++idx)
+  {
+  u8 c = text.str[idx];
    
-   if (c == '\n')
-   {
-     cursor.x = start_pos.x;
-     cursor.y -= line_height;
-     continue;
-   }
+  if (c == '\n')
+  {
+    cursor.x = start_pos.x;
+    cursor.y -= line_height;
+    continue;
+  }
    
-   if (c < 32 || c > 126)
-   {
-     continue;
-   }
+  if (c < 32 || c > 126)
+  {
+    continue;
+  }
   
-   Glyph* glyph = &font->glyphs[c - 32];
+  Glyph* glyph = &font->glyphs[c - 32];
   
-   Vec3f32 glyph_translation = vec3f32_add(cursor, vec3f32(
-     (glyph->offset.x + glyph->size.x * 0.5f) * pixel_scale,
-     -(glyph->offset.y + glyph->size.y * 0.5f) * pixel_scale,
-     0.0f
-   ));
+  Vec3f32 glyph_translation = vec3f32_add(cursor, vec3f32(
+    (glyph->offset.x + glyph->size.x * 0.5f) * pixel_scale,
+    -(glyph->offset.y + glyph->size.y * 0.5f) * pixel_scale,
+    0.0f
+  ));
   
-   Vec3f32 glyph_scale = vec3f32(
-     glyph->size.x * pixel_scale,
-     glyph->size.y * pixel_scale,
-     1.0f
-   );
+  Vec3f32 glyph_scale = vec3f32(
+    glyph->size.x * pixel_scale,
+    glyph->size.y * pixel_scale,
+    1.0f
+  );
   
-   Transform3f32 text_transform = transform3f32(glyph_translation, transform.rotation, glyph_scale);
-   _r_draw_3d_primitive(g_renderer.batches[Render_Batch_WS_text], text_transform, glyph->uv_min, glyph->uv_max, color, font->texture_index);
+  Transform3f32 text_transform = transform3f32(glyph_translation, transform.rotation, glyph_scale);
+  _r_draw_3d_primitive(g_renderer.batches[Render_Batch_WS_text], text_transform, glyph->uv_min, glyph->uv_max, color, font->texture_index);
   
-   cursor.x += glyph->advance * pixel_scale;
- }
+  cursor.x += glyph->advance * pixel_scale;
+  }
 }
 
 function void
 r_draw_3d_line(Vec3f32 p0, Vec3f32 p1, Vec4f32 color)
 {
-  if (g_renderer.batches[Render_Batch_WS_line]->count >= g_renderer.batches[Render_Batch_WS_line]->max)
+  if (g_renderer.batches[Render_Batch_WS_line]->count >= g_renderer.batches[Render_Batch_WS_line]->Max)
   {
-    emit_fatal(S("Tried to render more lines than g_renderer.batches[Render_Batch_WS_line]->max"));
+    emit_fatal(S("Tried to render more lines than g_renderer.batches[Render_Batch_WS_line]->Max"));
     return;
   }
   Line3D* data = (Line3D*)g_renderer.batches[Render_Batch_WS_line]->data;
@@ -1083,7 +1134,7 @@ r_draw_3d_arrow(Vec3f32 start, Vec3f32 end, Vec4f32 color)
 }
 
 function void
-r_draw_grid(Vec3f32 center, Vec3f32 normal, Vec3f32 forward, u32 square_size, u32 square_per_side, Vec4f32 color)
+r_draw_3d_grid(Vec3f32 center, Vec3f32 normal, Vec3f32 forward, u32 square_size, u32 square_per_side, Vec4f32 color)
 {
   u32 width = square_per_side * square_size;
 
@@ -1340,6 +1391,45 @@ r_create_color_texture(Vec4f32 color)
 
   scratch_end(&scratch);
   return result;
+}
+
+function Vec2f32
+r_get_2d_text_dimensions(String8 text, f32 pixel_height)
+{
+  Font* font = &g_renderer.fonts[0];
+  f32 pixel_scale = pixel_height / font->height;
+  f32 line_height = font->line_height * pixel_scale;
+
+  f32 max_width = 0.0f;
+  f32 current_line_width = 0.0f;
+  s32 line_count = 1;
+
+  for (u64 idx = 0; idx < text.size; ++idx)
+  {
+    u8 c = text.str[idx];
+  
+    if (c == '\n')
+    {
+      max_width = Max(max_width, current_line_width);
+      current_line_width = 0.0f;
+      line_count++;
+      continue;
+    }
+  
+    if (c < 32 || c > 126)
+    {
+      continue;
+    }
+  
+    Glyph* glyph = &font->glyphs[c - 32];
+    f32 advance = glyph->advance * pixel_scale;
+    current_line_width += advance;
+  }
+
+  max_width = Max(max_width, current_line_width);
+  f32 total_height = line_count * line_height;
+
+  return vec2f32(max_width, total_height);
 }
 
 function void

@@ -19,7 +19,7 @@
 - [ ] Draw worldspace circles - Render circles positioned in 3D space
 - [ ] Draw screenspace circles - Render circles in screen coordinates for UI
 - [ ] Draw worldspace spheres - 3D sphere rendering with proper shading
-- [ ] Draw box worldspace - Wireframe or filled box rendering in 3D space
+- [x] Draw box worldspace - Wireframe or filled box rendering in 3D space
 - [ ] Thicker lines - Variable width lines instead of 1-pixel GL_LINES
 - [ ] Screenspace quads rounded edges - UI quads with configurable corner radius
 
