@@ -1,6 +1,6 @@
 #include "main.h"
 
-#define FZ_CAMERA_SPEED 8.0f
+#define FZ_CAMERA_SPEED 8.0f // TODO(fz): Should be a set_speed funciton
 
 function void
 entry_point(Command_Line* command_line)
@@ -33,75 +33,47 @@ entry_point(Command_Line* command_line)
   camera_look_at(&g_camera, vec3f32(0.0f, 0.0f, 0.0f));
 
   // Time
-  g_frame_timer   = os_timer_start();
-  g_delta_time    = 0.0f;
-  g_fps           = 0.0f;
-  g_frame_counter = 1.0f;
+  g_frame_timer = os_timer_start();
 
+  // Frame arena
   Arena* frame_arena = arena_alloc();
+  u64 frame_arena_initial_position = frame_arena->position;
+
   while(os_is_application_running())
   {
-    f32 g_fps = 1.0f / g_delta_time;
+    // Begin frame
+    {
+      g_delta_time = (f32)os_timer_seconds(&g_frame_timer);
+      g_fps = 1.0f / g_delta_time;
+      g_frame_counter += 1;
+      os_timer_reset(&g_frame_timer);
+    }
+
     input_update();
-    camera_update(&g_camera, g_delta_time);
-
-    r_draw_3d_grid(vec3f32(0.0f, 0.0f, 0.0f), WORLD_FORWARD, WORLD_RIGHT,   1, 16, Color_Red(0.2));
-    r_draw_3d_grid(vec3f32(0.0f, 0.0f, 0.0f), WORLD_UP,      WORLD_FORWARD, 1, 16, Color_Green(0.4));
-    r_draw_3d_grid(vec3f32(0.0f, 0.0f, 0.0f), WORLD_RIGHT,   WORLD_UP,      1, 16, Color_Blue(0.2));
-
-    r_draw_3d_arrow(vec3f32(-16.0f,  0.0f,  0.0f), vec3f32(16.0f, 0.0f, 0.0), Color_Red(1.0f));
-    r_draw_3d_arrow(vec3f32( 0.0f, -16.0f,  0.0f), vec3f32(0.0f, 16.0f, 0.0), Color_Green(1.0f));
-    r_draw_3d_arrow(vec3f32( 0.0f,  0.0f, -16.0f), vec3f32(0.0f, 0.0f, 16.0), Color_Blue(1.0f));
-
-    r_draw_3d_quad(transform3f32(vec3f32(0.0f, 0.0f, 2.0f), quatf32_from_euler(Radians(g_frame_counter), Radians(g_frame_counter), Radians(0.0f)), vec3f32(1.0f, 1.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), green.index);
-
-    r_draw_3d_box(vec3f32(-2.0f, 2.0f, -2.0f), quatf32_from_euler(Radians(g_frame_counter), Radians(g_frame_counter), Radians(0.0f)), 2.0f, Color_Blue(1));
-
-    r_draw_3d_triangle(transform3f32(vec3f32(0.0f, 0.0f, -2.0f), quatf32_from_euler(Radians(g_frame_counter), Radians(g_frame_counter), Radians(0.0f)), vec3f32(1.0f, 1.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_blue.index);
-    r_draw_3d_triangle(transform3f32(vec3f32(-2.0f, 0.0f, -2.0f), quatf32_identity(), vec3f32(1.0f, 1.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_pink.index);
-    
-    r_draw_3d_quad(transform3f32(vec3f32( 2.0f,  2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_black.index);
-    r_draw_3d_quad(transform3f32(vec3f32(-2.0f,  2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_red.index);
-    r_draw_3d_quad(transform3f32(vec3f32( 2.0f, -2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_pink.index);
-    r_draw_3d_quad(transform3f32(vec3f32(-2.0f, -2.0f, -2.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_yelow.index);
-
-    r_draw_3d_text(transform3f32(vec3f32(0.5f, 0.5f, 0.0f),  quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_Black(1.0f), 32.0f, S("The quick fox jumps over 12 lazy dogs."));
-    r_draw_3d_text(transform3f32(vec3f32(0.0f, -2.0f, 0.0f), quatf32_identity(), vec3f32(2.0f, 2.0f, 1.0f)), Color_Black(1.0f), 32.0f, S("We are not your kind.\nWe are not your kind!"));
-
-    r_draw_2d_quad(vec2f32(30.f  + 300,  100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_Red(1.0f),   tex_black.index);
-    r_draw_2d_quad(vec2f32(90.f  + 300,  100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_Green(1.0f), tex_red.index);
-    r_draw_2d_quad(vec2f32(150.f + 300, 100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_Blue(1.0f),  tex_pink.index);
-    r_draw_2d_quad(vec2f32(210.f + 300, 100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), yellow.index);
-    r_draw_2d_quad(vec2f32(270.f + 300, 100.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), green.index);
-
-    r_draw_2d_quad(vec2f32(30.f + 300, 30.f), vec2f32(50.f, 50.f),  vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_black.index);
-    r_draw_2d_quad(vec2f32(90.f + 300, 30.f), vec2f32(50.f, 50.f),  vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_red.index);
-    r_draw_2d_quad(vec2f32(150. + 300, 30.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_pink.index);
-    r_draw_2d_quad(vec2f32(210. + 300, 30.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_yelow.index);
-    r_draw_2d_quad(vec2f32(270. + 300, 30.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_White(1.0f), tex_blue.index);
-
-    r_draw_2d_triangle(vec2f32(200.f, 200.f), vec2f32(50.f, 50.f), vec2f32(0.0f, 0.0f), vec2f32(1.0f, 1.0f), Color_Red(1.0f),   tex_black.index);
-
-    r_draw_2d_text(vec2f32(50.0f, 600.0f), 32.0f, Color_Black(1.0f), S("The quick fox jumps over 12 lazy dogs."));
-    r_draw_2d_text(vec2f32(50.0f, 550.0f), 32.0f, Color_Black(1.0f), S("We are not your kind.\nWe are not your kind!"));
-
-    r_draw_2d_text(vec2f32(5.0f, g_os_window->dimensions.y - 15.0f), 32.0f, Color_Black(1.0f), Sf(frame_arena, "FPS: %.2f", g_fps));
-
-    r_draw_2d_text_centered(vec2f32(g_os_window->dimensions.x/2, g_os_window->dimensions.y/2), 32.0f, Color_Black(1), S("Centered text should be centered\nEven with line break\nEven more\n And even more!"));
-
-    Mat4f32 view       = camera_get_view_matrix(&g_camera);
-    Mat4f32 projection = mat4f32_perspective(g_camera.fov, g_os_window->dimensions.x, g_os_window->dimensions.y, 0.1f, 100.0f);
-
-    r_render(view, projection);
+    simulation(frame_arena);
+    r_render(camera_get_view_matrix(&g_camera), mat4f32_perspective(g_camera.fov, g_os_window->dimensions.x, g_os_window->dimensions.y, 0.1f, 100.0f));
 
     // Close frame
-    { 
-      g_delta_time = (f32)os_timer_seconds(&g_frame_timer);
-      os_timer_reset(&g_frame_timer);
-      g_frame_counter += 1;
-      arena_pop_to(frame_arena, 0);
+    {
+      arena_pop_to(frame_arena, frame_arena_initial_position);
     }
   }
+}
+
+function void
+simulation(Arena* frame_arena)
+{
+  camera_update(&g_camera, g_delta_time);
+
+  r_draw_3d_arrow(vec3f32(-16.0f,  0.0f,  0.0f), vec3f32(16.0f, 0.0f, 0.0), Color_Red(1.0f));
+  r_draw_3d_arrow(vec3f32( 0.0f, -16.0f,  0.0f), vec3f32(0.0f, 16.0f, 0.0), Color_Green(1.0f));
+  r_draw_3d_arrow(vec3f32( 0.0f,  0.0f, -16.0f), vec3f32(0.0f, 0.0f, 16.0), Color_Blue(1.0f));
+
+  r_draw_3d_grid(vec3f32(0.0f, 0.0f, 0.0f), WORLD_UP, WORLD_FORWARD, 1, 16, Color_Gray(0.4));
+
+  u8* time_now = cstring_from_string8(frame_arena, os_datetime_to_string8(frame_arena, os_datetime_now(), false));
+  r_draw_2d_text(vec2f32(10.0f, g_os_window->dimensions.y - 15.0f), 24.0f, Color_Black(1.0f), 
+    Sf(frame_arena, "%s\nFPS: %.2f\nFrame Counter: %d", time_now, g_fps, g_frame_counter));
 }
 
 function void

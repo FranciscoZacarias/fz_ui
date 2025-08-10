@@ -373,7 +373,7 @@ function u64          os_time_milliseconds(); /* Time since boot in milliseconds
 function f64          os_time_seconds(); /* Time since boot in seconds */
 function u64          os_get_epoch_microseconds(); /* Wall clock time since unix epoch (1970-01-01) in microseconds */
 function OS_Date_Time os_datetime_now(); /* Current local date and time */
-function String8      os_datetime_to_string8(Arena* arena, OS_Date_Time date); /* Returns a verbose datetime string */
+function String8      os_datetime_to_string8(Arena* arena, OS_Date_Time date, b32 include_ms); /* Returns a verbose datetime string */
 
 function OS_Timer os_timer_start(); /* Returns a started timer */
 function u64      os_timer_microseconds(OS_Timer *timer); /* Returns timer's elapsed time in microseconds */

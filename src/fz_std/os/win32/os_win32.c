@@ -564,7 +564,7 @@ os_datetime_now()
 }
 
 function String8
-os_datetime_to_string8(Arena *arena, OS_Date_Time dt)
+os_datetime_to_string8(Arena *arena, OS_Date_Time dt, b32 include_ms)
 {
   local_persist u8* months[] = 
   {
@@ -573,9 +573,18 @@ os_datetime_to_string8(Arena *arena, OS_Date_Time dt)
  
   String8 month_name = (dt.month >= 1 && dt.month <= 12) ? string8_from_cstring(months[dt.month - 1]) : S("Invalid");
   
-  String8 result = string8_from_format(arena, "%04u-%.*s-%02u %02u:%02u:%02u.%03u",
-    dt.year, month_name.size, month_name.str, dt.day,dt.hour, dt.minute, dt.second, dt.millisecond);
-                             
+  String8 result;
+  if (include_ms)
+  {
+    result = string8_from_format(arena, "%04u-%.*s-%02u %02u:%02u:%02u.%03u",
+      dt.year, month_name.size, month_name.str, dt.day,dt.hour, dt.minute, dt.second, dt.millisecond);
+  }
+  else
+  {
+    result = string8_from_format(arena, "%04u-%.*s-%02u %02u:%02u:%02u",
+      dt.year, month_name.size, month_name.str, dt.day,dt.hour, dt.minute, dt.second);
+  }
+  
   return result;
 }
 

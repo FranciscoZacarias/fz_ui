@@ -67,7 +67,7 @@ log_emit(Log_Level level, String8 message, String8 file, u32 line)
     }
     
     String8 start = string8_from_format(scratch.arena, "%.*s :: ", level_str.size, level_str.str); 
-    String8 mid   = os_datetime_to_string8(scratch.arena, log_entry_node->value.timestamp);
+    String8 mid   = os_datetime_to_string8(scratch.arena, log_entry_node->value.timestamp, true);
     String8 end   = string8_from_format(scratch.arena, " :: %.*s:%u: %.*s\n", (s32)file.size, file.str, line, (s32)message.size, message.str);
     
     String8 a = string8_concat(scratch.arena, start, mid);

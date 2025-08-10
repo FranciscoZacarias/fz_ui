@@ -24,11 +24,13 @@
 
 global Camera g_camera;
 
-OS_Timer g_frame_timer;
-u64      g_frame_counter;
-f32      g_delta_time;
-u32      g_fps;
+OS_Timer g_frame_timer   = {0};
+u64      g_frame_counter = 0;
+f32      g_delta_time    = 0.0f;
+f32      g_fps           = 0.0f;
 
 function void input_update();
+function void simulation();
+
 
 #endif // MAIN_H
