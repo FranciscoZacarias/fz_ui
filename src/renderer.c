@@ -833,50 +833,67 @@ r_draw_2d_box(Vec2f32 p0, Vec2f32 p1, Vec4f32 color)
 function Vec2f32
 r_draw_2d_text(Vec2f32 position, f32 pixel_height, Vec4f32 color, String8 text)
 {
-  if (g_renderer.batches[Render_Batch_SS_text]->count + text.size >= g_renderer.batches[Render_Batch_SS_text]->max)
-  {
-    emit_fatal(S("Tried to render more textured quads than g_renderer.batches[Render_Batch_SS_quad]_texture->max"));
-    return vec2f32(0, 0);
-  }
-  Font* font = &g_renderer.fonts[0];
-  f32 pixel_scale = pixel_height / font->height;
-  
-  // Get first character to calculate offset
-  u8 first_char = text.str[0];
-  Glyph* first_glyph = &font->glyphs[first_char - 32];
-  
-  // Adjust starting position so first glyph centers on 'position'
-  Vec2f32 start_pos = vec2f32(
-    position.x - (first_glyph->offset.x + first_glyph->size.x * 0.5f) * pixel_scale,
-    position.y + (first_glyph->offset.y + first_glyph->size.y * 0.5f) * pixel_scale
-  );
-  
-  for (u64 idx = 0; idx < text.size; ++idx)
-  {
-    u8 c = text.str[idx];
-
-    if (c < 32 || c > 126)
-    {
-      continue;
-    }
-
-    Glyph* glyph = &font->glyphs[c - 32];
-  
-    if (c == '\n')
-    {
-      // TODO(fz): Implement line break;
-      continue;
-    }
-
-    Vec2f32 glyph_pos = vec2f32(
-      start_pos.x + (glyph->offset.x + glyph->size.x * 0.5f) * pixel_scale,
-      start_pos.y - (glyph->offset.y + glyph->size.y * 0.5f) * pixel_scale
-    );
-    Vec2f32 glyph_size = vec2f32(glyph->size.x * pixel_scale, glyph->size.y * pixel_scale);
-    _r_draw_2d_primitive(g_renderer.batches[Render_Batch_SS_text], glyph_pos, glyph_size, glyph->uv_min, glyph->uv_max, color, font->texture_index);
-    start_pos.x += glyph->advance * pixel_scale;
-  }
-  return vec2f32(0, 0);
+ if (g_renderer.batches[Render_Batch_SS_text]->count + text.size >= g_renderer.batches[Render_Batch_SS_text]->max)
+ {
+   emit_fatal(S("Tried to render more textured quads than g_renderer.batches[Render_Batch_SS_quad]_texture->max"));
+   return vec2f32(0, 0);
+ }
+ Font* font = &g_renderer.fonts[0];
+ f32 pixel_scale = pixel_height / font->height;
+ f32 line_height = font->line_height * pixel_scale;
+ 
+ // Get first character to calculate offset
+ u8 first_char = text.str[0];
+ Glyph* first_glyph = &font->glyphs[first_char - 32];
+ 
+ // Adjust starting position so first glyph centers on 'position'
+ Vec2f32 start_pos = vec2f32(
+   position.x - (first_glyph->offset.x + first_glyph->size.x * 0.5f) * pixel_scale,
+   position.y + (first_glyph->offset.y + first_glyph->size.y * 0.5f) * pixel_scale
+ );
+ 
+ Vec2f32 cursor = start_pos;
+ f32 max_width = 0.0f;
+ f32 current_line_width = 0.0f;
+ s32 line_count = 1;
+ 
+ for (u64 idx = 0; idx < text.size; ++idx)
+ {
+   u8 c = text.str[idx];
+   
+   if (c == '\n')
+   {
+     max_width = max(max_width, current_line_width);
+     current_line_width = 0.0f;
+     cursor.x = start_pos.x;
+     cursor.y -= line_height;
+     line_count++;
+     continue;
+   }
+   
+   if (c < 32 || c > 126)
+   {
+     continue;
+   }
+   
+   Glyph* glyph = &font->glyphs[c - 32];
+   
+   Vec2f32 glyph_pos = vec2f32(
+     cursor.x + (glyph->offset.x + glyph->size.x * 0.5f) * pixel_scale,
+     cursor.y - (glyph->offset.y + glyph->size.y * 0.5f) * pixel_scale
+   );
+   Vec2f32 glyph_size = vec2f32(glyph->size.x * pixel_scale, glyph->size.y * pixel_scale);
+   _r_draw_2d_primitive(g_renderer.batches[Render_Batch_SS_text], glyph_pos, glyph_size, glyph->uv_min, glyph->uv_max, color, font->texture_index);
+   
+   f32 advance = glyph->advance * pixel_scale;
+   cursor.x += advance;
+   current_line_width += advance;
+ }
+ 
+ max_width = max(max_width, current_line_width);
+ f32 total_height = line_count * line_height;
+ 
+ return vec2f32(max_width, total_height);
 }
 
 function void
@@ -961,59 +978,64 @@ r_draw_3d_box(Vec3f32 translation, Quatf32 rotation, f32 size, Vec4f32 color)
 function void
 r_draw_3d_text(Transform3f32 transform, Vec4f32 color, f32 font_scale, String8 text)
 {
-  if (g_renderer.batches[Render_Batch_WS_text]->count + text.size >= g_renderer.batches[Render_Batch_WS_text]->max)
-  {
-    emit_fatal(S("Tried to render more textured quads than g_renderer.batches[Render_Batch_WS_text]_texture->max"));
-    return;
-  }
+ if (g_renderer.batches[Render_Batch_WS_text]->count + text.size >= g_renderer.batches[Render_Batch_WS_text]->max)
+ {
+   emit_fatal(S("Tried to render more textured quads than g_renderer.batches[Render_Batch_WS_text]_texture->max"));
+   return;
+ }
+
+ Font* font = &g_renderer.fonts[0];
+ f32 pixel_scale = (font_scale * 0.02f) / font->height;
+ f32 line_height = font->line_height * pixel_scale;
+
+ // Get first character to calculate offset
+ u8 first_char = text.str[0];
+ Glyph* first_glyph = &font->glyphs[first_char - 32];
+
+ // Adjust starting position so first glyph centers on transform position
+ Vec3f32 start_pos = vec3f32_add(transform.translation, vec3f32(
+   -(first_glyph->offset.x + first_glyph->size.x * 0.5f) * pixel_scale,
+   (first_glyph->offset.y + first_glyph->size.y * 0.5f) * pixel_scale,
+   0.0f
+ ));
  
-  Font* font = &g_renderer.fonts[0];
-  f32 pixel_scale = (font_scale * 0.02f) / font->height;
- 
-  // Get first character to calculate offset
-  u8 first_char = text.str[0];
-  Glyph* first_glyph = &font->glyphs[first_char - 32];
- 
-  // Adjust starting position so first glyph centers on transform position
-  Vec3f32 start_pos = vec3f32_add(transform.translation, vec3f32(
-    -(first_glyph->offset.x + first_glyph->size.x * 0.5f) * pixel_scale,
-    (first_glyph->offset.y + first_glyph->size.y * 0.5f) * pixel_scale,
-    0.0f
-  ));
- 
-  for (u64 idx = 0; idx < text.size; ++idx)
-  {
-    u8 c = text.str[idx];
-    if (c < 32 || c > 126)
-    {
-      continue;
-    }
+ Vec3f32 cursor = start_pos;
+
+ for (u64 idx = 0; idx < text.size; ++idx)
+ {
+   u8 c = text.str[idx];
    
-    Glyph* glyph = &font->glyphs[c - 32];
+   if (c == '\n')
+   {
+     cursor.x = start_pos.x;
+     cursor.y -= line_height;
+     continue;
+   }
    
-    if (c == '\n')
-    {
-      // TODO(fz): Implement line break;
-      continue;
-    }
-   
-    Vec3f32 glyph_translation = vec3f32_add(start_pos, vec3f32(
-      (glyph->offset.x + glyph->size.x * 0.5f) * pixel_scale,
-      -(glyph->offset.y + glyph->size.y * 0.5f) * pixel_scale,
-      0.0f
-    ));
-   
-    Vec3f32 glyph_scale = vec3f32(
-      glyph->size.x * pixel_scale,
-      glyph->size.y * pixel_scale,
-      1.0f
-    );
-   
-    Transform3f32 text_transform = transform3f32(glyph_translation, transform.rotation, glyph_scale);
-    _r_draw_3d_primitive(g_renderer.batches[Render_Batch_WS_text], text_transform, glyph->uv_min, glyph->uv_max, color, font->texture_index);
-   
-    start_pos.x += glyph->advance * pixel_scale;
-  }
+   if (c < 32 || c > 126)
+   {
+     continue;
+   }
+  
+   Glyph* glyph = &font->glyphs[c - 32];
+  
+   Vec3f32 glyph_translation = vec3f32_add(cursor, vec3f32(
+     (glyph->offset.x + glyph->size.x * 0.5f) * pixel_scale,
+     -(glyph->offset.y + glyph->size.y * 0.5f) * pixel_scale,
+     0.0f
+   ));
+  
+   Vec3f32 glyph_scale = vec3f32(
+     glyph->size.x * pixel_scale,
+     glyph->size.y * pixel_scale,
+     1.0f
+   );
+  
+   Transform3f32 text_transform = transform3f32(glyph_translation, transform.rotation, glyph_scale);
+   _r_draw_3d_primitive(g_renderer.batches[Render_Batch_WS_text], text_transform, glyph->uv_min, glyph->uv_max, color, font->texture_index);
+  
+   cursor.x += glyph->advance * pixel_scale;
+ }
 }
 
 function void
