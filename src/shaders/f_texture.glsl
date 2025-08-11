@@ -11,6 +11,7 @@ out vec4 FragColor;
 
 void main()
 {
+  // NOTE(fz): if statement in shaders hurts me, maybe we should just add a render batch for colored quads?
   if (v_texture_id == 0xFFFFFFFFu)
   {
     FragColor = v_color;

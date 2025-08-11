@@ -13,7 +13,7 @@
 
 ### CORE FEATURES - High Priority
 
-- [ ] 2D primitives should be able to just set colors without making new textures
+- [x] 2D primitives should be able to just set colors without making new textures
 - [x] Add normals to render primitives
 - [ ] Directional light pass
 - [ ] Implement depth sorting for transparency - Sort transparent objects back-to-front for correct alpha blending
