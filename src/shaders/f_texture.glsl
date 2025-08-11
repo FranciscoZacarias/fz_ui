@@ -11,6 +11,13 @@ out vec4 FragColor;
 
 void main()
 {
-  vec4 tex_color = texture(u_textures[v_texture_id], v_uv);
-  FragColor = tex_color * v_color;
+  if (v_texture_id == 0xFFFFFFFFu)
+  {
+    FragColor = v_color;
+  }
+  else
+  {
+	vec4 tex_color = texture(u_textures[v_texture_id], v_uv);
+	FragColor = tex_color * v_color;
+  }
 }

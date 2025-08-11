@@ -23,7 +23,7 @@ r_init()
   g_renderer.shaders.v_ws_quad = r_compile_shader(V_WS_PRIMITIVE_PATH, GL_VERTEX_SHADER);
   g_renderer.shaders.v_ws_line = r_compile_shader(V_WS_LINE_PATH,      GL_VERTEX_SHADER);
 
-  g_renderer.shaders.f_line    = r_compile_shader(F_LINE_PATH,    GL_FRAGMENT_SHADER);
+  g_renderer.shaders.f_line    = r_compile_shader(F_COLOR_PATH,    GL_FRAGMENT_SHADER);
   g_renderer.shaders.f_texture = r_compile_shader(F_TEXTURE_PATH, GL_FRAGMENT_SHADER);
   g_renderer.shaders.f_text    = r_compile_shader(F_TEXT_PATH,    GL_FRAGMENT_SHADER);
   
@@ -810,6 +810,12 @@ function void
 r_draw_2d_quad(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id)
 {
   _r_draw_2d_primitive(g_renderer.batches[Render_Batch_SS_quad], position, scale, uv_min, uv_max, color, texture_id);
+}
+
+function void
+r_draw_2d_quad_colored(Vec2f32 position, Vec2f32 scale, Vec4f32 color)
+{
+	_r_draw_2d_primitive(g_renderer.batches[Render_Batch_SS_quad], position, scale, vec2f32(0.0f, 0.0), vec2f32(1.0f, 1.0f), color, 0xFFFFFFFFu);
 }
 
 function void

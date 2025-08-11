@@ -26,7 +26,7 @@
 // Fragment Shaders
 #define F_TEXTURE_PATH S("\\src\\shaders\\f_texture.glsl")
 #define F_TEXT_PATH    S("\\src\\shaders\\f_text.glsl")
-#define F_LINE_PATH    S("\\src\\shaders\\f_line.glsl")
+#define F_COLOR_PATH    S("\\src\\shaders\\f_color.glsl")
 
 ///////////////////////////////////////////////////////
 // @Section: Forward declare
@@ -216,6 +216,7 @@ function void r_render(Mat4f32 view, Mat4f32 projection);
 
 function void   _r_draw_2d_primitive(Render_Batch* render_batch, Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
 function void    r_draw_2d_triangle(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
+function void    r_draw_2d_quad_colored(Vec2f32 position, Vec2f32 scale, Vec4f32 color);
 function void    r_draw_2d_quad(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
 function void    r_draw_2d_point(Vec2f32 position, Vec4f32 color);
 function void    r_draw_2d_box(Vec2f32 p0, Vec2f32 p1, Vec4f32 color); /* Hollow quad. p0 is bottom left, p1 is top right */
