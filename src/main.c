@@ -35,7 +35,7 @@ entry_point(Command_Line* command_line)
 
   g_tex_black = r_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\black.png")));
   g_tex_red   = r_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\red.png")));
-  g_blue      = r_create_color_texture(Color_Blue(1.0f));
+  g_blue      = r_create_color_texture(COLOR_BLUE(1.0f));
   
   while(os_is_application_running())
   {
@@ -63,14 +63,14 @@ simulation(Arena* frame_arena)
 {
   camera_update(&g_camera, g_delta_time);
 
-  r_draw_3d_arrow(vec3f32(-16.0f,  0.0f,  0.0f), vec3f32(16.0f, 0.0f, 0.0), Color_Red(1.0f));
-  r_draw_3d_arrow(vec3f32( 0.0f, -16.0f,  0.0f), vec3f32(0.0f, 16.0f, 0.0), Color_Green(1.0f));
-  r_draw_3d_arrow(vec3f32( 0.0f,  0.0f, -16.0f), vec3f32(0.0f, 0.0f, 16.0), Color_Blue(1.0f));
+  r_draw_3d_arrow(vec3f32(-16.0f,  0.0f,  0.0f), vec3f32(16.0f, 0.0f, 0.0), COLOR_RED(1.0f));
+  r_draw_3d_arrow(vec3f32( 0.0f, -16.0f,  0.0f), vec3f32(0.0f, 16.0f, 0.0), COLOR_GREEN(1.0f));
+  r_draw_3d_arrow(vec3f32( 0.0f,  0.0f, -16.0f), vec3f32(0.0f, 0.0f, 16.0), COLOR_BLUE(1.0f));
 
-  r_draw_3d_grid(vec3f32(0.0f, 0.0f, 0.0f), WORLD_UP, WORLD_FORWARD, 1, 16, Color_Gray(0.4));
+  r_draw_3d_grid(vec3f32(0.0f, 0.0f, 0.0f), WORLD_UP, WORLD_FORWARD, 1, 16, COLOR_GRAY(0.4));
 
   u8* time_now = cstring_from_string8(frame_arena, os_datetime_to_string8(frame_arena, os_datetime_now(), false));
-  r_draw_2d_text(vec2f32(10.0f, g_os_window->dimensions.y - 15.0f), 24.0f, Color_Black(1.0f), 
+  r_draw_2d_text(vec2f32(10.0f, g_os_window->dimensions.y - 15.0f), 24.0f, COLOR_BLACK(1.0f), 
     Sf(frame_arena, "%s\nFPS: %.2f\nFrame Counter: %d", time_now, g_fps, g_frame_counter));
 }
 

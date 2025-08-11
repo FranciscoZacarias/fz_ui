@@ -960,7 +960,7 @@ _r_draw_3d_primitive(Render_Batch* render_batch, Transform3f32 transform, Vec2f3
   Vec3f32 normal = vec3f32_normalize(vec3f32_from_vec4f32(normal4));
 
   Vec3f32 end = vec3f32_add(transform.translation, vec3f32_scale(normal, 1.0f));
-  r_draw_3d_line(transform.translation, end, Color_Yellow(1.0f));
+  r_draw_3d_line(transform.translation, end, COLOR_YELLOW(1.0f));
 
   Primitive3D *data = (Primitive3D*)render_batch->data;
   data[render_batch->count].transform = transform;
