@@ -17,15 +17,15 @@ r_init()
   MemoryZeroStruct(&g_renderer);
   g_renderer.arena = arena_alloc();
   
-  g_renderer.shaders.v_ss_line = r_compile_shader(V_SS_Line_Path,      GL_VERTEX_SHADER);
-  g_renderer.shaders.v_ss_quad = r_compile_shader(V_SS_Primitive_Path, GL_VERTEX_SHADER);
-  g_renderer.shaders.v_ss_text = r_compile_shader(V_SS_Text_Path,      GL_VERTEX_SHADER);
-  g_renderer.shaders.v_ws_quad = r_compile_shader(V_WS_Primitive_Path, GL_VERTEX_SHADER);
-  g_renderer.shaders.v_ws_line = r_compile_shader(V_WS_Line_Path,      GL_VERTEX_SHADER);
+  g_renderer.shaders.v_ss_line = r_compile_shader(V_SS_LINE_PATH,      GL_VERTEX_SHADER);
+  g_renderer.shaders.v_ss_quad = r_compile_shader(V_SS_PRIMITIVE_PATH, GL_VERTEX_SHADER);
+  g_renderer.shaders.v_ss_text = r_compile_shader(V_SS_TEXT_PATH,      GL_VERTEX_SHADER);
+  g_renderer.shaders.v_ws_quad = r_compile_shader(V_WS_PRIMITIVE_PATH, GL_VERTEX_SHADER);
+  g_renderer.shaders.v_ws_line = r_compile_shader(V_WS_LINE_PATH,      GL_VERTEX_SHADER);
 
-  g_renderer.shaders.f_line    = r_compile_shader(F_Line_Path,    GL_FRAGMENT_SHADER);
-  g_renderer.shaders.f_texture = r_compile_shader(F_Texture_Path, GL_FRAGMENT_SHADER);
-  g_renderer.shaders.f_text    = r_compile_shader(F_Text_Path,    GL_FRAGMENT_SHADER);
+  g_renderer.shaders.f_line    = r_compile_shader(F_LINE_PATH,    GL_FRAGMENT_SHADER);
+  g_renderer.shaders.f_texture = r_compile_shader(F_TEXTURE_PATH, GL_FRAGMENT_SHADER);
+  g_renderer.shaders.f_text    = r_compile_shader(F_TEXT_PATH,    GL_FRAGMENT_SHADER);
   
   // Screenspace
   {
@@ -593,7 +593,7 @@ r_init()
     g_renderer.fonts_max   = 2;
     g_renderer.fonts       = push_array(g_renderer.arena, Font, g_renderer.fonts_max);
     g_renderer.fonts_count = 0;
-    r_load_font(Font_Inconsolata);
+    r_load_font(FONT_INCONSOLATA_PATH);
   }
 
   scratch_end(&scratch);
@@ -1165,7 +1165,7 @@ function void
 r_load_font(String8 relative_path) 
 {
   Scratch scratch = scratch_begin(0, 0);
-  f32 font_height = FontSize;
+  f32 font_height = FONT_LOAD_SIZE;
 
   if (g_renderer.texture_count >= g_renderer.texture_max)
   {
@@ -1201,12 +1201,12 @@ r_load_font(String8 relative_path)
  
   s32 atlas_width = 512, atlas_height = 512;
   u8* atlas_bitmap = push_array(scratch.arena, u8, atlas_width * atlas_height);
-  stbtt_packedchar char_data[MaxFontGlyphs];
+  stbtt_packedchar char_data[MAX_FONT_GLYPHS];
  
   stbtt_pack_context pack;
   stbtt_PackBegin(&pack, atlas_bitmap, atlas_width, atlas_height, atlas_width, 1, NULL);
   stbtt_PackSetOversampling(&pack, 1, 1);
-  stbtt_PackFontRange(&pack, (u8*)file_data.data.str, 0, font_height, 32, MaxFontGlyphs, char_data);
+  stbtt_PackFontRange(&pack, (u8*)file_data.data.str, 0, font_height, 32, MAX_FONT_GLYPHS, char_data);
   stbtt_PackEnd(&pack);
  
   GLuint texture;
@@ -1218,7 +1218,7 @@ r_load_font(String8 relative_path)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
  
-  for (s32 i = 0; i < MaxFontGlyphs; i++)
+  for (s32 i = 0; i < MAX_FONT_GLYPHS; i++)
   {
     Glyph* glyph = &g_renderer.fonts[g_renderer.fonts_count].glyphs[i];
     stbtt_packedchar* ch = &char_data[i];

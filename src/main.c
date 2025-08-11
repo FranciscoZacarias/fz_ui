@@ -1,7 +1,5 @@
 #include "main.h"
 
-#define FZ_CAMERA_SPEED 8.0f // TODO(fz): Should be a set_speed funciton
-
 Texture_Info g_tex_black;
 Texture_Info g_tex_red;
 Texture_Info g_blue;
@@ -12,7 +10,7 @@ entry_point(Command_Line* command_line)
   Arena* arena = arena_alloc();
 
   os_console_init();
-  os_window_init(1280, 720, Project_Name);
+  os_window_init(1280, 720, PROJECT_NAME);
   os_opengl_init();
   os_window_open();
 
@@ -24,7 +22,7 @@ entry_point(Command_Line* command_line)
   r_init();
 
   // Camera
-  camera_init(&g_camera);
+  camera_init(&g_camera, 8.0f);
   g_camera.position = vec3f32(-1.0f, 1.0f, 5.0f);
   camera_look_at(&g_camera, vec3f32(0.0f, 0.0f, 0.0f));
 

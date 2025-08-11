@@ -1,12 +1,12 @@
 function void
-camera_init(Camera* camera)
+camera_init(Camera* camera, u32 speed)
 {
   AssertNoReentry();
   MemoryZeroStruct(camera);
   camera->position    = vec3f32(0.0f, 0.0f, 5.0f);
   camera->orientation = quatf32_identity();
   camera->fov         = 90.0f;
-  camera->speed       = 8.0f;
+  camera->speed       = speed;
   camera->sensitivity = 0.1;
   camera->pitch       = 0.0f;
   camera->yaw         = 0.0f;
@@ -175,4 +175,10 @@ camera_print(Camera* cam)
     case CameraMode_Disabled: mode_str = "Disabled"; break;
   }
   printf("  Mode: %s\n", mode_str);
+}
+
+function void
+camera_set_speed(Camera* camera, u32 speed)
+{
+  camera->speed = speed;
 }

@@ -12,7 +12,7 @@
 ///////////////////////////////////////////////////////
 // @Section: project
 
-#define Project_Name S("Turtle")
+#define PROJECT_NAME S("Turtle")
 
 // *.h
 #include "camera.h"
