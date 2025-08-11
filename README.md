@@ -13,6 +13,7 @@
 
 ### CORE FEATURES - High Priority
 
+- [ ] 2D primitives should be able to just set colors without making new textures
 - [x] Add normals to render primitives
 - [ ] Directional light pass
 - [ ] Implement depth sorting for transparency - Sort transparent objects back-to-front for correct alpha blending
@@ -25,7 +26,9 @@
 
 ### UI/UX FEATURES - Medium Priority
 
-- [ ] Gradient fills - Linear and radial gradients for quad rendering
+- [ ] Border - Add border customization to primitives like thickness and color
+- [ ] Round corners - Add round corners to quads
+- [ ] Gradient fills - Linear and radial gradients for primitives rendering
 - [ ] Scissor/clipping rectangles - Clip rendering to specific screen regions
 - [ ] Render stats display - Show performance metrics like draw calls and instance counts
 

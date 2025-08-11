@@ -2,6 +2,10 @@
 
 #define FZ_CAMERA_SPEED 8.0f // TODO(fz): Should be a set_speed funciton
 
+Texture_Info g_tex_black;
+Texture_Info g_tex_red;
+Texture_Info g_blue;
+
 function void
 entry_point(Command_Line* command_line)
 {
@@ -18,14 +22,6 @@ entry_point(Command_Line* command_line)
 
   // Renderer
   r_init();
-  Texture_Info tex_black = r_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\black.png")));
-  Texture_Info tex_red   = r_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\red.png")));
-  Texture_Info tex_pink  = r_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\pink.png")));
-  Texture_Info tex_yelow = r_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\yelow.png")));
-  Texture_Info tex_blue  = r_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\blue 1.png")));
-
-  Texture_Info yellow = r_create_color_texture(Color_Yellow(1.0f));
-  Texture_Info green  = r_create_color_texture(Color_Green(1.0f));
 
   // Camera
   camera_init(&g_camera);
@@ -39,6 +35,10 @@ entry_point(Command_Line* command_line)
   Arena* frame_arena = arena_alloc();
   u64 frame_arena_initial_position = frame_arena->position;
 
+  g_tex_black = r_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\black.png")));
+  g_tex_red   = r_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\red.png")));
+  g_blue      = r_create_color_texture(Color_Blue(1.0f));
+  
   while(os_is_application_running())
   {
     // Begin frame
