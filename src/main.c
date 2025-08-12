@@ -69,6 +69,7 @@ simulation(Arena* frame_arena)
 
   r_draw_3d_grid(vec3f32(0.0f, 0.0f, 0.0f), WORLD_UP, WORLD_FORWARD, 1, 16, COLOR_GRAY(0.4));
 
+  ui_window(vec2f32(g_os_window->dimensions.x/4, g_os_window->dimensions.y/2), vec2f32(200,100));
 
   u8* time_now = cstring_from_string8(frame_arena, os_datetime_to_string8(frame_arena, os_datetime_now(), false));
   r_draw_2d_text(vec2f32(10.0f, g_os_window->dimensions.y - 15.0f), 24.0f, COLOR_BLACK(1.0f), Sf(frame_arena, "%s\nFPS: %.2f\nFrame Counter: %d", time_now, g_fps, g_frame_counter));

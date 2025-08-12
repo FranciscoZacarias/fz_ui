@@ -234,7 +234,6 @@ function void    r_draw_3d_line(Vec3f32 p0, Vec3f32 p1, Vec4f32 color);
 function void    r_draw_3d_arrow(Vec3f32 start, Vec3f32 end, Vec4f32 color);
 function void    r_draw_3d_grid(Vec3f32 center, Vec3f32 normal, Vec3f32 forward, u32 square_size, u32 square_per_side, Vec4f32 color);
 
-
 function Texture_Info  r_load_texture(String8 path);
 function Texture_Info  r_create_color_texture(Vec4f32 color);
 function void          r_create_fallback_texture();
