@@ -34,5 +34,4 @@ f32      g_fps           = 0.0f;
 function void input_update();
 function void simulation();
 
-
 #endif // MAIN_H

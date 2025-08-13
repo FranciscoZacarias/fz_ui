@@ -14,3 +14,4 @@ ui_window(Vec2f32 position, Vec2f32 dimensions)
   r_draw_2d_quad_colored(title_bar_position, title_bar_dimensions, COLOR_BLUE(0.3));
   r_draw_2d_quad_colored(usable_position, usable_dimensions, COLOR_BLUE(0.1));
 }
+
