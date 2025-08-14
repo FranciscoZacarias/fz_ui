@@ -35,7 +35,7 @@ struct Camera
 };
 
 function void    camera_init(Camera* camera, u32 speed);
-function void    camera_update(Camera* camera, f32 delta_time);
+function void    camera_update(Camera* camera, Input_State* input, f32 delta_time);
 function Vec3f32 camera_get_forward(Camera* camera);
 function Vec3f32 camera_get_right(Camera* camera);
 function Vec3f32 camera_get_up(Camera* camera);

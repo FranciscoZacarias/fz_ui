@@ -144,15 +144,6 @@ global u32 _win32_key_table[Keyboard_Key_Count] =
 
 ///////////////////////////////////////////////////////
 // @Section: Window
-struct OS_Window_Win32
-{
-  OS_Window state;
-  HGLRC rendering_context;
-  HWND  window_handle;
-  HDC   device_context;
-};
-
-global OS_Window_Win32 g_os_window_win32;
 
 ///////////////////////////////////////////////////////
 // @Section: Window

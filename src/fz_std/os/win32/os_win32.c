@@ -688,29 +688,29 @@ os_cursor_set_position(s32 x, s32 y)
 }
 
 function void
-os_cursor_lock(b32 lock)
+os_cursor_lock(Input_State* input, b32 lock)
 {
   if (lock)
   {
     RECT rect;
-    GetClientRect(g_os_window_win32.window_handle, &rect);
+    GetClientRect(g_os_window.window_handle, &rect);
     POINT center = {(rect.right - rect.left) / 2, (rect.bottom - rect.top) / 2};
-    ClientToScreen(g_os_window_win32.window_handle, &center);
+    ClientToScreen(g_os_window.window_handle, &center);
     SetCursorPos(center.x, center.y);
 
-    _g_ignore_next_mouse_move = true;
-    _g_is_cursor_locked       = true;
+    input->_g_ignore_next_mouse_move = true;
+    input->_g_is_cursor_locked       = true;
 
     // Reset deltas to avoid cursor jump
-    g_input_state.mouse_current.delta.x  = 0.0f;
-    g_input_state.mouse_current.delta.y  = 0.0f;
-    g_input_state.mouse_previous.delta.x = 0.0f;
-    g_input_state.mouse_previous.delta.y = 0.0f;
-    MemoryCopyStruct(&g_input_state.mouse_previous, &g_input_state.mouse_current);
+    input->mouse_current.delta.x  = 0.0f;
+    input->mouse_current.delta.y  = 0.0f;
+    input->mouse_previous.delta.x = 0.0f;
+    input->mouse_previous.delta.y = 0.0f;
+    MemoryCopyStruct(&(input->mouse_previous), &(input->mouse_current));
   }
   else
   {
-    _g_is_cursor_locked = false;
+    input->_g_is_cursor_locked = false;
   }
 }
 
@@ -748,31 +748,32 @@ _os_key_from_native_key(u32 native_key)
 ///////////////////////////////////////////////////////
 // @Section: Window Lifecycle
 function b32
-os_window_init(s32 width, s32 height, String8 title)
+os_window_init(s32 width, s32 height, String8 title, Input_State* out_input)
 {
-  MemoryZeroStruct(&g_os_window_win32);
+  MemoryZeroStruct(&g_os_window);
   b32 result = true;
 
-  g_os_window = &g_os_window_win32.state;
-
-  g_os_window_win32.window_handle = _win32_window_create(_g_hInstance, width, height, title);
-  if (!IsWindow(g_os_window_win32.window_handle))
+  g_os_window.window_handle = _win32_window_create(_g_hInstance, width, height, title);
+  if (!IsWindow(g_os_window.window_handle))
   {
     win32_check_error();
     emit_error(S("Failed to get window handle\n"));
   }
+
+  // Store a pointer to the input in the window, such that it is updated every message
+  SetWindowLongPtr(g_os_window.window_handle, GWLP_USERDATA, (LONG_PTR)out_input);
   
-  g_os_window_win32.device_context = GetDC(g_os_window_win32.window_handle);
-  if (!g_os_window_win32.device_context)
+  g_os_window.device_context = GetDC(g_os_window.window_handle);
+  if (!g_os_window.device_context)
   {
     win32_check_error();
     emit_error(S("Failed to get device context"));
   }
 
-  g_os_window_win32.state.dimensions = (Vec2s32){width, height};
-  g_os_window_win32.state.title      = S("FZ_Window_Title");
+  g_os_window.dimensions = (Vec2s32){width, height};
+  g_os_window.title      = S("FZ_Window_Title");
 
-  _input_init();
+  _input_init(out_input);
   g_os_resize_callback = _win32_window_resize_callback;
 
   return result;
@@ -781,26 +782,26 @@ os_window_init(s32 width, s32 height, String8 title)
 function void
 os_window_open()
 {
-  ShowWindow(g_os_window_win32.window_handle, SW_SHOW);
-  UpdateWindow(g_os_window_win32.window_handle);
+  ShowWindow(g_os_window.window_handle, SW_SHOW);
+  UpdateWindow(g_os_window.window_handle);
 }
 
 function void     
 os_window_close()
 {
-  ShowWindow(g_os_window_win32.window_handle, SW_HIDE);
-  UpdateWindow(g_os_window_win32.window_handle);
+  ShowWindow(g_os_window.window_handle, SW_HIDE);
+  UpdateWindow(g_os_window.window_handle);
 }
 
 function b32
-os_is_application_running()
+os_is_application_running(Input_State* input)
 {
   b32 result = true;
 
   MSG msg = {0};
-  if (g_os_window_win32.window_handle != NULL)
+  if (g_os_window.window_handle != NULL)
   {
-    _input_update();
+    _input_update(input);
 
     if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
     {
@@ -816,7 +817,7 @@ os_is_application_running()
   return result;
 }
 
-function OS_Window*
+function OS_Window
 os_window_get()
 {
   return g_os_window;
@@ -826,7 +827,7 @@ function Vec2s32
 os_window_get_client_dimensions()
 {
   RECT rect;
-  GetClientRect(g_os_window_win32.window_handle, &rect);
+  GetClientRect(g_os_window.window_handle, &rect);
   Vec2s32 result = vec2s32((rect.right - rect.left), (rect.bottom - rect.top));
   return result;
 }
@@ -835,7 +836,7 @@ function Vec2s32
 os_window_client_to_screen(Vec2s32 client_point)
 {
   POINT point = { client_point.x, client_point.y };
-  ClientToScreen(g_os_window_win32.window_handle, &point);
+  ClientToScreen(g_os_window.window_handle, &point);
   Vec2s32 result = vec2s32(point.x, point.y);
   return result;
 }
@@ -847,10 +848,10 @@ function b32
 os_window_is_fullscreen()
 {
   RECT rect;
-  GetWindowRect(g_os_window_win32.window_handle, &rect);
+  GetWindowRect(g_os_window.window_handle, &rect);
 
   MONITORINFO mi = { sizeof(mi) };
-  GetMonitorInfo(MonitorFromWindow(g_os_window_win32.window_handle, MONITOR_DEFAULTTONEAREST), &mi);
+  GetMonitorInfo(MonitorFromWindow(g_os_window.window_handle, MONITOR_DEFAULTTONEAREST), &mi);
 
   b32 result = (rect.left   == mi.rcMonitor.left &&
                 rect.top    == mi.rcMonitor.top &&
@@ -866,13 +867,13 @@ os_window_set_fullscreen(b32 set)
   static WINDOWPLACEMENT prev = { sizeof(prev) };
   if (set)
   {
-    GetWindowPlacement(g_os_window_win32.window_handle, &prev);
+    GetWindowPlacement(g_os_window.window_handle, &prev);
 
     MONITORINFO mi = { sizeof(mi) };
-    GetMonitorInfo(MonitorFromWindow(g_os_window_win32.window_handle, MONITOR_DEFAULTTONEAREST), &mi);
+    GetMonitorInfo(MonitorFromWindow(g_os_window.window_handle, MONITOR_DEFAULTTONEAREST), &mi);
 
-    SetWindowLong(g_os_window_win32.window_handle, GWL_STYLE, WS_POPUP | WS_VISIBLE);
-    SetWindowPos(g_os_window_win32.window_handle, HWND_TOP,
+    SetWindowLong(g_os_window.window_handle, GWL_STYLE, WS_POPUP | WS_VISIBLE);
+    SetWindowPos(g_os_window.window_handle, HWND_TOP,
                  mi.rcMonitor.left, mi.rcMonitor.top,
                  mi.rcMonitor.right - mi.rcMonitor.left,
                  mi.rcMonitor.bottom - mi.rcMonitor.top,
@@ -880,9 +881,9 @@ os_window_set_fullscreen(b32 set)
   }
   else
   {
-    SetWindowLong(g_os_window_win32.window_handle, GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
-    SetWindowPlacement(g_os_window_win32.window_handle, &prev);
-    SetWindowPos(g_os_window_win32.window_handle, NULL, 0, 0, 0, 0,
+    SetWindowLong(g_os_window.window_handle, GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
+    SetWindowPlacement(g_os_window.window_handle, &prev);
+    SetWindowPos(g_os_window.window_handle, NULL, 0, 0, 0, 0,
                  SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
                  SWP_FRAMECHANGED | SWP_NOOWNERZORDER);
   }
@@ -891,33 +892,33 @@ os_window_set_fullscreen(b32 set)
 function b32
 os_window_is_maximized()
 {
-  b32 result = IsZoomed(g_os_window_win32.window_handle);
+  b32 result = IsZoomed(g_os_window.window_handle);
   return result;
 }
 
 function void
 os_window_set_maximized(b32 set)
 {
-  ShowWindow(g_os_window_win32.window_handle, set ? SW_MAXIMIZE : SW_RESTORE);
+  ShowWindow(g_os_window.window_handle, set ? SW_MAXIMIZE : SW_RESTORE);
 }
 
 function b32
 os_window_is_minimized()
 {
-  b32 result = IsIconic(g_os_window_win32.window_handle);
+  b32 result = IsIconic(g_os_window.window_handle);
   return result;
 }
 
 function void
 os_window_set_minimized(b32 set)
 {
-  ShowWindow(g_os_window_win32.window_handle, set ? SW_MINIMIZE : SW_RESTORE);
+  ShowWindow(g_os_window.window_handle, set ? SW_MINIMIZE : SW_RESTORE);
 }
 
 function void
 os_swap_buffers()
 {
-  SwapBuffers(g_os_window_win32.device_context);
+  SwapBuffers(g_os_window.device_context);
 }
 
 ///////////////////////////////////////////////////////
@@ -926,7 +927,7 @@ os_swap_buffers()
 function void
 os_window_set_visible(b32 visible)
 {
-  ShowWindow(g_os_window_win32.window_handle, visible ? SW_SHOW : SW_HIDE);
+  ShowWindow(g_os_window.window_handle, visible ? SW_SHOW : SW_HIDE);
 }
 
 function b32
@@ -934,7 +935,7 @@ os_window_set_title(String8 title)
 {
   Scratch scratch = scratch_begin(0, 0);
   char* ctitle = cstring_from_string8(scratch.arena, title);
-  b32 result = SetWindowTextA(g_os_window_win32.window_handle, ctitle);
+  b32 result = SetWindowTextA(g_os_window.window_handle, ctitle);
   win32_check_error();
   // TODO(fz): Add title to g_os_window
   scratch_end(&scratch);
@@ -968,7 +969,7 @@ os_window_push_custom_title_bar_client_area()
 function void
 os_window_set_position(Vec2f32 pos)
 {
-  SetWindowPos(g_os_window_win32.window_handle, 0,
+  SetWindowPos(g_os_window.window_handle, 0,
                (int)pos.x, (int)pos.y, 0, 0,
                SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
 }
@@ -976,7 +977,7 @@ os_window_set_position(Vec2f32 pos)
 function void
 os_window_set_size(s32 width, s32 height)
 {
-  SetWindowPos(g_os_window_win32.window_handle, 0,
+  SetWindowPos(g_os_window.window_handle, 0,
                0, 0, width, height,
                SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
 }
@@ -987,6 +988,7 @@ os_window_set_size(s32 width, s32 height)
 LRESULT CALLBACK 
 WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+  Input_State* input = (Input_State*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
   switch (message) 
   {
     case WM_SETCURSOR:
@@ -1012,7 +1014,7 @@ WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
       Keyboard_Key key = _os_key_from_native_key((u32)wParam);
       if (key < Keyboard_Key_Count) 
       {
-        _input_process_keyboard_key((Keyboard_Key)key, true);
+        _input_process_keyboard_key(input, (Keyboard_Key)key, true);
       }
       else
       {
@@ -1026,7 +1028,7 @@ WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
       Keyboard_Key key = _os_key_from_native_key((u32)wParam);
       if (key < Keyboard_Key_Count) 
       {
-        _input_process_keyboard_key((Keyboard_Key)key, false);
+        _input_process_keyboard_key(input, (Keyboard_Key)key, false);
       }
       else
       {
@@ -1039,14 +1041,14 @@ WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     // Mouse Cursor
     case WM_MOUSEMOVE: 
     {
-      if (_g_ignore_next_mouse_move) 
+      if (input->_g_ignore_next_mouse_move) 
       {
-        _g_ignore_next_mouse_move = false;
+        input->_g_ignore_next_mouse_move = false;
         return 0;
       }
       s32 x = LOWORD(lParam);
       s32 y = HIWORD(lParam);
-      _input_process_mouse_cursor((f32)x, (f32)y);
+      _input_process_mouse_cursor(input, (f32)x, (f32)y);
       return 0;
     }
     break;
@@ -1054,37 +1056,37 @@ WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     // Mouse Buttons
     case WM_LBUTTONDOWN: 
     {
-      _input_process_mouse_button(MouseButton_Left, true);
+      _input_process_mouse_button(input, MouseButton_Left, true);
       return 0;
     }
     break;
     case WM_LBUTTONUP: 
     {
-      _input_process_mouse_button(MouseButton_Left, false);
+      _input_process_mouse_button(input, MouseButton_Left, false);
       return 0;
     }
     break;
     case WM_RBUTTONDOWN: 
     {
-      _input_process_mouse_button(MouseButton_Right, true);
+      _input_process_mouse_button(input, MouseButton_Right, true);
       return 0;
     }
     break;
     case WM_RBUTTONUP: 
     {
-      _input_process_mouse_button(MouseButton_Right, false);
+      _input_process_mouse_button(input, MouseButton_Right, false);
       return 0;
     }
     break;
     case WM_MBUTTONDOWN: 
     {
-      _input_process_mouse_button(MouseButton_Middle, true);
+      _input_process_mouse_button(input, MouseButton_Middle, true);
       return 0;
     }
     break;
     case WM_MBUTTONUP: 
     {
-      _input_process_mouse_button(MouseButton_Middle, false);
+      _input_process_mouse_button(input, MouseButton_Middle, false);
       return 0;
     }
     break;
@@ -1098,7 +1100,7 @@ WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_DESTROY: 
     {
-      ReleaseDC(hWnd, g_os_window_win32.device_context);
+      ReleaseDC(hWnd, g_os_window.device_context);
       PostQuitMessage(0);
       return 0;
     }
@@ -1143,7 +1145,7 @@ _win32_window_resize_callback(s32 width, s32 height)
 {
   if (height == 0) height = 1;
   if (width == 0)  width  = 1;
-  g_os_window_win32.state.dimensions.x = width;
-  g_os_window_win32.state.dimensions.y = height;
+  g_os_window.dimensions.x = width;
+  g_os_window.dimensions.y = height;
   glViewport(0, 0, width, height);
 }

@@ -14,25 +14,25 @@ camera_init(Camera* camera, u32 speed)
 }
 
 function void
-camera_update(Camera* camera, f32 delta_time)
+camera_update(Camera* camera, Input_State* input, f32 delta_time)
 {
   local_persist b32 was_right_mouse_button_down = 0;
 
-  if (input_is_button_down(MouseButton_Right))
+  if (input_is_button_down(input, MouseButton_Right))
   {
     if (!was_right_mouse_button_down)
     {
-      g_input_state.mouse_previous.screen_space.x = g_input_state.mouse_current.screen_space.x;
-      g_input_state.mouse_previous.screen_space.y = g_input_state.mouse_current.screen_space.y;
+      input->mouse_previous.screen_space.x = input->mouse_current.screen_space.x;
+      input->mouse_previous.screen_space.y = input->mouse_current.screen_space.y;
       was_right_mouse_button_down = 1;
-      os_cursor_lock(true);
+      os_cursor_lock(input, true);
       os_cursor_hide(true);
     }
 
     camera->mode = CameraMode_Fly;
 
-    f32 dx = g_input_state.mouse_current.delta.x;
-    f32 dy = g_input_state.mouse_current.delta.y;
+    f32 dx = input->mouse_current.delta.x;
+    f32 dy = input->mouse_current.delta.y;
 
     camera->yaw   += -dx * camera->sensitivity * delta_time * 180.0f / PI;
     camera->pitch += -dy * camera->sensitivity * delta_time * 180.0f / PI;
@@ -58,27 +58,27 @@ camera_update(Camera* camera, f32 delta_time)
 
     f32 speed = camera->speed * delta_time;
 
-    if (input_is_key_down(Keyboard_Key_W))
+    if (input_is_key_down(input, Keyboard_Key_W))
     {
       camera->position = vec3f32_add(camera->position, vec3f32_scale(forward, speed));
     }
-    if (input_is_key_down(Keyboard_Key_S))
+    if (input_is_key_down(input, Keyboard_Key_S))
     {
       camera->position = vec3f32_sub(camera->position, vec3f32_scale(forward, speed));
     }
-    if (input_is_key_down(Keyboard_Key_D))
+    if (input_is_key_down(input, Keyboard_Key_D))
     {
       camera->position = vec3f32_add(camera->position, vec3f32_scale(right, speed));
     }
-    if (input_is_key_down(Keyboard_Key_A))
+    if (input_is_key_down(input, Keyboard_Key_A))
     {
       camera->position = vec3f32_sub(camera->position, vec3f32_scale(right, speed));
     }
-    if (input_is_key_down(Keyboard_Key_E))
+    if (input_is_key_down(input, Keyboard_Key_E))
     {
       camera->position = vec3f32_add(camera->position, vec3f32_scale(WORLD_UP, speed));
     }
-    if (input_is_key_down(Keyboard_Key_Q))
+    if (input_is_key_down(input, Keyboard_Key_Q))
     {
       camera->position = vec3f32_sub(camera->position, vec3f32_scale(WORLD_UP, speed));
     }
@@ -88,14 +88,14 @@ camera_update(Camera* camera, f32 delta_time)
     Vec2s32 center_screen = os_window_client_to_screen(center);
     os_cursor_set_position(center_screen.x, center_screen.y);
 
-    g_input_state.mouse_current.screen_space.x = (f32)(dimensions.x / 2);
-    g_input_state.mouse_current.screen_space.y = (f32)(dimensions.y / 2);
+    input->mouse_current.screen_space.x = (f32)(dimensions.x / 2);
+    input->mouse_current.screen_space.y = (f32)(dimensions.y / 2);
   }
   else
   {
     camera->mode = CameraMode_Select;
     was_right_mouse_button_down = 0;
-    os_cursor_lock(false);
+    os_cursor_lock(input, false);
     os_cursor_hide(false);
   }
 }

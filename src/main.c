@@ -10,7 +10,7 @@ entry_point(Command_Line* command_line)
   Arena* arena = arena_alloc();
 
   os_console_init();
-  os_window_init(400, 400, PROJECT_NAME);
+  os_window_init(400, 400, PROJECT_NAME, &input);
   os_opengl_init();
   os_window_open();
 
@@ -37,7 +37,7 @@ entry_point(Command_Line* command_line)
   g_tex_red   = r_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\red.png")));
   g_blue      = r_create_color_texture(COLOR_BLUE(1.0f));
   
-  while(os_is_application_running())
+  while(os_is_application_running(&input))
   {
     // Begin frame
     {
@@ -49,7 +49,7 @@ entry_point(Command_Line* command_line)
 
     input_update();
     simulation(frame_arena);
-    r_render(camera_get_view_matrix(&g_camera), mat4f32_perspective(g_camera.fov, g_os_window->dimensions.x, g_os_window->dimensions.y, 0.1f, 100.0f));
+    r_render(camera_get_view_matrix(&g_camera), mat4f32_perspective(g_camera.fov, g_os_window.dimensions.x, g_os_window.dimensions.y, 0.1f, 100.0f));
 
     // Close frame
     {
@@ -61,7 +61,7 @@ entry_point(Command_Line* command_line)
 function void
 simulation(Arena* frame_arena)
 {
-  camera_update(&g_camera, g_delta_time);
+  camera_update(&g_camera, &input, g_delta_time);
 
   r_draw_3d_arrow(vec3f32(-16.0f,  0.0f,  0.0f), vec3f32(16.0f, 0.0f, 0.0), COLOR_RED(1.0f));
   r_draw_3d_arrow(vec3f32( 0.0f, -16.0f,  0.0f), vec3f32(0.0f, 16.0f, 0.0), COLOR_GREEN(1.0f));
@@ -71,23 +71,23 @@ simulation(Arena* frame_arena)
 
 
   u8* time_now = cstring_from_string8(frame_arena, os_datetime_to_string8(frame_arena, os_datetime_now(), false));
-  r_draw_2d_text(vec2f32(10.0f, g_os_window->dimensions.y - 15.0f), 24.0f, COLOR_BLACK(1.0f), Sf(frame_arena, "%s\nFPS: %.2f\nFrame Counter: %d", time_now, g_fps, g_frame_counter));
+  r_draw_2d_text(vec2f32(10.0f, g_os_window.dimensions.y - 15.0f), 24.0f, COLOR_BLACK(1.0f), Sf(frame_arena, "%s\nFPS: %.2f\nFrame Counter: %d", time_now, g_fps, g_frame_counter));
 }
 
 function void
 input_update()
 {
-  if (input_is_key_pressed(Keyboard_Key_ESCAPE))
+  if (input_is_key_pressed(&input, Keyboard_Key_ESCAPE))
   {
     os_exit_process(0);
   }
 
-  if (input_is_key_pressed(Keyboard_Key_F11))
+  if (input_is_key_pressed(&input, Keyboard_Key_F11))
   {
     r_toggle_wireframe();
   }
 
-  if (input_is_key_pressed(Keyboard_Key_F12))
+  if (input_is_key_pressed(&input, Keyboard_Key_F12))
   {
     local_persist b32 is_vsync_on = true;
     os_window_enable_vsync(is_vsync_on ? false : true);
