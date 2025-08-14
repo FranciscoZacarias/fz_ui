@@ -1,9 +1,19 @@
 #ifndef OS_INCLUDE_H
 #define OS_INCLUDE_H
 
+typedef struct OS_Handle OS_Handle;
+typedef struct OS_System_Info OS_System_Info;
+typedef struct OS_Process_Info OS_Process_Info;
+typedef struct OS_Launch_Parameters OS_Launch_Parameters;
+typedef struct OS_Memory_Stats OS_Memory_Stats;
+typedef struct File_Data File_Data;
+typedef struct File_Node File_Node;
+typedef struct OS_Window OS_Window;
+typedef struct OS_State OS_State;
+typedef struct File_List File_List;
+
 ///////////////////////////////////////////////////////
 // @Section: OS Handles
-typedef struct OS_Handle OS_Handle;
 struct OS_Handle
 {
   u64 v[1];
@@ -11,7 +21,6 @@ struct OS_Handle
 
 ///////////////////////////////////////////////////////
 // @Section: System info
-typedef struct OS_System_Info OS_System_Info;
 struct OS_System_Info
 {
   u32 logical_processor_count;
@@ -23,7 +32,6 @@ struct OS_System_Info
 
 ///////////////////////////////////////////////////////
 // @Section: Process Info
-typedef struct OS_Process_Info OS_Process_Info;
 struct OS_Process_Info
 {
   u32 pid;
@@ -37,7 +45,6 @@ struct OS_Process_Info
 
 ///////////////////////////////////////////////////////
 // @Section: Process Launch Parameters
-typedef struct OS_Launch_Parameters OS_Launch_Parameters;
 struct OS_Launch_Parameters
 {
   String8_List cmd_line;
@@ -50,7 +57,6 @@ struct OS_Launch_Parameters
 
 ///////////////////////////////////////////////////////
 // @Section: Memory
-typedef struct OS_Memory_Stats OS_Memory_Stats;
 struct OS_Memory_Stats
 {
   u64 total_physical;
@@ -81,21 +87,18 @@ function b32     os_console_has_input(); /* Returns true if there is input avail
 
 ///////////////////////////////////////////////////////
 // @Section: Files
-typedef struct File_Data File_Data;
 struct File_Data
 {
   String8 path;
   String8 data;
 };
 
-typedef struct File_Node File_Node;
 struct File_Node
 {
   struct File_Node* next;
   File_Data value;
 };
 
-typedef struct File_List File_List;
 struct File_List
 {
   File_Node* first;
@@ -383,7 +386,6 @@ function void     os_timer_reset(OS_Timer *timer); /* Resets a timer */
 
 ///////////////////////////////////////////////////////
 // @Section: OS Global State
-typedef struct OS_State OS_State;
 struct OS_State
 {
   OS_System_Info system_info;
@@ -392,6 +394,49 @@ struct OS_State
 };
 
 global OS_State g_os_state = {0};
+
+// DOC(fz): fz_std only supports one window.
+
+///////////////////////////////////////////////////////
+// @Section: Window
+struct OS_Window
+{
+  Vec2s32 dimensions;
+  String8 title;
+};
+global OS_Window* g_os_window;
+
+///////////////////////////////////////////////////////
+// @Section: Window Lifecycle
+function b32         os_window_init(s32 width, s32 height, String8 title); /* Creates a window */
+function void        os_window_open(); /* Shows a window */
+function void        os_window_close(); /* Closes and destroys a window */
+function b32         os_is_application_running(); /* Swaps buffers for the only existing window */
+function OS_Window*  os_window_get(); /* Returns the window handle */
+function Vec2s32     os_window_get_client_dimensions(); /* Returns screen dimensions. X is width, Y is height */
+function Vec2s32     os_window_client_to_screen(Vec2s32 client_point); /* Converts client (window area) coordinates to screen (display) coordinates */
+
+///////////////////////////////////////////////////////
+// @Section: Window Flags
+function b32  os_window_is_fullscreen(); /* True if fullscreen */
+function void os_window_set_fullscreen(b32 set); /* Enables/disables fullscreen */
+function b32  os_window_is_maximized(); /* True if maximized */
+function void os_window_set_maximized(b32 set); /* Maximizes/restores window */
+function b32  os_window_is_minimized(); /* True if minimized */
+function void os_window_set_minimized(b32 set); /* Minimizes/restores window */
+function void os_swap_buffers(); /* Swaps buffers */
+
+///////////////////////////////////////////////////////
+// @Section: Window Appearance
+function void os_window_set_visible(b32 visible); /* Show or hide the window */
+function b32  os_window_set_title(String8 title); /* Sets window title */
+function void os_window_clear_custom_border_data(); /* Resets border override (Windows only) */
+function void os_window_push_custom_title_bar(f32 thickness); /* Define title bar area */
+function void os_window_push_custom_edges(f32 thickness); /* Define draggable edges */
+function void os_window_push_custom_title_bar_client_area(); /* Client title bar rect */
+function void os_window_set_position(Vec2f32 pos); /* Set window top-left position */
+function void os_window_set_size(s32 width, s32 height); /* Set client size (non-fullscreen) */
+
 
 ///////////////////////////////////////////////////////
 // @Section: Entry point
