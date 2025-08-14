@@ -115,7 +115,7 @@ arena_pop_to(Arena* arena, u64 pos)
 function void
 arena_clear(Arena* arena)
 {
-  arena_pop(arena, arena->position);
+  arena_pop_to(arena, 0);
 }
 
 function void
