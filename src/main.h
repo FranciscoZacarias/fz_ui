@@ -16,12 +16,10 @@
 // *.h
 #include "camera.h"
 #include "renderer.h"
-#include "ui.h"
 
 // *.c
 #include "camera.c"
 #include "renderer.c"
-#include "ui.c"
 
 global Camera g_camera;
 global Input_State input;

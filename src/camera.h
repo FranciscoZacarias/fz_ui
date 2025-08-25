@@ -5,15 +5,15 @@
 #define WORLD_RIGHT   vec3f32(1.0f, 0.0f,  0.0f)
 #define WORLD_FORWARD vec3f32(0.0f, 0.0f, -1.0f)
 
-typedef struct Camera Camera;
-
-typedef enum Camera_Mode {
+typedef enum 
+{
   CameraMode_Select,
   CameraMode_Fly,
   CameraMode_Disabled
 } Camera_Mode;
 
-typedef enum Camera_Movement {
+typedef enum
+{
   CameraMovement_Front,
   CameraMovement_Back,
   CameraMovement_Right,
@@ -22,7 +22,7 @@ typedef enum Camera_Movement {
   CameraMovement_Down
 } Camera_Movement;
 
-struct Camera
+typedef struct
 {
   Vec3f32 position;
   Quatf32 orientation;
@@ -32,7 +32,7 @@ struct Camera
   f32 pitch;
   f32 yaw;
   Camera_Mode mode;
-};
+} Camera;
 
 function void    camera_init(Camera* camera, u32 speed);
 function void    camera_update(Camera* camera, Input_State* input, f32 delta_time);
