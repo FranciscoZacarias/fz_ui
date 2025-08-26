@@ -136,7 +136,6 @@ function f32 f32_normalize(f32 value, f32 start, f32 end);
 function f32 f32_remap(f32 value, f32 inputStart, f32 inputEnd, f32 outputStart, f32 outputEnd);
 function f32 f32_wrap(f32 value, f32 min, f32 Max);
 
-// TODO(fz): Rename functions to match their type E,g, vec2f32_distance -> vec2f32_distance
 function f32 vec2f32_distance(Vec2f32 a, Vec2f32 b);
 function f32 vec2f32_distance_signed(Vec2f32 a, Vec2f32 b, Vec2f32 reference);
 
@@ -198,9 +197,10 @@ function Mat4f32 mat4f32_rotate_zyx(Vec3f32 radians);
 
 function Mat4f32 mat4f32_transpose(Mat4f32 m);
 function Mat4f32 mat4f32_scale(f32 x, f32 y, f32 z);
+function Mat4f32 mat4f32_inverse(Mat4f32 m);
 function Mat4f32 mat4f32_frustum(f64 left, f64 right, f64 bottom, f64 top, f64 near_plane, f64 far_plane);
 function Mat4f32 mat4f32_perspective(f32 fovy, f32 window_width, f32 window_height, f32 near_plane, f32 far_plane);
-function Mat4f32 mat4f32_ortographic(f64 left, f64 right, f64 bottom, f64 top, f64 near_plane, f64 far_plane);
+function Mat4f32 mat4f32_orthographic(f64 left, f64 right, f64 bottom, f64 top, f64 near_plane, f64 far_plane);
 function Mat4f32 mat4f32_look_at(Vec3f32 eye, Vec3f32 target, Vec3f32 up);
 function Mat4f32 mat4f32_from_quatf32(Quatf32 q);
 function Transform3f32 transformf32_from_mat4f32(Mat4f32 mat);
