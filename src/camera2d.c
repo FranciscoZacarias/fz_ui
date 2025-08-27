@@ -1,28 +1,13 @@
-#ifndef CAMERA2D_H
-#define CAMERA2D_H
-// @namespace camera2d
-
-typedef struct {
-  Vec2f32 position;
-  f32 zoom;
-  Mat4f32 projection;
-  Mat4f32 view;
-} Camera2D;
-
-function void camera2d_init(Arena* arena, Camera2D* camera);
-function void _camera2d_update(Camera2D* camera);
-function void camera2d_set_zoom(Camera2D* camera, f32 zoom);
-function void camera2d_move(Camera2D* camera, Vec2f32 delta);
-
-#endif // CAMERA2D_H
-
-function void
-camera2d_init(Arena* arena, Camera2D* camera)
+function Camera2D
+camera2d_init()
 {
-  camera = push_array(arena, Camera2D, 1);
-  camera->position = vec2f32(0.0f, 0.0f);
-  camera->zoom     = 1.0f;
-  _camera2d_update(camera);
+  Camera2D camera = {0};
+  camera.position = vec2f32(0.0f, 0.0f);
+  camera.zoom     = 1.0f;
+  camera.near_plane = -1.0f;
+  camera.far_plane  = 1.0f;
+  _camera2d_update(&camera);
+  return camera;
 }
 
 function void
@@ -31,7 +16,7 @@ _camera2d_update(Camera2D* camera)
   f32 half_width  = (g_os_window.dimensions.x / 2.0f) / camera->zoom;
   f32 half_height = (g_os_window.dimensions.y / 2.0f) / camera->zoom;
 
-  camera->projection = mat4f32_orthographic(-half_width, half_width, -half_height, half_height, -1.0f, 1.0f);
+  camera->projection = mat4f32_orthographic(-half_width, half_width, -half_height, half_height, camera->near_plane, camera->far_plane);
   camera->view       = mat4f32_translate(-camera->position.x, -camera->position.y, 0.0f);
 }
 
@@ -43,13 +28,13 @@ camera2d_move(Camera2D* camera, Vec2f32 delta)
 }
 
 function void
-camera2d_set_zoom(Camera2D* camera, f32 zoom)
+camera2d_zoom(Camera2D* camera, f32 delta)
 {
-  if (zoom < 0.05f)
+  f32 new_zoom = camera->zoom + delta;
+  if (!(new_zoom < 0.1 || new_zoom > camera->far_plane))
   {
-    zoom = 0.05f;
+    camera->zoom = new_zoom;
   }
-  camera->zoom = zoom;
   _camera2d_update(camera);
 }
 
