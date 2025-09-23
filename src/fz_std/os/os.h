@@ -127,16 +127,28 @@ function String8 os_directory_push(String8 path, String8 directory); /* Changes 
 // @Section: Cursor
 typedef enum
 {
-  CURSOR_ARROW,
-  CURSOR_HAND,
-  CURSOR_CROSSHAIR,
-  CURSOR_IBEAM,
-  CURSOR_WAIT,
-  CURSOR_SIZE_ALL,
+  Cursor_Arrow,        // Normal select
+  Cursor_Ibeam,        // Text select
+  Cursor_Wait,         // Busy
+  Cursor_Crosshair,    // Precision select
+  Cursor_UpArrow,      // Alternate select
+  Cursor_SizeNWSE,     // Diagonal resize 1
+  Cursor_SizeNESW,     // Diagonal resize 2
+  Cursor_SizeWE,       // Horizontal resize
+  Cursor_SizeNS,       // Vertical resize
+  Cursor_SizeALL,      // Move
+  Cursor_No,           // Unavailable
+  Cursor_Hand,         // Link select
+  Cursor_AppStarting,  // Working in background
+  Cursor_Help,         // Help select
+  Cursor_Pin,          // Location select
+  Cursor_Person,       // Person select
 
-  CURSOR_COUNT
+  Cursor_Count
 } Cursor_Type;
 
+global Cursor_Type _g_current_cursor = Cursor_Arrow;
+function Vec2s32 os_cursor_window_get(); /* Gets coordinates of the cursor on the window */
 function void os_cursor_set(Cursor_Type cursor); /* Sets system cursor type */
 function void os_cursor_set_position(s32 x, s32 y); /* Moves cursor to screen coordinates */
 function void os_cursor_lock(Input_State* input, b32 lock); /* Locks/unlocks cursor to center */
@@ -283,11 +295,11 @@ function Keyboard_Key _os_key_from_native_key(u32 native_key); /* Converts nativ
 
 typedef enum
 {
-  MouseButton_Left,
-  MouseButton_Right,
-  MouseButton_Middle,
+  Mouse_Button_Left,
+  Mouse_Button_Right,
+  Mouse_Button_Middle,
   
-  MouseButton_Count,
+  Mouse_Button_Count,
 } Mouse_Button;
 
 #define KEYBOARD_STATE_SIZE 256
@@ -300,15 +312,15 @@ struct Mouse_State
 {
   Vec2f32 screen_space;
   Vec2f32 delta;
-  b8 buttons[MouseButton_Count];
+  b8 buttons[Mouse_Button_Count];
 };
 
 struct Input_State
 {
   Keyboard_State keyboard_current;
   Keyboard_State keyboard_previous;
-  Mouse_State   mouse_current;
-  Mouse_State   mouse_previous;
+  Mouse_State    mouse_current;
+  Mouse_State    mouse_previous;
   b32 _g_ignore_next_mouse_move;
   b32 _g_is_cursor_locked;
 };
@@ -320,13 +332,13 @@ function b32 input_is_key_up(Input_State* input, Keyboard_Key key); /* True if t
 function b32 input_is_key_down(Input_State* input, Keyboard_Key key); /* True if the given key is currently down */
 function b32 input_was_key_up(Input_State* input, Keyboard_Key key); /* True if the given key was up on the previous frame */
 function b32 input_was_key_down(Input_State* input, Keyboard_Key key); /* True if the given key was down on the previous frame */
-function b32 input_is_key_pressed(Input_State* input, Keyboard_Key key); /* True if the given key is down this frame but was up last frame */
+function b32 input_is_key_clicked(Input_State* input, Keyboard_Key key); /* True if the given key is down this frame but was up last frame */
 
 function b32 input_is_button_up(Input_State* input, Mouse_Button button); /* True if the given mouse button is currently up */
 function b32 input_is_button_down(Input_State* input, Mouse_Button button); /* True if the given mouse button is currently down */
 function b32 input_was_button_up(Input_State* input, Mouse_Button button); /* True if the given mouse button was up on the previous frame */
 function b32 input_was_button_down(Input_State* input, Mouse_Button button); /* True if the given mouse button was down on the previous frame */
-function b32 input_is_button_pressed(Input_State* input, Mouse_Button button); /* True if the given mouse button is down this frame but was up last frame */
+function b32 input_is_button_clicked(Input_State* input, Mouse_Button button); /* True if the given mouse button is down this frame but was up last frame */
 
 function void _input_process_keyboard_key(Input_State* input, Keyboard_Key key, b8 is_pressed); /* Internal: Processes a key press/release and updates keyboard state */
 function void _input_process_mouse_button(Input_State* input, Mouse_Button button, b32 is_pressed); /* Internal: Processes mouse button press/release and updates mouse state */

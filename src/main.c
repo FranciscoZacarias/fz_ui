@@ -6,7 +6,7 @@ entry_point(Command_Line* command_line)
   Arena* arena = arena_alloc();
 
   os_console_init();
-  os_window_init(400, 400, PROJECT_NAME, &g_input);
+  os_window_init(1280, 720, PROJECT_NAME, &g_input);
   os_opengl_init();
   os_window_open();
 
@@ -29,8 +29,8 @@ entry_point(Command_Line* command_line)
 
   g_tex_black = r_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\black.png")));
   g_tex_red   = r_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\red.png")));
-  g_tex_color_blue = r_create_color_texture(COLOR_BLUE(1.0f));
-  g_tex_color_yellow = r_create_color_texture(COLOR_YELLOW(1.0f));
+  g_tex_color_blue = r_create_color_texture(BLUE(1.0f));
+  g_tex_color_yellow = r_create_color_texture(YELLOW(1.0f));
 
   while(os_is_application_running(&g_input))
   {
@@ -41,15 +41,13 @@ entry_point(Command_Line* command_line)
       g_frame_counter += 1;
       os_timer_reset(&g_frame_timer);
     }
-
+    r_clear_color(vec4f32(0.25f, 0.75f, 1.0f, 1.0f));
     input_update();
-    simulation(frame_arena);
-    r_render(g_camera.view, g_camera.projection);
 
-    // Close frame
-    {
-      arena_pop_to(frame_arena, frame_arena_initial_position);
-    }
+    simulation(frame_arena);
+    
+    r_render(g_camera.view, g_camera.projection);
+    arena_clear(frame_arena);
   }
 }
 
@@ -58,26 +56,26 @@ simulation(Arena* frame_arena)
 {
   camera2d_update(&g_camera, g_input, g_delta_time);
 
-  r_draw_ws_grid(vec2f32(-512.0f, -512.0f), vec2f32(512.0f, 512.0f), 64.0f, COLOR_BLACK(0.1));
+  r_draw_ws_grid(vec2f32(-512.0f, -512.0f), vec2f32(512.0f, 512.0f), 64.0f, BLACK(0.1));
 
   u8* time_now = cstring_from_string8(frame_arena, os_datetime_to_string8(frame_arena, os_datetime_now(), false));
-  r_draw_2d_text(vec2f32(10.0f, g_os_window.dimensions.y - 15.0f), 24.0f, COLOR_BLACK(1.0f), Sf(frame_arena, "%s\nFPS: %.2f\nFrame Counter: %d", time_now, g_fps, g_frame_counter));
+  r_draw_2d_text(vec2f32(10.0f, g_os_window.dimensions.y - 15.0f), 24.0f, BLACK(1.0f), Sf(frame_arena, "%s\nFPS: %.2f\nFrame Counter: %d", time_now, g_fps, g_frame_counter));
 }
 
 function void
 input_update()
 {
-  if (input_is_key_pressed(&g_input, Keyboard_Key_ESCAPE))
+  if (input_is_key_down(&g_input, Keyboard_Key_ESCAPE))
   {
     os_exit_process(0);
   }
 
-  if (input_is_key_pressed(&g_input, Keyboard_Key_F11))
+  if (input_is_key_down(&g_input, Keyboard_Key_F11))
   {
     r_toggle_wireframe();
   }
 
-  if (input_is_key_pressed(&g_input, Keyboard_Key_F12))
+  if (input_is_key_down(&g_input, Keyboard_Key_F12))
   {
     local_persist b32 is_vsync_on = true;
     os_window_enable_vsync(is_vsync_on ? false : true);

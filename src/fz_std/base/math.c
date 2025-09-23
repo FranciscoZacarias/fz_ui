@@ -101,6 +101,17 @@ vec2f32_scale(Vec2f32 v, f32 scalar)
   return result;
 }
 
+function Vec2f32
+vec2f32_rotate(Vec2f32 v, f32 radians)
+{
+  Vec2f32 result;
+  f32 cos_theta = cosf(radians);
+  f32 sin_theta = sinf(radians);
+  result.x = v.x * cos_theta - v.y * sin_theta;
+  result.y = v.x * sin_theta + v.y * cos_theta;
+  return result;
+}
+
 function f32
 vec2f32_dot(Vec2f32 a, Vec2f32 b)
 {
@@ -442,6 +453,17 @@ vec3f32_angle(Vec3f32 a, Vec3f32 b)
   return result;
 }
 
+function Vec3s32
+vec3s32_add(Vec3s32 a, Vec3s32 b)
+{
+  Vec3s32 result = {
+    a.x + b.x,
+    a.y + b.y,
+    a.z + b.z
+  };
+  return result;
+}
+
 function Vec4f32
 vec4f32_from_vec3f32(Vec3f32 v)
 {
@@ -565,6 +587,24 @@ vec4f32_distance(Vec4f32 a, Vec4f32 b)
 
 //////////////////////////////////////////////
 // Matrix4 f32
+
+function b32
+mat4f32_equals(Mat4f32 a, Mat4f32 b)
+{
+  b32 result = true;
+  for (u32 i = 0; i < 4; i += 1)
+  {
+    for (u32 j = 0; j < 4; j += 1)
+    {
+      if (fabs(a.data[i][j]) != fabs(b.data[i][j]))
+      {
+        result = false;
+        break;
+      }
+    }
+  }
+  return result;
+}
 
 function Mat4f32
 mat4f32_mul(Mat4f32 left, Mat4f32 right)

@@ -110,7 +110,7 @@ os_console_init()
 function void
 os_console_write(String8 string)
 {
-  printf("%.*s", (s32)string.size, string.str);
+  printf(S_FMT, (s32)string.size, string.str);
 }
 
 function void
@@ -576,12 +576,12 @@ os_datetime_to_string8(Arena *arena, OS_Date_Time dt, b32 include_ms)
   String8 result;
   if (include_ms)
   {
-    result = string8_from_format(arena, "%04u-%.*s-%02u %02u:%02u:%02u.%03u",
+    result = string8_from_format(arena, "%04u-" S_FMT "-%02u %02u:%02u:%02u.%03u",
       dt.year, month_name.size, month_name.str, dt.day,dt.hour, dt.minute, dt.second, dt.millisecond);
   }
   else
   {
-    result = string8_from_format(arena, "%04u-%.*s-%02u %02u:%02u:%02u",
+    result = string8_from_format(arena, "%04u-" S_FMT "-%02u %02u:%02u:%02u",
       dt.year, month_name.size, month_name.str, dt.day,dt.hour, dt.minute, dt.second);
   }
   
@@ -631,48 +631,44 @@ os_timer_reset(OS_Timer *timer)
 
 ///////////////////////////////////////////////////////
 // @Section: Cursor
-function void
-os_cursor_set(Cursor_Type cursor)
+
+function Vec2s32
+os_cursor_window_get()
+{
+  Vec2s32 result;
+  POINT point;
+  GetCursorPos(&point);
+  ScreenToClient(g_os_window.window_handle, &point);
+  result.x = point.x;
+  result.y = point.y;
+  return result;
+}
+
+void os_cursor_set(Cursor_Type cursor)
 {
   HCURSOR hCursor = NULL;
 
+  _g_current_cursor = cursor;
+
   switch (cursor)
   {
-    case CURSOR_ARROW:
-    {
-      hCursor = LoadCursor(NULL, IDC_ARROW);
-    }
-    break;
-    case CURSOR_HAND:
-    {
-      hCursor = LoadCursor(NULL, IDC_HAND);
-    }
-    break;
-    case CURSOR_CROSSHAIR:
-    {
-      hCursor = LoadCursor(NULL, IDC_CROSS);
-    }
-    break;
-    case CURSOR_IBEAM:
-    {
-      hCursor = LoadCursor(NULL, IDC_IBEAM);
-    }
-    break;
-    case CURSOR_WAIT:
-    { 
-      hCursor = LoadCursor(NULL, IDC_WAIT);
-    }
-    break;
-    case CURSOR_SIZE_ALL:
-    {
-      hCursor = LoadCursor(NULL, IDC_SIZEALL);
-    }
-    break;
-    default:
-    {
-      hCursor = LoadCursor(NULL, IDC_ARROW);
-    }
-    break;
+    case Cursor_Arrow:        hCursor = LoadCursor(NULL, IDC_ARROW); break;
+    case Cursor_Ibeam:        hCursor = LoadCursor(NULL, IDC_IBEAM); break;
+    case Cursor_Wait:         hCursor = LoadCursor(NULL, IDC_WAIT); break;
+    case Cursor_Crosshair:    hCursor = LoadCursor(NULL, IDC_CROSS); break;
+    case Cursor_UpArrow:      hCursor = LoadCursor(NULL, IDC_UPARROW); break;
+    case Cursor_SizeNWSE:     hCursor = LoadCursor(NULL, IDC_SIZENWSE); break;
+    case Cursor_SizeNESW:     hCursor = LoadCursor(NULL, IDC_SIZENESW); break;
+    case Cursor_SizeWE:       hCursor = LoadCursor(NULL, IDC_SIZEWE); break;
+    case Cursor_SizeNS:       hCursor = LoadCursor(NULL, IDC_SIZENS); break;
+    case Cursor_SizeALL:      hCursor = LoadCursor(NULL, IDC_SIZEALL); break;
+    case Cursor_No:           hCursor = LoadCursor(NULL, IDC_NO); break;
+    case Cursor_Hand:         hCursor = LoadCursor(NULL, IDC_HAND); break;
+    case Cursor_AppStarting:  hCursor = LoadCursor(NULL, IDC_APPSTARTING); break;
+    case Cursor_Help:         hCursor = LoadCursor(NULL, IDC_HELP); break;
+    case Cursor_Pin:          hCursor = LoadCursor(NULL, IDC_PIN); break;
+    case Cursor_Person:       hCursor = LoadCursor(NULL, IDC_PERSON); break;
+    default:                  hCursor = LoadCursor(NULL, IDC_ARROW); break;
   }
 
   if (hCursor)
@@ -680,6 +676,7 @@ os_cursor_set(Cursor_Type cursor)
     SetCursor(hCursor);
   }
 }
+
 
 function void
 os_cursor_set_position(s32 x, s32 y)
@@ -995,7 +992,7 @@ WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
       if (LOWORD(lParam) == HTCLIENT) 
       {
-        os_cursor_set(CURSOR_ARROW);
+        os_cursor_set(_g_current_cursor);
         return true;
       }
     }
@@ -1056,37 +1053,37 @@ WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     // Mouse Buttons
     case WM_LBUTTONDOWN: 
     {
-      _input_process_mouse_button(input, MouseButton_Left, true);
+      _input_process_mouse_button(input, Mouse_Button_Left, true);
       return 0;
     }
     break;
     case WM_LBUTTONUP: 
     {
-      _input_process_mouse_button(input, MouseButton_Left, false);
+      _input_process_mouse_button(input, Mouse_Button_Left, false);
       return 0;
     }
     break;
     case WM_RBUTTONDOWN: 
     {
-      _input_process_mouse_button(input, MouseButton_Right, true);
+      _input_process_mouse_button(input, Mouse_Button_Right, true);
       return 0;
     }
     break;
     case WM_RBUTTONUP: 
     {
-      _input_process_mouse_button(input, MouseButton_Right, false);
+      _input_process_mouse_button(input, Mouse_Button_Right, false);
       return 0;
     }
     break;
     case WM_MBUTTONDOWN: 
     {
-      _input_process_mouse_button(input, MouseButton_Middle, true);
+      _input_process_mouse_button(input, Mouse_Button_Middle, true);
       return 0;
     }
     break;
     case WM_MBUTTONUP: 
     {
-      _input_process_mouse_button(input, MouseButton_Middle, false);
+      _input_process_mouse_button(input, Mouse_Button_Middle, false);
       return 0;
     }
     break;
