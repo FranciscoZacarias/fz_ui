@@ -477,7 +477,6 @@ r_render(Mat4f32 view, Mat4f32 projection)
 
   os_swap_buffers();
 
-  glClearColor(0.5f, 0.96f, 1.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
   for (u32 idx = 1; idx < Render_Batch_Count; idx += 1)
@@ -733,6 +732,12 @@ r_draw_ws_grid(Vec2f32 p0, Vec2f32 p1, u32 square_size_pixel, Vec4f32 color)
       r_draw_ws_line(vec2f32(p0.x, y), vec2f32(p1.x, y), color);
     }
   }
+}
+
+function void
+r_clear_color(Vec4f32 color)
+{
+  glClearColor(color.x, color.y, color.z, color.w);
 }
 
 function void
