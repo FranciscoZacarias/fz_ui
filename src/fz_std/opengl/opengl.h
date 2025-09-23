@@ -24,7 +24,7 @@ function void os_opengl_end();  /* Deletes opengl context */
 
 ///////////////////////////////////////////////////////
 // @Section: Settings
-function void os_window_enable_vsync(b32 state); /* Enables vsync */
+function void os_window_set_vsync(b32 state); /* Enables vsync */
 
 ///////////////////////////////////////////////////////
 // @Section: Opengl helpers

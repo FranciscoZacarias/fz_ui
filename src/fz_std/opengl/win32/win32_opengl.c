@@ -130,7 +130,7 @@ os_opengl_end()
 }
 
 function void
-os_window_enable_vsync(b32 state)
+os_window_set_vsync(b32 state)
 {
   wglSwapIntervalEXT(state);
 }

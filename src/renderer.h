@@ -19,7 +19,7 @@
 
 // Vertex Shaders
 #define V_SS_LINE_PATH      S("\\src\\shaders\\v_ss_line.glsl")
-#define V_SS_PRIMITIVE_PATH S("\\src\\shaders\\v_ss_primitive.glsl")
+#define V_SS_PRIMITIVE_PATH S("\\src\\shaders\\v_primitive.glsl")
 #define V_SS_TEXT_PATH      S("\\src\\shaders\\v_ss_text.glsl")
 
 #define V_WS_LINE_PATH      S("\\src\\shaders\\v_ws_line.glsl")
@@ -28,6 +28,8 @@
 #define F_TEXTURE_PATH S("\\src\\shaders\\f_texture.glsl")
 #define F_TEXT_PATH    S("\\src\\shaders\\f_text.glsl")
 #define F_COLOR_PATH   S("\\src\\shaders\\f_color.glsl")
+
+#define NO_TEXTURE 0xFFFFFFFFu
 
 ///////////////////////////////////////////////////////
 // @Section: Texture
@@ -43,14 +45,16 @@ typedef struct
 // @Section: Screenspace primitives]
 typedef struct
 {
-  Vec2f32 position;
+  Vec2f32 center;
   Vec2f32 scale;
+  f32 rotation;
   Vec2f32 uv_min;
   Vec2f32 uv_max;
-  Vec4f32 color;
+  Color color;
   u32 texture_id;
+  f32 depth;
 } Primitive2D;
-global Vec2f32 unit_2d_triangle[6] = {
+global Vec2f32 unit_triangle[6] = {
   { -0.5f, -0.5f }, {  0.5f, -0.5f },
   { -0.5f,  0.5f }
 };
@@ -59,13 +63,6 @@ global Vec2f32 unit_2d_quad[6] = {
   {  0.5f,  0.5f }, { -0.5f, -0.5f },
   {  0.5f,  0.5f }, { -0.5f,  0.5f }
 };
-
-typedef struct
-{
-  Vec2f32 p0;
-  Vec2f32 p1;
-  Vec4f32 color;
-} Line2D;
 
 ///////////////////////////////////////////////////////
 // @Section: Fonts
@@ -96,14 +93,7 @@ typedef struct
 // @Section: Instanced Target
 typedef enum
 {
-  Render_Batch_None,
-
-  Render_Batch_SS_Line,
-  Render_Batch_SS_triangle,
-  Render_Batch_SS_quad,
-  Render_Batch_SS_text,
-
-  Render_Batch_WS_Line,
+  Render_Batch_Triangle,
 
   Render_Batch_Count,
 } Render_Batch_Kind;
@@ -125,10 +115,15 @@ typedef struct
   u32 u_projection_location;
 
   // Instanced data
-  void* data;   
+  void* data; /* Data buffer */
   u32   stride; /* Size of data type used in data */
-  u32   max;    /* Max allocated instances */
-  u32   count;  /* Current instances count */
+  u32   max; /* Max allocated instances */
+  u32   count; /* Current instances count */
+  f32   depth; /* Order to be rendered in */
+  u32   v_shader; /* Vertex shader used for this batch */
+  u32   mode; /* Opengl render mode E.g. GL_TRIANGLES, GL_LINES... */
+  u32   vertex_count; /* Vertices per instance */
+  b32   is_opaque; /* If this batch should enable depth test */
 } Render_Batch;
 
 ///////////////////////////////////////////////////////
@@ -139,8 +134,9 @@ typedef struct
 
   struct
   {
+    u32 v_primitive;
+
     u32 v_ss_line;
-    u32 v_ss_quad;
     u32 v_ss_text;
     u32 v_ws_line;
     u32 f_line;
@@ -159,37 +155,35 @@ typedef struct
   Font* fonts;
   u32 fonts_count;
   u32 fonts_max;
-} Renderer;
+} Renderer_Context;
 
-global Renderer g_renderer;
+global Renderer_Context g_renderer;
 
+// Core
 function void r_init();
 function void r_render(Mat4f32 view, Mat4f32 projection);
+function void r_render_batch(Render_Batch* batch, Mat4f32 view, Mat4f32 projection);
 
-function void   _r_draw_2d_primitive(Render_Batch* render_batch, Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
-function void    r_draw_2d_triangle(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
-function void    r_draw_2d_quad_colored(Vec2f32 position, Vec2f32 scale, Vec4f32 color);
-function void    r_draw_2d_quad(Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
-function void    r_draw_2d_point(Vec2f32 position, Vec4f32 color);
-function void    r_draw_2d_box(Vec2f32 p0, Vec2f32 p1, Vec4f32 color); /* Hollow quad. p0 is bottom left, p1 is top right */
+// Draw functions
+function void r_draw_primitive(Render_Batch* render_batch, Vec2f32 center, Vec2f32 scale, f32 rotation_rads, Vec2f32 uv_min, Vec2f32 uv_max, Color color, u32 texture_id); /* Used both for screenspace and worldspace, since they both share the same primitive type */
+function void r_draw_triangle(Vec2f32 center, Vec2f32 scale, f32 rotation_rads, Color color);
+
+#if 0
 function Vec2f32 r_draw_2d_text(Vec2f32 position, f32 pixel_height, Vec4f32 color, String8 text);
-function Vec2f32 r_draw_2d_text_centered(Vec2f32 position, f32 pixel_height, Vec4f32 color, String8 text);
-function void    r_draw_2d_line(Vec2f32 p0, Vec2f32 p1, Vec4f32 color);
-function void    r_draw_2d_grid(Vec2f32 p0, Vec2f32 p1, u32 square_size_pixel, Vec4f32 color);
+#endif
 
-function void   _r_draw_ws_primitive(Render_Batch* render_batch, Vec2f32 position, Vec2f32 scale, Vec2f32 uv_min, Vec2f32 uv_max, Vec4f32 color, u32 texture_id);
-function void    r_draw_ws_line(Vec2f32 p0, Vec2f32 p1, Vec4f32 color);
-function void    r_draw_ws_grid(Vec2f32 p0, Vec2f32 p1, u32 square_size_pixel, Vec4f32 color);
-
-function Texture_Info  r_load_texture(String8 path);
-function Texture_Info  r_create_color_texture(Vec4f32 color);
+// Renderer Helpers
+function Render_Batch* r_new_render_batch(Arena* arena, Render_Batch_Kind kind, u32 max_instances, u32 v_shader, u32 vertex_count, u32 mode, b32 is_opaque);
 function void          r_create_fallback_texture();
+function Texture_Info  r_load_texture(String8 path);
 function void          r_load_font(String8 relative_path);
-function Render_Batch* r_new_render_batch(Arena* arena, Render_Batch_Kind kind, u32 max_instances);
+function Vec2f32       r_text_dimensions(String8 text, f32 pixel_height);
+function Vec2f32       r_vec2f32_flip_y(Vec2f32 v);
 
-function Vec2f32 r_get_2d_text_dimensions(String8 text, f32 pixel_height);
-function void    r_toggle_wireframe();
-function void    r_toggle_facecull();
-function u32     r_compile_shader(String8 relative_path, GLenum shader_type);
+// Opengl helpers
+function u32           r_compile_shader(String8 relative_path, GLenum shader_type);
+function void          r_set_wireframe(b32 set);
+function void          r_set_vertex_attribute_f32(u32 vao, u32 index, u32 size, u32 divisor, u32 offset);
+function void          r_set_vertex_attribute_u32(u32 vao, u32 index, u32 size, u32 divisor, u32 offset);
 
 #endif // RENDERER_H

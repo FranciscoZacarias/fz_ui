@@ -25,12 +25,6 @@ entry_point(Command_Line* command_line)
 
   // Frame arena
   Arena* frame_arena = arena_alloc();
-  u64 frame_arena_initial_position = frame_arena->position;
-
-  g_tex_black = r_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\black.png")));
-  g_tex_red   = r_load_texture(string8_concat(arena, project_path, S("\\assets\\textures\\prototype\\red.png")));
-  g_tex_color_blue = r_create_color_texture(BLUE(1.0f));
-  g_tex_color_yellow = r_create_color_texture(YELLOW(1.0f));
 
   while(os_is_application_running(&g_input))
   {
@@ -56,10 +50,43 @@ simulation(Arena* frame_arena)
 {
   camera2d_update(&g_camera, g_input, g_delta_time);
 
-  r_draw_ws_grid(vec2f32(-512.0f, -512.0f), vec2f32(512.0f, 512.0f), 64.0f, BLACK(0.1));
+  r_draw_triangle(vec2f32(g_os_window.dimensions.x/2, g_os_window.dimensions.y/2), vec2f32(100,100), Radians(90), RED(1.0f));
+
+  // Grid
+  if (0)
+  {
+    Vec2f32 p0 = vec2f32(-512.0f, -512.0f);
+    Vec2f32 p1 = vec2f32(512.0f, 512.0f);
+    f32 square_size_pixel = 64.0f;
+    Color color = BLACK(0.1);
+
+    f32 width = p1.x - p0.x;
+    f32 height = p1.y - p0.y;
+ 
+    u32 vertical_lines = (u32)(width / square_size_pixel) + 1;
+    u32 horizontal_lines = (u32)(height / square_size_pixel) + 1;
+ 
+    for (u32 i = 0; i < vertical_lines; ++i)
+    {
+      f32 x = p0.x + i * square_size_pixel;
+      if (x <= p1.x)
+      {
+        //r_draw_ws_line(vec2f32(x, p0.y), vec2f32(x, p1.y), color);
+      }
+    }
+ 
+    for (u32 i = 0; i < horizontal_lines; ++i)
+    {
+      f32 y = p0.y + i * square_size_pixel;
+      if (y <= p1.y)
+      {
+        //r_draw_ws_line(vec2f32(p0.x, y), vec2f32(p1.x, y), color);
+      }
+    }
+  }
 
   u8* time_now = cstring_from_string8(frame_arena, os_datetime_to_string8(frame_arena, os_datetime_now(), false));
-  r_draw_2d_text(vec2f32(10.0f, g_os_window.dimensions.y - 15.0f), 24.0f, BLACK(1.0f), Sf(frame_arena, "%s\nFPS: %.2f\nFrame Counter: %d", time_now, g_fps, g_frame_counter));
+  //r_draw_2d_text(vec2f32(10.0f, g_os_window.dimensions.y - 15.0f), 24.0f, BLACK(1.0f), Sf(frame_arena, "%s\nFPS: %.2f\nFrame Counter: %d", time_now, g_fps, g_frame_counter));
 }
 
 function void
@@ -72,13 +99,15 @@ input_update()
 
   if (input_is_key_down(&g_input, Keyboard_Key_F11))
   {
-    r_toggle_wireframe();
+    local_persist b32 set_wireframe = true;
+    r_set_wireframe(set_wireframe);
+    set_wireframe = !set_wireframe;
   }
 
   if (input_is_key_down(&g_input, Keyboard_Key_F12))
   {
-    local_persist b32 is_vsync_on = true;
-    os_window_enable_vsync(is_vsync_on ? false : true);
+    local_persist b32 is_vsync_on = false;
+    os_window_set_vsync(is_vsync_on);
     is_vsync_on = !is_vsync_on;
   }
 }

@@ -29,11 +29,6 @@ global u64      g_frame_counter = 0;
 global f32      g_delta_time    = 0.0f;
 global f32      g_fps           = 0.0f;
 
-global Texture_Info g_tex_black;
-global Texture_Info g_tex_red;
-global Texture_Info g_tex_color_blue;
-global Texture_Info g_tex_color_yellow;
-
 function void input_update();
 function void simulation();
 function b32  is_game_running();
