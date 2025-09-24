@@ -147,6 +147,10 @@ typedef struct
   Font* fonts;
   u32 fonts_count;
   u32 fonts_max;
+
+  // Config
+  Font* selected_font;
+  
 } Renderer_Context;
 
 global Renderer_Context g_renderer;
@@ -174,7 +178,7 @@ function Render_Batch* r_new_render_batch(Arena* arena, Render_Batch_Kind kind, 
 function void          r_clear_color(Color color);
 function void          r_create_fallback_texture();
 function Texture_Info  r_load_texture(String8 path);
-function void          r_load_font(String8 relative_path);
+function Font*         r_load_font(String8 relative_path);
 function Vec2f32       r_text_dimensions(String8 text, f32 pixel_height);
 function Vec2f32       r_vec2f32_flip_y(Vec2f32 v);
 

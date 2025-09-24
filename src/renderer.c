@@ -297,7 +297,8 @@ r_init()
     g_renderer.fonts_max   = 2;
     g_renderer.fonts       = push_array(g_renderer.arena, Font, g_renderer.fonts_max);
     g_renderer.fonts_count = 0;
-    r_load_font(FONT_INCONSOLATA_PATH);
+    Font* font = r_load_font(FONT_INCONSOLATA_PATH);
+    g_renderer.selected_font = font;
   }
 
   scratch_end(&scratch);
@@ -470,78 +471,40 @@ r_draw_text(Vec2f32 top_left, f32 pixel_height, Color color, String8 text)
 {
   if (g_renderer.batches[Render_Batch_Text]->count + text.size >= g_renderer.batches[Render_Batch_Text]->max)
   {
-    emit_fatal(S("Tried to render more textured quads than g_renderer.batches[Render_Batch_SS_quad]_texture->Max"));
+    emit_fatal(S("Tried to render more textured quads than g_renderer.batches[Render_Batch_Text]_texture->Max"));
     return;
   }
-  
-  if (text.size == 0)
-  {
-    return;
-  }
+  if (text.size == 0) return;
 
-  Font* font = &g_renderer.fonts[0]; // TODO(fz): Font should be arg
+  Font *font = g_renderer.selected_font;
   f32 pixel_scale = pixel_height / font->height;
-  f32 line_height = font->line_height * pixel_scale;
- 
-  // Get first character to calculate offset
-  u8 first_char = text.str[0];
-  Glyph* first_glyph = &font->glyphs[first_char - 32];
- 
-  // Adjust starting position so first glyph centers on 'position'
-  Vec2f32 center = vec2f32(top_left.x + (first_glyph->advance * pixel_scale/2), top_left.y + pixel_height);
-  Vec2f32 start_pos = vec2f32(
-    center.x - (first_glyph->offset.x + first_glyph->size.x * 0.5f) * pixel_scale,
-    center.y + (first_glyph->offset.y + first_glyph->size.y * 0.5f) * pixel_scale
-  );
 
-  r_draw_point(top_left, RED(1));
-  r_draw_point(start_pos, BLUE(1));
+  Vec2f32 cursor = vec2f32(top_left.x, top_left.y + (font->ascent*pixel_scale));
+  f32 initial_x = cursor.x;
 
-  Vec2f32 cursor = start_pos;
-  f32 max_width = 0.0f;
-  f32 current_line_width = 0.0f;
-  s32 line_count = 1;
- 
-  for (u64 idx = 0; idx < text.size; ++idx)
-  {
-    u8 c = text.str[idx];
-   
+  for (u64 i = 0; i < text.size; i++) {
+    u8 c = text.str[i];
+    
     if (c == '\n')
     {
-      max_width = Max(max_width, current_line_width);
-      current_line_width = 0.0f;
-      cursor.x = start_pos.x;
-      cursor.y += line_height;
-      line_count++;
-      continue;
+      cursor.x = initial_x;
+      cursor.y += (font->line_height * pixel_scale);
     }
-   
     if (c < 32 || c > 126)
     {
       continue;
     }
-   
-    Glyph* glyph = &font->glyphs[c - 32];
-   
-    Vec2f32 glyph_pos = vec2f32(
-      cursor.x + (glyph->offset.x + glyph->size.x * 0.5f) * pixel_scale,
-      cursor.y + (glyph->offset.y + glyph->size.y * 0.5f) * pixel_scale
-    );
-    Vec2f32 glyph_size = vec2f32(glyph->size.x * pixel_scale, glyph->size.y * pixel_scale);
-    r_draw_primitive(g_renderer.batches[Render_Batch_Text], glyph_pos, glyph_size, 0, glyph->uv_min, glyph->uv_max, color, font->texture_index);
 
-#if 1 // Debug glyphs
-    r_draw_box(glyph_pos, glyph_size, YELLOW(1));
-    r_draw_point(glyph_pos, PURPLE(1));
+    Glyph *glyph = &font->glyphs[c - 32];
+
+    Vec2f32 pos  = vec2f32(cursor.x + glyph->offset.x * pixel_scale, cursor.y + glyph->offset.y * pixel_scale);
+    Vec2f32 size = vec2f32(glyph->size.x * pixel_scale, glyph->size.y * pixel_scale);
+    r_draw_primitive(g_renderer.batches[Render_Batch_Text], pos, size, 0.0f, glyph->uv_min, glyph->uv_max, color, font->texture_index);
+#if 1
+    r_draw_box(pos, size, YELLOW(1));
 #endif
-
-    f32 advance = glyph->advance * pixel_scale;
-    cursor.x += advance;
-    current_line_width += advance;
+    cursor.x += glyph->advance * pixel_scale;
   }
- 
-  max_width = Max(max_width, current_line_width);
-  f32 total_height = line_count * line_height;
 }
 
 function void
@@ -563,7 +526,7 @@ r_draw_box(Vec2f32 top_left, Vec2f32 scale, Color color)
   r_draw_line(top_left, vec2f32(top_left.x, bot_right.y), color);
 }
 
-function void
+function Font*
 r_load_font(String8 relative_path) 
 {
   Scratch scratch = scratch_begin(0, 0);
@@ -572,7 +535,7 @@ r_load_font(String8 relative_path)
   if (g_renderer.texture_count >= g_renderer.texture_max)
   {
     emit_error(S("Error loading font. More textures than g_renderer.texture_max"));
-    return;
+    return NULL;
   }
  
   String8 project_path = os_executable_path(scratch.arena);
@@ -584,14 +547,16 @@ r_load_font(String8 relative_path)
   if (!file_data.data.str || file_data.data.size == 0)
   {
     emit_error(Sf(scratch.arena, "Error loading font. Failed to load file:" S_FMT, font_path.size, font_path.str));
-    return;
+    scratch_end(&scratch);
+    return NULL;
   }
  
   stbtt_fontinfo font_info;
   if (!stbtt_InitFont(&font_info, (u8*)file_data.data.str, 0))
   {
     emit_error(S("Error initializing font with stbtt_InitFont"));
-    return;
+    scratch_end(&scratch);
+    return NULL;
   }
  
   // Get font metrics in font units
@@ -619,6 +584,7 @@ r_load_font(String8 relative_path)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glBindTexture(GL_TEXTURE_2D, 0);
  
   for (s32 i = 0; i < MAX_FONT_GLYPHS; i++)
   {
@@ -649,6 +615,8 @@ r_load_font(String8 relative_path)
  
   g_renderer.texture_count += 1;
   g_renderer.fonts_count += 1;
+
+  return font;
 }
 
 function Texture_Info
@@ -660,6 +628,7 @@ r_load_texture(String8 path)
   if (g_renderer.texture_count >= g_renderer.texture_max)
   {
     emit_error(S("Texture limit reached\n"));
+    scratch_end(&scratch);
     return result;
   }
 
@@ -759,42 +728,43 @@ r_create_fallback_texture()
   scratch_end(&scratch);
 }
 
-// TODO(fz): We can pre compute max text height and then just compute width and height based on line breaks
 function Vec2f32
 r_text_dimensions(String8 text, f32 pixel_height)
 {
-  Font* font = &g_renderer.fonts[0];
-  f32 pixel_scale = pixel_height / font->height;
-  f32 line_height = font->line_height * pixel_scale;
-
+  Font* font = g_renderer.selected_font;
+  f32 scale = pixel_height / font->height;
   f32 max_width = 0.0f;
-  f32 current_line_width = 0.0f;
-  s32 line_count = 1;
+  f32 line_width = 0.0f;
+  u64 line_count = 1;
 
-  for (u64 idx = 0; idx < text.size; ++idx)
+  for (u64 i = 0; i < text.size; i++)
   {
-    u8 c = text.str[idx];
-  
+    u8 c = text.str[i];
     if (c == '\n')
     {
-      max_width = Max(max_width, current_line_width);
-      current_line_width = 0.0f;
-      line_count++;
+      if (line_width > max_width)
+      {
+        max_width = line_width;
+      }
+      line_width = 0.0f;
+      line_count += 1;
       continue;
     }
-  
     if (c < 32 || c > 126)
     {
       continue;
     }
-  
-    Glyph* glyph = &font->glyphs[c - 32];
-    f32 advance = glyph->advance * pixel_scale;
-    current_line_width += advance;
+    Glyph *glyph = &font->glyphs[c - 32];
+    line_width += glyph->advance * scale;
   }
 
-  max_width = Max(max_width, current_line_width);
-  f32 total_height = line_count * line_height;
+  if (line_width > max_width)
+  {
+    max_width = line_width;
+  }
+
+  f32 line_height = (font->ascent - font->descent + font->line_gap) * scale;
+  f32 total_height = line_height * line_count;
 
   return vec2f32(max_width, total_height);
 }
