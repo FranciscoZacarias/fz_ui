@@ -14,25 +14,16 @@
 #define FONT_PROGGY_CLEAN_PATH S("\\assets\\fonts\\ProggyClean.ttf")
 #define FONT_INCONSOLATA_PATH  S("\\assets\\fonts\\Inconsolata.ttf")
 
-///////////////////////////////////////////////////////
-// @Section: Screenspace primitives
-
 // Vertex Shaders
-#define V_SS_LINE_PATH      S("\\src\\shaders\\v_ss_line.glsl")
-#define V_SS_PRIMITIVE_PATH S("\\src\\shaders\\v_primitive.glsl")
-#define V_SS_TEXT_PATH      S("\\src\\shaders\\v_ss_text.glsl")
-
-#define V_WS_LINE_PATH      S("\\src\\shaders\\v_ws_line.glsl")
+#define V_PRIMITIVE_PATH S("\\src\\shaders\\v_primitive.glsl")
+#define V_TEXT_PATH      S("\\src\\shaders\\v_text.glsl")
+#define V_LINE_PATH      S("\\src\\shaders\\v_line.glsl")
 
 // Fragment Shaders
 #define F_TEXTURE_PATH S("\\src\\shaders\\f_texture.glsl")
 #define F_TEXT_PATH    S("\\src\\shaders\\f_text.glsl")
 #define F_COLOR_PATH   S("\\src\\shaders\\f_color.glsl")
 
-#define NO_TEXTURE 0xFFFFFFFFu
-
-///////////////////////////////////////////////////////
-// @Section: Texture
 typedef struct
 {
   u32 handle;
@@ -41,8 +32,15 @@ typedef struct
   u32 height;
 } Texture_Info;
 
-///////////////////////////////////////////////////////
-// @Section: Screenspace primitives]
+#define NO_TEXTURE 0xFFFFFFFFu
+
+typedef struct
+{
+  Vec2f32 p0;
+  Vec2f32 p1;
+  Color color;
+} Line2D;
+
 typedef struct
 {
   Vec2f32 center;
@@ -54,18 +52,10 @@ typedef struct
   u32 texture_id;
   f32 depth;
 } Primitive2D;
-global Vec2f32 unit_triangle[6] = {
-  { -0.5f, -0.5f }, {  0.5f, -0.5f },
-  { -0.5f,  0.5f }
-};
-global Vec2f32 unit_2d_quad[6] = {
-  { -0.5f, -0.5f }, {  0.5f, -0.5f },
-  {  0.5f,  0.5f }, { -0.5f, -0.5f },
-  {  0.5f,  0.5f }, { -0.5f,  0.5f }
-};
 
-///////////////////////////////////////////////////////
-// @Section: Fonts
+global Vec2f32 unit_triangle[6] = {{-0.5f,-0.5f},{0.5f,-0.5f},{-0.5f,0.5f}};
+global Vec2f32 unit_quad[6]  = {{-0.5f,-0.5f},{0.5f,-0.5f},{0.5f,0.5f},{-0.5f,-0.5f},{0.5f,0.5f},{-0.5f,0.5f}};
+
 typedef struct
 {
   Vec2f32 uv_min; /* Top left texture coordinate in atlas */
@@ -89,11 +79,17 @@ typedef struct
   f32   line_gap; /* Additional spacing between lines */
 } Font;
 
-///////////////////////////////////////////////////////
-// @Section: Instanced Target
 typedef enum
 {
+  Render_Batch_Line,
+
   Render_Batch_Triangle,
+  Render_Batch_Triangle_Texture,
+
+  Render_Batch_Quad,
+  Render_Batch_Quad_Texture,
+
+  Render_Batch_Text,
 
   Render_Batch_Count,
 } Render_Batch_Kind;
@@ -123,11 +119,8 @@ typedef struct
   u32   v_shader; /* Vertex shader used for this batch */
   u32   mode; /* Opengl render mode E.g. GL_TRIANGLES, GL_LINES... */
   u32   vertex_count; /* Vertices per instance */
-  b32   is_opaque; /* If this batch should enable depth test */
 } Render_Batch;
 
-///////////////////////////////////////////////////////
-// @Section: Renderer
 typedef struct
 {
   Arena* arena;
@@ -135,11 +128,10 @@ typedef struct
   struct
   {
     u32 v_primitive;
+    u32 v_text;
+    u32 v_line;
 
-    u32 v_ss_line;
-    u32 v_ss_text;
-    u32 v_ws_line;
-    u32 f_line;
+    u32 f_color;
     u32 f_texture;
     u32 f_text;
   } shaders;
@@ -165,15 +157,21 @@ function void r_render(Mat4f32 view, Mat4f32 projection);
 function void r_render_batch(Render_Batch* batch, Mat4f32 view, Mat4f32 projection);
 
 // Draw functions
-function void r_draw_primitive(Render_Batch* render_batch, Vec2f32 center, Vec2f32 scale, f32 rotation_rads, Vec2f32 uv_min, Vec2f32 uv_max, Color color, u32 texture_id); /* Used both for screenspace and worldspace, since they both share the same primitive type */
-function void r_draw_triangle(Vec2f32 center, Vec2f32 scale, f32 rotation_rads, Color color);
+function void r_draw_primitive(Render_Batch* render_batch, Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Vec2f32 uv_min, Vec2f32 uv_max, Color color, u32 texture_id); /* Used both for screenspace and worldspace, since they both share the same primitive type */
 
-#if 0
-function Vec2f32 r_draw_2d_text(Vec2f32 position, f32 pixel_height, Vec4f32 color, String8 text);
-#endif
+function void r_draw_line(Vec2f32 p0, Vec2f32 p1, Color color);
+function void r_draw_triangle(Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Color color);
+function void r_draw_triangle_texture(Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Vec2f32 uv_min, Vec2f32 uv_max, Color gradient, u32 texture_index);
+function void r_draw_quad(Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Color color);
+function void r_draw_quad_texture(Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Vec2f32 uv_min, Vec2f32 uv_max, Color gradient, u32 texture_index);
+function void r_draw_text(Vec2f32 top_left, f32 pixel_height, Vec4f32 color, String8 text);
+
+function void r_draw_point(Vec2f32 position, Color color);
+function void r_draw_box(Vec2f32 top_left, Vec2f32 scale, Color color);
 
 // Renderer Helpers
-function Render_Batch* r_new_render_batch(Arena* arena, Render_Batch_Kind kind, u32 max_instances, u32 v_shader, u32 vertex_count, u32 mode, b32 is_opaque);
+function Render_Batch* r_new_render_batch(Arena* arena, Render_Batch_Kind kind, u32 max_instances, u32 v_shader, u32 vertex_count, u32 mode);
+function void          r_clear_color(Color color);
 function void          r_create_fallback_texture();
 function Texture_Info  r_load_texture(String8 path);
 function void          r_load_font(String8 relative_path);

@@ -26,6 +26,7 @@ entry_point(Command_Line* command_line)
   // Frame arena
   Arena* frame_arena = arena_alloc();
 
+  Texture_Info t = r_load_texture(S("C:/Personal/fz_render_2d/assets/textures/prototype/Grey 2.png"));
   while(os_is_application_running(&g_input))
   {
     // Begin frame
@@ -39,7 +40,14 @@ entry_point(Command_Line* command_line)
     input_update();
 
     simulation(frame_arena);
-    
+
+    r_draw_triangle(vec2f32(100,100), vec2f32(100,100), Radians(90), RED(1.0f));
+    r_draw_triangle_texture(vec2f32(210,100), vec2f32(100,100), 0, vec2f32(0,0), vec2f32(1,1), WHITE(1), t.index);
+    r_draw_quad(vec2f32(320,100), vec2f32(100,100), 0, PURPLE(1));
+    r_draw_quad_texture(vec2f32(430,100), vec2f32(100,100), 0, vec2f32(0,0), vec2f32(1,1), WHITE(1), t.index);
+    r_draw_quad(vec2f32(550,100), vec2f32(100,100), Radians(30), BLUE(1));
+    r_draw_text(vec2f32(0,0), 32, BLACK(1), S("We are not your kind\nWe are not your kind"));
+
     r_render(g_camera.view, g_camera.projection);
     arena_clear(frame_arena);
   }
@@ -49,8 +57,6 @@ function void
 simulation(Arena* frame_arena)
 {
   camera2d_update(&g_camera, g_input, g_delta_time);
-
-  r_draw_triangle(vec2f32(g_os_window.dimensions.x/2, g_os_window.dimensions.y/2), vec2f32(100,100), Radians(90), RED(1.0f));
 
   // Grid
   if (0)

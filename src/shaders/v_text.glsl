@@ -23,18 +23,7 @@ out gl_PerVertex
 
 void main()
 {
-  // Apply scale
-  vec2 local = a_unit_pos * a_scale;
-
-  // Apply rotation
-  float cos_rotation = cos(a_rotation);
-  float sin_rotation = sin(a_rotation);
-  mat2 rotation_matrix = mat2(cos_rotation, -sin_rotation,
-                              sin_rotation,  cos_rotation);
-  vec2 rotated = rotation_matrix * local;
-
-  // Final
-  vec2 pixel_pos = a_pos + rotated;
+  vec2 pixel_pos = a_pos + a_unit_pos * a_scale;
   vec2 ndc       = (pixel_pos / u_screen_size) * 2.0 - 1.0;
   gl_Position    = vec4(ndc, a_depth, 1.0);
  
