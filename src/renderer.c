@@ -494,6 +494,9 @@ r_draw_text(Vec2f32 top_left, f32 pixel_height, Color color, String8 text)
     center.y + (first_glyph->offset.y + first_glyph->size.y * 0.5f) * pixel_scale
   );
 
+  r_draw_point(top_left, RED(1));
+  r_draw_point(start_pos, BLUE(1));
+
   Vec2f32 cursor = start_pos;
   f32 max_width = 0.0f;
   f32 current_line_width = 0.0f;
@@ -527,9 +530,9 @@ r_draw_text(Vec2f32 top_left, f32 pixel_height, Color color, String8 text)
     Vec2f32 glyph_size = vec2f32(glyph->size.x * pixel_scale, glyph->size.y * pixel_scale);
     r_draw_primitive(g_renderer.batches[Render_Batch_Text], glyph_pos, glyph_size, 0, glyph->uv_min, glyph->uv_max, color, font->texture_index);
 
-#if 0 // Debug glyphs
+#if 1 // Debug glyphs
     r_draw_box(glyph_pos, glyph_size, YELLOW(1));
-    r_draw_point(glyph_pos, RED(1));
+    r_draw_point(glyph_pos, PURPLE(1));
 #endif
 
     f32 advance = glyph->advance * pixel_scale;

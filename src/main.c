@@ -41,12 +41,15 @@ entry_point(Command_Line* command_line)
 
     simulation(frame_arena);
 
-    r_draw_triangle(vec2f32(100,100), vec2f32(100,100), Radians(90), RED(1.0f));
-    r_draw_triangle_texture(vec2f32(210,100), vec2f32(100,100), 0, vec2f32(0,0), vec2f32(1,1), WHITE(1), t.index);
-    r_draw_quad(vec2f32(320,100), vec2f32(100,100), 0, PURPLE(1));
-    r_draw_quad_texture(vec2f32(430,100), vec2f32(100,100), 0, vec2f32(0,0), vec2f32(1,1), WHITE(1), t.index);
-    r_draw_quad(vec2f32(550,100), vec2f32(100,100), Radians(30), BLUE(1));
-    r_draw_text(vec2f32(0,0), 32, BLACK(1), S("We are not your kind\nWe are not your kind"));
+  //  r_draw_triangle(vec2f32(100,100), vec2f32(100,100), Radians(90), RED(1.0f));
+  //  r_draw_triangle_texture(vec2f32(210,100), vec2f32(100,100), 0, vec2f32(0,0), vec2f32(1,1), WHITE(1), t.index);
+  //  r_draw_quad(vec2f32(320,100), vec2f32(100,100), 0, PURPLE(1));
+  //  r_draw_quad_texture(vec2f32(430,100), vec2f32(100,100), 0, vec2f32(0,0), vec2f32(1,1), WHITE(1), t.index);
+  //  r_draw_quad(vec2f32(550,100), vec2f32(100,100), Radians(30), BLUE(1));
+
+    r_draw_line(vec2f32(0, 16), vec2f32(16,16), BLACK(1));
+    r_draw_line(vec2f32(16, 0), vec2f32(16,16), BLACK(1));
+    r_draw_text(vec2f32(16,16), 128, BLACK(1), S("We are not your kind\nWe are not your kind"));
 
     r_render(g_camera.view, g_camera.projection);
     arena_clear(frame_arena);
