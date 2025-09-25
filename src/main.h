@@ -13,6 +13,8 @@
 
 #define PROJECT_NAME S("fz_render_2d")
 
+global Input_State g_input;
+
 // *.h
 #include "camera2d.h"
 #include "renderer.h"
@@ -24,7 +26,6 @@
 #include "ui.c"
 
 global Camera2D g_camera;
-global Input_State g_input;
 
 global OS_Timer g_frame_timer   = {0};
 global u64      g_frame_counter = 0;

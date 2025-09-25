@@ -39,6 +39,7 @@ typedef struct
   Vec2f32 p0;
   Vec2f32 p1;
   Color color;
+  f32 depth;
 } Line2D;
 
 typedef struct
@@ -50,11 +51,11 @@ typedef struct
   Vec2f32 uv_max;
   Color color;
   u32 texture_id;
-  f32 depth;
+  f32 depth; /* With GL_LESS, the fragments with less depth are in front */
 } Primitive2D;
 
 global Vec2f32 unit_triangle[6] = {{-0.5f,-0.5f},{0.5f,-0.5f},{-0.5f,0.5f}};
-global Vec2f32 unit_quad[6]  = {{-0.5f,-0.5f},{0.5f,-0.5f},{0.5f,0.5f},{-0.5f,-0.5f},{0.5f,0.5f},{-0.5f,0.5f}};
+global Vec2f32 unit_quad[6] = {{-0.5f,-0.5f},{0.5f,-0.5f},{0.5f,0.5f},{-0.5f,-0.5f},{0.5f,0.5f},{-0.5f,0.5f}};
 
 typedef struct
 {
@@ -94,7 +95,8 @@ typedef enum
   Render_Batch_Count,
 } Render_Batch_Kind;
 
-typedef struct
+typedef struct Render_Batch Render_Batch;
+struct Render_Batch
 {
   Render_Batch_Kind kind;
 
@@ -115,13 +117,13 @@ typedef struct
   u32   stride; /* Size of data type used in data */
   u32   max; /* Max allocated instances */
   u32   count; /* Current instances count */
-  f32   depth; /* Order to be rendered in */
   u32   v_shader; /* Vertex shader used for this batch */
   u32   mode; /* Opengl render mode E.g. GL_TRIANGLES, GL_LINES... */
   u32   vertex_count; /* Vertices per instance */
-} Render_Batch;
+};
 
-typedef struct
+typedef struct Renderer_Context Renderer_Context;
+struct Renderer_Context
 {
   Arena* arena;
 
@@ -151,7 +153,7 @@ typedef struct
   // Config
   Font* selected_font;
   
-} Renderer_Context;
+};
 
 global Renderer_Context g_renderer;
 
@@ -161,17 +163,17 @@ function void r_render(Mat4f32 view, Mat4f32 projection);
 function void r_render_batch(Render_Batch* batch, Mat4f32 view, Mat4f32 projection);
 
 // Draw functions
-function void r_draw_primitive(Render_Batch* render_batch, Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Vec2f32 uv_min, Vec2f32 uv_max, Color color, u32 texture_id); /* Used both for screenspace and worldspace, since they both share the same primitive type */
+function void r_draw_primitive(Render_Batch* render_batch, Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Vec2f32 uv_min, Vec2f32 uv_max, Color color, u32 texture_id, f32 depth); /* Used both for screenspace and worldspace, since they both share the same primitive type */
+function void r_draw_line(Vec2f32 p0, Vec2f32 p1, Color color, f32 depth);
 
-function void r_draw_line(Vec2f32 p0, Vec2f32 p1, Color color);
-function void r_draw_triangle(Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Color color);
-function void r_draw_triangle_texture(Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Vec2f32 uv_min, Vec2f32 uv_max, Color gradient, u32 texture_index);
-function void r_draw_quad(Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Color color);
-function void r_draw_quad_texture(Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Vec2f32 uv_min, Vec2f32 uv_max, Color gradient, u32 texture_index);
-function void r_draw_text(Vec2f32 top_left, f32 pixel_height, Vec4f32 color, String8 text);
+function void r_draw_triangle(Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Color color, f32 depth);
+function void r_draw_triangle_texture(Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Vec2f32 uv_min, Vec2f32 uv_max, Color gradient, u32 texture_index, f32 depth);
+function void r_draw_quad(Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Color color, f32 depth);
+function void r_draw_quad_texture(Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Vec2f32 uv_min, Vec2f32 uv_max, Color gradient, u32 texture_index, f32 depth);
+function void r_draw_text(Vec2f32 top_left, f32 pixel_height, Vec4f32 color, String8 text, f32 depth);
 
-function void r_draw_point(Vec2f32 position, Color color);
-function void r_draw_box(Vec2f32 top_left, Vec2f32 scale, Color color);
+function void r_draw_point(Vec2f32 position, Color color, f32 depth);
+function void r_draw_box(Vec2f32 top_left, Vec2f32 scale, Color color, f32 depth);
 
 // Renderer Helpers
 function Render_Batch* r_new_render_batch(Arena* arena, Render_Batch_Kind kind, u32 max_instances, u32 v_shader, u32 vertex_count, u32 mode);

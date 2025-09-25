@@ -10,73 +10,137 @@ function void ui_init()
     ui_context.frame_arena    = arena_alloc();
     ui_context.is_initialized = true;
 
+    ui_context.debug.show_bounds = true;
+    ui_context.debug.show_clip = true;
+    ui_context.debug.show_cursor = true;
+
     ui_stack_init(top_left, vec2f32(10.0f, 10.0f));
-    ui_stack_init(size, vec2f32(200.0f, 300.0f));
-    ui_stack_init(padding, vec2f32(4.0f,4.0f));
+    ui_stack_init(size_x, 200.0f);
+    ui_stack_init(size_y, 300.0f);
+    ui_stack_init(padding_x, 0.0f);
+    ui_stack_init(padding_y, 0.0f);
+    ui_stack_init(background_color, BLACK(1));
+    ui_stack_init(text_color, WHITE(1));
+    ui_stack_init(text_height, 16);
   }
 }
 
 function void ui_begin()
 {
-  ui_context.is_working  = true;
+  ui_context.is_working = true;
   
   // Window widget
   {
     String8 root_name = S("##Root Window Widget");
     Vec2s32 window_size = g_os_window.dimensions;
     ui_context.root = push_array(ui_context.frame_arena, UI_Widget, 1);
-    ui_context.root->hash    = string8_hash(root_name);
-    ui_context.root->bounds  = rectf32(vec2f32(0,0), vec2f32(window_size.x, window_size.y));
-    ui_context.root->clip    = rectf32(vec2f32(0,0), vec2f32(window_size.x, window_size.y));
-    ui_context.root->cursor  = vec2f32(0.0f, 0.0f);
-    ui_context.root->padding = vec2f32(0.0f, 0.0f);
+    ui_context.root->hash      = string8_hash(root_name);
+    ui_context.root->bounds    = rectf32(vec2f32(0,0), vec2f32(window_size.x, window_size.y));
+    ui_context.root->clip      = rectf32(vec2f32(0,0), vec2f32(window_size.x, window_size.y));
+    ui_context.root->cursor    = vec2f32(0.0f, 0.0f);
+    ui_context.root->padding_x = 0.0f;
+    ui_context.root->padding_y = 0.0f;
 
     // Window widget is considered 0 depth
-    ui_context.root->depth   = 0;
-    ui_context.depth         = 0;
+    ui_context.root->depth  = 1;
 
-    ui_stack_push(parent, ui_context.root);
+    ui_stack_push(widget, ui_context.root);
   }
 
   // Input handling
+  if (input_is_key_clicked(&g_input, Keyboard_Key_NUMPAD1))
+  {
+    ui_context.debug.show_bounds = !ui_context.debug.show_bounds;
+  }
+  if (input_is_key_clicked(&g_input, Keyboard_Key_NUMPAD2))
+  {
+    ui_context.debug.show_clip = !ui_context.debug.show_clip;
+  }
+  if (input_is_key_clicked(&g_input, Keyboard_Key_NUMPAD3))
+  {
+    ui_context.debug.show_cursor = !ui_context.debug.show_cursor;
+  }
 }
 
 function void ui_end()
 {
 #if DEBUG
-  ui_stack_assert_top_at(parent, 1);
+  ui_stack_assert_top_at(widget, 1);
   ui_stack_assert_top_at(top_left, 0);
-  ui_stack_assert_top_at(size, 0);
-  ui_stack_assert_top_at(padding, 0);
-
-  Assert(ui_context.depth == 0);
-  Assert(ui_context.root->depth == 0);
+  ui_stack_assert_top_at(size_x, 0);
+  ui_stack_assert_top_at(size_y, 0);
+  ui_stack_assert_top_at(padding_x, 0);
+  ui_stack_assert_top_at(padding_y, 0);
+  ui_stack_assert_top_at(background_color, 0);
+  ui_stack_assert_top_at(text_color, 0);
+  ui_stack_assert_top_at(text_height, 0);
+  Assert(ui_context.root->depth == 1);
 #endif
 
-  ui_stack_pop(parent); // Pop root (os window) because it's regenerated every frame
+  ui_render_widget(ui_context.root);
+  printf("\n\n\n");
+
+  // Reset tree
+  ui_context.root->first    = NULL;
+  ui_context.root->last     = NULL;
+  ui_context.root->next     = NULL;
+  ui_context.root->previous = NULL;
+  ui_context.root->parent   = NULL;
+
+  ui_stack_pop(widget); // Pop root (os window) because it's regenerated every frame
   ui_context.is_working = false;
   arena_clear(ui_context.frame_arena);
 }
 
+function void
+ui_render_widget(UI_Widget* widget)
+{
+  if (ui_context.root != widget)
+  {
+    r_draw_quad(widget->bounds.top_left, widget->bounds.size, 0, widget->background_color, widget->depth);
+    if (widget->show_string)
+    {
+      r_draw_text(widget->string_top_left, widget->text_pixel_height, widget->text_color, widget->string, widget->depth - F32_EPSILON);
+    }
+    ui_debug_draw_widget(widget);
+  }
+
+  for (UI_Widget *child = widget->first; child; child = child->next)
+  {
+    ui_render_widget(child);
+  }
+}
+
 // UI module api
-function UI_Widget*
+function void
 ui_window_begin(String8 text)
 {
-  UI_Widget_Flags flags = 0;
+  Scratch scratch = scratch_begin(0,0);
 
-  UI_Widget* widget = ui_widget_from_string(text, flags);
-  
+  String8 window_string = Sf(scratch.arena, "##window_text_"S_FMT"", S_ARG(text));
 
-  r_draw_quad(widget->bounds.top_left, widget->bounds.size, 0, BLACK(1));
-  ui_debug_draw_widget(widget);
+  ui_stack_defer(padding_x, 4.0f)
+  ui_stack_defer(padding_y, 4.0f)
+  {
+    UI_Widget* widget = ui_widget_from_string(window_string, 0);
+    ui_stack_push(widget, widget);
+  }
 
-  return widget;
+  ui_stack_defer(padding_x, 4.0f)
+  ui_stack_defer(background_color, GRAY(1))
+  ui_stack_defer(size_y, 20.0f)
+  {
+    UI_Widget_Flags title_bar_flags = UI_Widget_Flags_Mouse_Clickable|UI_Widget_Flags_Display_String;
+    UI_Widget* title_bar_widget = ui_widget_from_string(text, title_bar_flags);
+  }
+
+  scratch_end(&scratch);
 }
 
 function void
 ui_window_end()
 {
-  ui_context.depth -= 1;
+  ui_stack_pop(widget);
 }
 
 // Builder code
@@ -91,23 +155,48 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
   {
     emit_fatal(S("Not within ui_begin and ui_end"));
   }
-  
-  Vec2f32 top_left  = ui_stack_top(top_left);
-  Vec2f32 size      = ui_stack_top(size);
-  Vec2f32 padding   = ui_stack_top(padding);
 
+  UI_Widget* parent = ui_stack_top(widget);
   UI_Widget* widget = push_array(ui_context.frame_arena, UI_Widget, 1);
+  ui_add_widget_child(parent, widget);
+
+  Vec2f32 top_left  = ui_stack_top(top_left);
+  f32 size_x        = ui_stack_top(size_x);
+  f32 size_y        = ui_stack_top(size_y);
+  f32 padding_x     = ui_stack_top(padding_x);
+  f32 padding_y     = ui_stack_top(padding_y);
 
   widget->hash    = string8_hash(string);
-  widget->bounds  = rectf32(top_left, size);
-  widget->clip.top_left = vec2f32(widget->bounds.top_left.x + padding.x, widget->bounds.top_left.y + padding.y);
-  widget->clip.size     = vec2f32(size.x - (padding.x * 2), size.y - (padding.y * 2));
-  widget->cursor  = vec2f32(0.0f, 0.0f);
-  widget->padding = padding;
-  widget->depth   = ++ui_context.depth;
+  widget->bounds  = ui_clip_rect(parent->clip, rectf32(top_left, vec2f32(size_x, size_y)));
+  
+  Rectf32 clip;
+  clip.top_left = vec2f32(widget->bounds.top_left.x + padding_x, widget->bounds.top_left.y + padding_y);
+  clip.size     = vec2f32(widget->bounds.size.x - (padding_x * 2), widget->bounds.size.y - (padding_y * 2));
+  widget->clip  = ui_clip_rect(widget->bounds, clip);
 
-  UI_Widget* parent = ui_stack_top(parent);
-  ui_add_widget_child(parent, widget);
+  widget->cursor    = vec2f32(0.0f, 0.0f);
+  widget->padding_x = padding_x;
+  widget->padding_y = padding_y;
+  widget->depth     = (parent) ? parent->depth - 0.001f : 1.0f;
+
+  // Style
+  widget->background_color = ui_stack_top(background_color);
+  if (HasFlags(flags, UI_Widget_Flags_Display_String))
+  {
+    widget->show_string       = true;
+    widget->string            = string;
+    widget->string_top_left   = vec2f32_add(widget->clip.top_left, widget->cursor);
+    widget->text_pixel_height = ui_stack_top(text_height);
+    widget->text_color        = ui_stack_top(text_color);
+  }
+
+  if (HasFlags(flags, UI_Widget_Flags_Mouse_Clickable))
+  {
+    if (ui_mouse_in_rect(widget->bounds))
+    {
+      widget->background_color = BLUE(1);
+    }
+  }
 
   return widget;
 }
@@ -131,17 +220,11 @@ ui_clean_string(Arena* arena, String8 string)
 }
 
 function void
-ui_debug_draw_widget_cursor(UI_Widget* widget, Color color)
-{
-  r_draw_point(vec2f32_add(widget->clip.top_left, widget->cursor), color);
-}
-
-function void
 ui_debug_draw_widget(UI_Widget* widget)
 {
-  ui_debug_draw_widget_cursor(widget, YELLOW(1));
-  r_draw_box(widget->bounds.top_left, widget->bounds.size, RED(1));
-  r_draw_box(widget->clip.top_left, widget->clip.size, YELLOW(1));
+  if (ui_context.debug.show_cursor) r_draw_point(vec2f32_add(widget->clip.top_left, widget->cursor), GREEN(1), widget->depth - (F32_EPSILON*3));
+  if (ui_context.debug.show_bounds) r_draw_box(widget->bounds.top_left, widget->bounds.size, RED(1), widget->depth - F32_EPSILON);
+  if (ui_context.debug.show_clip)   r_draw_box(widget->clip.top_left, widget->clip.size, YELLOW(1), widget->depth - (F32_EPSILON*2));
 }
 
 // Widget tree
@@ -162,4 +245,40 @@ ui_add_widget_child(UI_Widget *parent, UI_Widget *child)
   }
 
   parent->last = child;
+}
+
+function Rectf32
+ui_clip_rect(Rectf32 parent, Rectf32 child)
+{
+  f32 parent_x0 = parent.top_left.x;
+  f32 parent_y0 = parent.top_left.y;
+  f32 parent_x1 = parent_x0 + parent.size.x;
+  f32 parent_y1 = parent_y0 + parent.size.y;
+
+  f32 child_x0 = child.top_left.x;
+  f32 child_y0 = child.top_left.y;
+  f32 child_x1 = child_x0 + child.size.x;
+  f32 child_y1 = child_y0 + child.size.y;
+
+  f32 x0 = ClampBot(child_x0, parent_x0);
+  f32 y0 = ClampBot(child_y0, parent_y0);
+  f32 x1 = ClampTop(child_x1, parent_x1);
+  f32 y1 = ClampTop(child_y1, parent_y1);
+
+  Rectf32 result;
+  result.top_left.x = x0;
+  result.top_left.y = y0;
+  result.size.x = (x1 > x0) ? (x1 - x0) : 0.0f;
+  result.size.y = (y1 > y0) ? (y1 - y0) : 0.0f;
+
+  return result;
+}
+
+function b32
+ui_mouse_in_rect(Rectf32 rect)
+{
+  Vec2f32 mouse = g_input.mouse_current.screen_space;
+  b32 result = (mouse.x >= rect.top_left.x && mouse.x <= rect.top_left.x + rect.size.x &&
+                mouse.y >= rect.top_left.y && mouse.y <= rect.top_left.y + rect.size.y);
+  return result;
 }

@@ -55,6 +55,7 @@ r_init()
       r_set_vertex_attribute_f32(batch->vao, 0, 2, 1, OffsetOfMember(Line2D, p0));
       r_set_vertex_attribute_f32(batch->vao, 1, 2, 1, OffsetOfMember(Line2D, p1));
       r_set_vertex_attribute_f32(batch->vao, 2, 4, 1, OffsetOfMember(Line2D, color));
+      r_set_vertex_attribute_f32(batch->vao, 3, 1, 1, OffsetOfMember(Line2D, depth));
     }
 
     // 2D Triangle
@@ -338,7 +339,6 @@ r_new_render_batch(Arena* arena, Render_Batch_Kind kind, u32 max_instances, u32 
   result->v_shader = v_shader;
   result->mode     = mode;
   result->vertex_count = vertex_count;
-  result->depth        = result->kind * 0.1;
   return result;
 }
 
@@ -354,6 +354,8 @@ r_render(Mat4f32 view, Mat4f32 projection)
   // Opaque batches
   /* Sort front to back so that the fragment shader only runs once per pixel */
   glDepthMask(GL_TRUE);
+  
+
   for (s32 i = 0; i < Render_Batch_Count; i++)
   {
     Render_Batch* batch = g_renderer.batches[i];
@@ -403,7 +405,7 @@ r_render_batch(Render_Batch* batch, Mat4f32 view, Mat4f32 projection)
 
 
 function void
-r_draw_primitive(Render_Batch* render_batch, Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Vec2f32 uv_min, Vec2f32 uv_max, Color color, u32 texture_id)
+r_draw_primitive(Render_Batch* render_batch, Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Vec2f32 uv_min, Vec2f32 uv_max, Color color, u32 texture_id, f32 depth)
 {
   if (render_batch->count >= render_batch->max)
   {
@@ -422,12 +424,12 @@ r_draw_primitive(Render_Batch* render_batch, Vec2f32 top_left, Vec2f32 scale, f3
   data[render_batch->count].uv_max     = uv_max;
   data[render_batch->count].color      = color;
   data[render_batch->count].texture_id = texture_id;
-  data[render_batch->count].depth      = render_batch->depth;
+  data[render_batch->count].depth      = depth;
   render_batch->count += 1;
 }
 
 function void
-r_draw_line(Vec2f32 p0, Vec2f32 p1, Color color)
+r_draw_line(Vec2f32 p0, Vec2f32 p1, Color color, f32 depth)
 {
   if (g_renderer.batches[Render_Batch_Line]->count >= g_renderer.batches[Render_Batch_Line]->max)
   {
@@ -438,36 +440,36 @@ r_draw_line(Vec2f32 p0, Vec2f32 p1, Color color)
   data[g_renderer.batches[Render_Batch_Line]->count].p0    = r_vec2f32_flip_y(p0);
   data[g_renderer.batches[Render_Batch_Line]->count].p1    = r_vec2f32_flip_y(p1);
   data[g_renderer.batches[Render_Batch_Line]->count].color = color;
+  data[g_renderer.batches[Render_Batch_Line]->count].depth = depth;
   g_renderer.batches[Render_Batch_Line]->count += 1;
 }
 
 function void
-r_draw_triangle(Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Color color)
+r_draw_triangle(Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Color color, f32 depth)
 {
-  r_draw_primitive(g_renderer.batches[Render_Batch_Triangle], top_left, scale, rotation_rads, vec2f32(0.0f, 0.0), vec2f32(1.0f, 1.0f), color, NO_TEXTURE);
+  r_draw_primitive(g_renderer.batches[Render_Batch_Triangle], top_left, scale, rotation_rads, vec2f32(0.0f, 0.0), vec2f32(1.0f, 1.0f), color, NO_TEXTURE, depth);
 }
 
 function void
-r_draw_triangle_texture(Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Vec2f32 uv_min, Vec2f32 uv_max, Color gradient, u32 texture_index)
+r_draw_triangle_texture(Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Vec2f32 uv_min, Vec2f32 uv_max, Color gradient, u32 texture_index, f32 depth)
 {
-  r_draw_primitive(g_renderer.batches[Render_Batch_Triangle_Texture], top_left, scale, rotation_rads, uv_min, uv_max, gradient, texture_index);
+  r_draw_primitive(g_renderer.batches[Render_Batch_Triangle_Texture], top_left, scale, rotation_rads, uv_min, uv_max, gradient, texture_index, depth);
 }
 
 function void
-r_draw_quad(Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Color color)
+r_draw_quad(Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Color color, f32 depth)
 {
-  r_draw_primitive(g_renderer.batches[Render_Batch_Quad], top_left, scale, rotation_rads, vec2f32(0.0f, 0.0), vec2f32(1.0f, 1.0f), color, NO_TEXTURE);
+  r_draw_primitive(g_renderer.batches[Render_Batch_Quad], top_left, scale, rotation_rads, vec2f32(0.0f, 0.0), vec2f32(1.0f, 1.0f), color, NO_TEXTURE, depth);
 }
 
 function void
-r_draw_quad_texture(Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Vec2f32 uv_min, Vec2f32 uv_max, Color gradient, u32 texture_index)
+r_draw_quad_texture(Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Vec2f32 uv_min, Vec2f32 uv_max, Color gradient, u32 texture_index, f32 depth)
 {
-  r_draw_box(top_left, scale, BLUE(1));
-  r_draw_primitive(g_renderer.batches[Render_Batch_Quad_Texture], top_left, scale, rotation_rads, uv_min, uv_max, gradient, texture_index);
+  r_draw_primitive(g_renderer.batches[Render_Batch_Quad_Texture], top_left, scale, rotation_rads, uv_min, uv_max, gradient, texture_index, depth);
 }
 
 function void
-r_draw_text(Vec2f32 top_left, f32 pixel_height, Color color, String8 text)
+r_draw_text(Vec2f32 top_left, f32 pixel_height, Color color, String8 text, f32 depth)
 {
   if (g_renderer.batches[Render_Batch_Text]->count + text.size >= g_renderer.batches[Render_Batch_Text]->max)
   {
@@ -499,31 +501,31 @@ r_draw_text(Vec2f32 top_left, f32 pixel_height, Color color, String8 text)
 
     Vec2f32 pos  = vec2f32(cursor.x + glyph->offset.x * pixel_scale, cursor.y + glyph->offset.y * pixel_scale);
     Vec2f32 size = vec2f32(glyph->size.x * pixel_scale, glyph->size.y * pixel_scale);
-    r_draw_primitive(g_renderer.batches[Render_Batch_Text], pos, size, 0.0f, glyph->uv_min, glyph->uv_max, color, font->texture_index);
-#if 1
-    r_draw_box(pos, size, YELLOW(1));
+    r_draw_primitive(g_renderer.batches[Render_Batch_Text], pos, size, 0.0f, glyph->uv_min, glyph->uv_max, color, font->texture_index, depth);
+#if 0
+    r_draw_box(pos, size, YELLOW(1), depth);
 #endif
     cursor.x += glyph->advance * pixel_scale;
   }
 }
 
 function void
-r_draw_point(Vec2f32 position, Color color)
+r_draw_point(Vec2f32 position, Color color, f32 depth)
 {
   f32 len = 16.0f;
   f32 diagonal = sqrtf(len);
-  r_draw_line(vec2f32(position.x-diagonal,position.y-diagonal), vec2f32(position.x+diagonal,position.y+diagonal), color);
-  r_draw_line(vec2f32(position.x-diagonal,position.y+diagonal), vec2f32(position.x+diagonal,position.y-diagonal), color);
+  r_draw_line(vec2f32(position.x-diagonal,position.y-diagonal), vec2f32(position.x+diagonal,position.y+diagonal), color, depth);
+  r_draw_line(vec2f32(position.x-diagonal,position.y+diagonal), vec2f32(position.x+diagonal,position.y-diagonal), color, depth);
 }
 
 function void
-r_draw_box(Vec2f32 top_left, Vec2f32 scale, Color color)
+r_draw_box(Vec2f32 top_left, Vec2f32 scale, Color color, f32 depth)
 {
   Vec2f32 bot_right = vec2f32(top_left.x + scale.x, top_left.y + scale.y);
-  r_draw_line(top_left, vec2f32(bot_right.x, top_left.y), color);
-  r_draw_line(vec2f32(bot_right.x, top_left.y), bot_right, color);
-  r_draw_line(bot_right, vec2f32(top_left.x, bot_right.y), color);
-  r_draw_line(top_left, vec2f32(top_left.x, bot_right.y), color);
+  r_draw_line(top_left, vec2f32(bot_right.x, top_left.y), color, depth);
+  r_draw_line(vec2f32(bot_right.x, top_left.y), bot_right, color, depth);
+  r_draw_line(bot_right, vec2f32(top_left.x, bot_right.y), color, depth);
+  r_draw_line(top_left, vec2f32(top_left.x, bot_right.y), color, depth);
 }
 
 function Font*
