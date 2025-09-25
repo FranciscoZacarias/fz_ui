@@ -26,7 +26,6 @@ entry_point(Command_Line* command_line)
   // Frame arena
   Arena* frame_arena = arena_alloc();
 
-  Texture_Info t = r_load_texture(S("C:/Personal/fz_render_2d/assets/textures/prototype/Grey 2.png"));
   while(os_is_application_running(&g_input))
   {
     // Begin frame
