@@ -16,10 +16,12 @@
 // *.h
 #include "camera2d.h"
 #include "renderer.h"
+#include "ui.h"
 
 // *.c
 #include "camera2d.c"
 #include "renderer.c"
+#include "ui.c"
 
 global Camera2D g_camera;
 global Input_State g_input;

@@ -10,80 +10,64 @@
 // @Section: Vec2
 typedef union Vec2u16 { u16 data[2]; struct { u16 x, y; }; } Vec2u16;
 #define vec2u16(x,y) ((Vec2u16){x,y})
-
 typedef union Vec2u32 { u32 data[2]; struct { u32 x, y; }; } Vec2u32;
 #define vec2u32(x,y) ((Vec2u32){x,y})
-
 typedef union Vec2u64 { u64 data[2]; struct { u64 x, y; }; } Vec2u64;
 #define vec2u64(x,y) ((Vec2u64){x,y})
-
 typedef union Vec2s16 { s16 data[2]; struct { s16 x, y; }; } Vec2s16;
 #define vec2s16(x,y) ((Vec2s16){x,y})
-
 typedef union Vec2s32 { s32 data[2]; struct { s32 x, y; }; } Vec2s32;
 #define vec2s32(x,y) ((Vec2s32){x,y})
-
 typedef union Vec2s64 { s64 data[2]; struct { s64 x, y; }; } Vec2s64;
 #define vec2s64(x,y) ((Vec2s64){x,y})
-
 typedef union Vec2f32 { f32 data[2]; struct { f32 x, y; }; } Vec2f32;
 #define vec2f32(x,y) ((Vec2f32){x,y})
-
 typedef union Vec2f64 { f64 data[2]; struct { f64 x, y; }; } Vec2f64;
 #define vec2f64(x,y) ((Vec2f64){x,y})
-
 
 // @Section: Vec3
 typedef union Vec3u16 { u16 data[3]; struct { u16 x, y, z; }; } Vec3u16;
 #define vec3u16(x,y,z) ((Vec3u16){x,y,z})
-
 typedef union Vec3u32 { u32 data[3]; struct { u32 x, y, z; }; } Vec3u32;
 #define vec3u32(x,y,z) ((Vec3u32){x,y,z})
-
 typedef union Vec3u64 { u64 data[3]; struct { u64 x, y, z; }; } Vec3u64;
 #define vec3u64(x,y,z) ((Vec3u64){x,y,z})
-
 typedef union Vec3s16 { s16 data[3]; struct { s16 x, y, z; }; } Vec3s16;
 #define vec3s16(x,y,z) ((Vec3s16){x,y,z})
-
 typedef union Vec3s32 { s32 data[3]; struct { s32 x, y, z; }; } Vec3s32;
 #define vec3s32(x,y,z) ((Vec3s32){x,y,z})
-
 typedef union Vec3s64 { s64 data[3]; struct { s64 x, y, z; }; } Vec3s64;
 #define vec3s64(x,y,z) ((Vec3s64){x,y,z})
-
 typedef union Vec3f32 { f32 data[3]; struct { f32 x, y, z; }; } Vec3f32;
 #define vec3f32(x,y,z) ((Vec3f32){x,y,z})
-
 typedef union Vec3f64 { f64 data[3]; struct { f64 x, y, z; }; } Vec3f64;
 #define vec3f64(x,y,z) ((Vec3f64){x,y,z})
-
 
 // @Section: Vec4
 typedef union Vec4u16 { u16 data[4]; struct { u16 x, y, z, w; }; } Vec4u16;
 #define vec4u16(x,y,z,w) ((Vec4u16){x,y,z,w})
-
 typedef union Vec4u32 { u32 data[4]; struct { u32 x, y, z, w; }; } Vec4u32;
 #define vec4u32(x,y,z,w) ((Vec4u32){x,y,z,w})
-
 typedef union Vec4u64 { u64 data[4]; struct { u64 x, y, z, w; }; } Vec4u64;
 #define vec4u64(x,y,z,w) ((Vec4u64){x,y,z,w})
-
 typedef union Vec4s16 { s16 data[4]; struct { s16 x, y, z, w; }; } Vec4s16;
 #define vec4s16(x,y,z,w) ((Vec4s16){x,y,z,w})
-
 typedef union Vec4s32 { s32 data[4]; struct { s32 x, y, z, w; }; } Vec4s32;
 #define vec4s32(x,y,z,w) ((Vec4s32){x,y,z,w})
-
 typedef union Vec4s64 { s64 data[4]; struct { s64 x, y, z, w; }; } Vec4s64;
 #define vec4s64(x,y,z,w) ((Vec4s64){x,y,z,w})
-
 typedef union Vec4f32 { f32 data[4]; struct { f32 x, y, z, w; }; } Vec4f32;
 #define vec4f32(x,y,z,w) ((Vec4f32){x,y,z,w})
-
 typedef union Vec4f64 { f64 data[4]; struct { f64 x, y, z, w; }; } Vec4f64;
 #define vec4f64(x,y,z,w) ((Vec4f64){x,y,z,w})
 
+// @Section: Rect
+typedef struct Rectf32 { Vec2f32 top_left; Vec2f32 size; } Rectf32;
+#define rectf32(top_left,size) ((Rectf32){top_left,size})
+typedef struct Rects32 { Vec2s32 top_left; Vec2s32 size; } Rects32;
+#define rects32(top_left,size) ((Rects32){top_left,size})
+typedef struct Rectu32 { Vec2u32 top_left; Vec2u32 size; } Rectu32;
+#define rectu32(top_left,size) ((Rectu32){top_left,size})
 
 // @Section: Matrix
 // Column major

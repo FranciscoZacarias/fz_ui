@@ -26,7 +26,8 @@ entry_point(Command_Line* command_line)
   // Frame arena
   Arena* frame_arena = arena_alloc();
 
-  Texture_Info t = r_load_texture(S("C:/Personal/fz_render_2d/assets/textures/prototype/Grey 2.png"));
+  ui_init();
+
   while(os_is_application_running(&g_input))
   {
     // Begin frame
@@ -38,15 +39,18 @@ entry_point(Command_Line* command_line)
     }
     r_clear_color(vec4f32(0.25f, 0.75f, 1.0f, 1.0f));
     input_update();
+
+    ui_begin();
+    ui_window(S("Test Window"))
+    {
+    }
+    ui_end();
     
-    String8 t = S("We are not your kind\nWe are not your kind\nWe are not your kind");
-    Vec2f32 d = r_text_dimensions(t, 32);
-    r_draw_box(vec2f32(100,100), d, RED(1));
-    r_draw_text(vec2f32(100,100), 32, BLACK(1), t);
-  
     r_render(g_camera.view, g_camera.projection);
     arena_clear(frame_arena);
   }
+
+  ui_end();
 }
 
 function void
