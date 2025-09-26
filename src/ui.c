@@ -9,6 +9,7 @@ function void ui_init()
     ui_context.arena          = arena_alloc();
     ui_context.frame_arena    = arena_alloc();
     ui_context.is_initialized = true;
+    ui_context.animarion_speed = 0.0f;
 
     ui_context.debug.show_bounds = true;
     ui_context.debug.show_clip = true;
@@ -26,12 +27,15 @@ function void ui_init()
     ui_stack_init(text_height, 16);
     ui_stack_init(alignment, UI_Alignment_Y);
   }
+
+  MemoryZeroArray(ui_cached_widgets);
 }
 
 function void ui_begin()
 {
   ui_context.is_working = true;
-  
+  ui_context.animarion_speed = g_delta_time/0.1f;
+
   // Window widget
   {
     String8 root_name = S("##Root Window Widget");
@@ -85,6 +89,7 @@ function void ui_end()
   ui_context.root->previous = NULL;
   ui_context.root->parent   = NULL;
 
+
   ui_stack_pop(widget); // Pop root (os window) because it's regenerated every frame
   ui_context.is_working = false;
   arena_clear(ui_context.frame_arena);
@@ -95,7 +100,10 @@ ui_render_widget(UI_Widget* widget)
 {
   if (ui_context.root != widget)
   {
-    r_draw_quad(widget->bounds.top_left, widget->bounds.size, 0, widget->background_color, widget->depth);
+    UI_Cache* cached_widget = ui_get_cached_widget(widget);
+    cached_widget->actual_background_color = color_lerp(cached_widget->actual_background_color, widget->target_background_color, ui_context.animarion_speed);
+    r_draw_quad(widget->bounds.top_left, widget->bounds.size, 0, cached_widget->actual_background_color, widget->depth);
+
     if (HasFlags(widget->flags, UI_Widget_Flags_Display_String))
     {
       r_draw_text(widget->string_top_left, widget->text_pixel_height, widget->text_color, widget->string, widget->depth - F32_EPSILON);
@@ -171,20 +179,17 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
 
   widget->hash    = string8_hash(string);
   widget->bounds  = ui_clip_rect(parent->clip, rectf32(top_left, vec2f32(size_x, size_y)));
-  
   Rectf32 clip;
   clip.top_left = vec2f32(widget->bounds.top_left.x + padding_x, widget->bounds.top_left.y + padding_y);
   clip.size     = vec2f32(widget->bounds.size.x - (padding_x * 2), widget->bounds.size.y - (padding_y * 2));
-  widget->clip  = ui_clip_rect(widget->bounds, clip);
+  widget->clip      = ui_clip_rect(widget->bounds, clip);
 
   widget->padding_x = padding_x;
   widget->padding_y = padding_y;
-
-  widget->cursor.x = widget->cursor.x + spacing_x;
-  widget->cursor.y = widget->cursor.y + spacing_y;
-
-  widget->depth  = (parent) ? parent->depth - F32_EPSILON : 1.0f;
-  widget->flags  = flags;
+  widget->cursor.x  = widget->cursor.x + spacing_x;
+  widget->cursor.y  = widget->cursor.y + spacing_y;
+  widget->depth     = (parent) ? parent->depth - F32_EPSILON : 1.0f;
+  widget->flags     = flags;
 
   // Update parent 
   if (parent != ui_context.root)
@@ -205,7 +210,9 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
   }
 
   // Style
-  widget->background_color = ui_stack_top(background_color);
+  widget->target_background_color = ui_stack_top(background_color);
+
+
   if (HasFlags(flags, UI_Widget_Flags_Display_String))
   {
     widget->string            = string;
@@ -222,7 +229,7 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
   {
     if (ui_mouse_in_rect(widget->bounds))
     {
-      widget->background_color = BLUE(1);
+      widget->target_background_color = BLUE(1);
     }
   }
 
@@ -324,6 +331,7 @@ ui_get_cached_widget(UI_Widget* widget)
     {
       emit_fatal(S("Too many widgets"));
     }
+    cached_widget = &ui_cached_widgets[ui_cached_widgets_count];
 
     cached_widget->hash   = widget->hash;
     cached_widget->bounds = widget->bounds;

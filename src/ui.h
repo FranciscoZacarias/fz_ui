@@ -58,7 +58,7 @@ struct UI_Widget
   UI_Widget_Flags flags;
 
   // Style
-  Color background_color;
+  Color target_background_color;
   Color text_color;
 
   // String stuff
@@ -76,6 +76,8 @@ struct UI_Cache
   Rectf32 bounds;
   Rectf32 clip;
   Vec2f32 cursor;
+
+  Color actual_background_color;
 };
 
 #define UI_MAX_CACHED_WIDGETS 64
@@ -93,12 +95,12 @@ struct UI_Signal
 typedef struct UI_Context UI_Context;
 struct UI_Context
 {
-  // Cross frame 
-  Arena* arena;
-
   // Per frame
   Arena* frame_arena;
   UI_Widget* root;
+
+  // Cross frame 
+  Arena* arena;
 
   // State
   ui_stack(UI_Widget*,   widget,           UI_STACKS_MAX);
@@ -113,6 +115,8 @@ struct UI_Context
   ui_stack(Color,        text_color,       UI_STACKS_MAX);
   ui_stack(f32,          text_height,      UI_STACKS_MAX);
   ui_stack(UI_Alignment, alignment,        UI_STACKS_MAX);
+
+  f32 animarion_speed;
 
   b32 is_initialized; /* Has ui_init been called */
   b32 is_working;     /* If true, ui_begin() was last called. If false, ui_end() was last called */
