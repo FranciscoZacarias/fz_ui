@@ -11,11 +11,14 @@ function void ui_init()
     ui_context.is_initialized = true;
     ui_context.animarion_speed = 0.0f;
 
-    ui_context.debug.show_bounds = true;
-    ui_context.debug.show_clip = true;
-    ui_context.debug.show_cursor = false;
+    ui_context.hash_active_depth = 1.0f;
+    ui_context.hash_hot_depth    = 1.0f;
 
-    ui_stack_init(top_left, vec2f32(10.0f, 10.0f));
+    ui_context.debug.show_bounds = true;
+    ui_context.debug.show_clip   = true;
+    ui_context.debug.show_cursor = true;
+
+    ui_stack_init(top_left, vec2f32(300.0f, 200.0f));
     ui_stack_init(size_x, 200.0f);
     ui_stack_init(size_y, 300.0f);
     ui_stack_init(padding_x, 0.0f);
@@ -27,14 +30,12 @@ function void ui_init()
     ui_stack_init(text_height, 16);
     ui_stack_init(alignment, UI_Alignment_Y);
   }
-
-  MemoryZeroArray(ui_cached_widgets);
 }
 
 function void ui_begin()
 {
   ui_context.is_working = true;
-  ui_context.animarion_speed = g_delta_time/0.1f;
+  ui_context.animarion_speed = g_delta_time/0.2f;
 
   // Window widget
   {
@@ -82,13 +83,20 @@ function void ui_end()
 
   ui_render_widget(ui_context.root);
 
-  // Reset tree
+  r_draw_text(vec2f32(600, 50),  32, BLACK(1), Sf(ui_context.frame_arena, "hash_active: %llu", ui_context.hash_active), 0);
+  r_draw_text(vec2f32(600, 80),  32, BLACK(1), Sf(ui_context.frame_arena, "hash_active_depth: %.2f", ui_context.hash_active_depth), 0);
+  r_draw_text(vec2f32(600, 110), 32, BLACK(1), Sf(ui_context.frame_arena, "hash_hot: %llu", ui_context.hash_hot), 0);
+  r_draw_text(vec2f32(600, 140), 32, BLACK(1), Sf(ui_context.frame_arena, "hash_hot_depth: %.2f", ui_context.hash_hot_depth), 0);
+
+  // Reset
+  ui_context.hash_hot = 0;
+  ui_context.hash_hot_depth = 1.0f;
+
   ui_context.root->first    = NULL;
   ui_context.root->last     = NULL;
   ui_context.root->next     = NULL;
   ui_context.root->previous = NULL;
   ui_context.root->parent   = NULL;
-
 
   ui_stack_pop(widget); // Pop root (os window) because it's regenerated every frame
   ui_context.is_working = false;
@@ -100,15 +108,13 @@ ui_render_widget(UI_Widget* widget)
 {
   if (ui_context.root != widget)
   {
-    UI_Cache* cached_widget = ui_get_cached_widget(widget);
-    cached_widget->actual_background_color = color_lerp(cached_widget->actual_background_color, widget->target_background_color, ui_context.animarion_speed);
-    r_draw_quad(widget->bounds.top_left, widget->bounds.size, 0, cached_widget->actual_background_color, widget->depth);
+    r_draw_quad(widget->bounds.top_left, widget->bounds.size, 0, widget->target_background_color, widget->depth);
 
     if (HasFlags(widget->flags, UI_Widget_Flags_Display_String))
     {
       r_draw_text(widget->string_top_left, widget->text_pixel_height, widget->text_color, widget->string, widget->depth - F32_EPSILON);
     }
-    ui_debug_draw_widget(widget);
+    ui_debug_draw_widget(widget, widget->depth);
   }
 
   for (UI_Widget *child = widget->first; child; child = child->next)
@@ -128,7 +134,7 @@ ui_window_begin(String8 text)
   ui_stack_defer(padding_x, 4.0f)
   ui_stack_defer(padding_y, 4.0f)
   {
-    UI_Widget_Flags window_flags = 0;    
+    UI_Widget_Flags window_flags = 0;
     UI_Widget* window_widget = ui_widget_from_string(window_string, window_flags);
     UI_Signal  window_signal = ui_signal_from_widget(window_widget);
     ui_stack_push(widget, window_widget);
@@ -138,7 +144,7 @@ ui_window_begin(String8 text)
   ui_stack_defer(background_color, GRAY(1))
   ui_stack_defer(size_y, 20.0f)
   {
-    UI_Widget_Flags title_bar_flags = UI_Widget_Flags_Mouse_Clickable|UI_Widget_Flags_Display_String;
+    UI_Widget_Flags title_bar_flags = UI_Widget_Flags_Display_Hoverable|UI_Widget_Flags_Display_Draggable|UI_Widget_Flags_Display_String;
     UI_Widget* title_bar_widget = ui_widget_from_string(text, title_bar_flags);
     UI_Signal  title_bar_signal = ui_signal_from_widget(title_bar_widget);
   }
@@ -179,10 +185,11 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
 
   widget->hash    = string8_hash(string);
   widget->bounds  = ui_clip_rect(parent->clip, rectf32(top_left, vec2f32(size_x, size_y)));
+
   Rectf32 clip;
   clip.top_left = vec2f32(widget->bounds.top_left.x + padding_x, widget->bounds.top_left.y + padding_y);
   clip.size     = vec2f32(widget->bounds.size.x - (padding_x * 2), widget->bounds.size.y - (padding_y * 2));
-  widget->clip      = ui_clip_rect(widget->bounds, clip);
+  widget->clip  = clip; // ui_clip_rect(widget->bounds, clip);
 
   widget->padding_x = padding_x;
   widget->padding_y = padding_y;
@@ -190,6 +197,35 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
   widget->cursor.y  = widget->cursor.y + spacing_y;
   widget->depth     = (parent) ? parent->depth - F32_EPSILON : 1.0f;
   widget->flags     = flags;
+
+  // Input
+  if (ui_mouse_in_rect(widget->bounds))
+  {
+    if (widget->depth < ui_context.hash_hot_depth)
+    {
+      ui_context.hash_hot = widget->hash;
+      ui_context.hash_hot_depth = widget->depth;
+      if (input_is_button_clicked(&g_input, Mouse_Button_Left))
+      {
+        ui_context.hash_active = widget->hash;
+      }
+    }
+  }
+  if (input_is_button_up(&g_input, Mouse_Button_Left) && input_was_button_down(&g_input, Mouse_Button_Left))
+  {
+    ui_context.hash_active = 0;
+  }
+
+  // Interaction
+  if (ui_context.hash_active == widget->hash)
+  {
+    if (HasFlags(widget->flags, UI_Widget_Flags_Display_Draggable))
+    {
+      if (ui_context.hash_active != 0)
+      {
+      }
+    }
+  }
 
   // Update parent 
   if (parent != ui_context.root)
@@ -212,7 +248,6 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
   // Style
   widget->target_background_color = ui_stack_top(background_color);
 
-
   if (HasFlags(flags, UI_Widget_Flags_Display_String))
   {
     widget->string            = string;
@@ -225,7 +260,7 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
     widget->cursor.x = widget->cursor.x + widget->string_dimensions.x + widget->padding_x;
   }
 
-  if (HasFlags(flags, UI_Widget_Flags_Mouse_Clickable))
+  if (HasFlags(flags, UI_Widget_Flags_Display_Hoverable))
   {
     if (ui_mouse_in_rect(widget->bounds))
     {
@@ -268,11 +303,11 @@ ui_clean_string(Arena* arena, String8 string)
 }
 
 function void
-ui_debug_draw_widget(UI_Widget* widget)
+ui_debug_draw_widget(UI_Widget* widget, f32 depth)
 {
-  if (ui_context.debug.show_cursor) r_draw_point(vec2f32_add(widget->clip.top_left, widget->cursor), GREEN(1), widget->depth - (F32_EPSILON*3));
-  if (ui_context.debug.show_bounds) r_draw_box(widget->bounds.top_left, widget->bounds.size, RED(1), widget->depth - F32_EPSILON);
-  if (ui_context.debug.show_clip)   r_draw_box(widget->clip.top_left, widget->clip.size, YELLOW(1), widget->depth - (F32_EPSILON*2));
+  if (ui_context.debug.show_cursor) r_draw_point(vec2f32_add(widget->clip.top_left, widget->cursor), GREEN(1), depth - (F32_EPSILON*3));
+  if (ui_context.debug.show_bounds) r_draw_box(widget->bounds.top_left, widget->bounds.size, RED(1), depth - F32_EPSILON);
+  if (ui_context.debug.show_clip)   r_draw_box(widget->clip.top_left, widget->clip.size, YELLOW(1), depth - (F32_EPSILON*2));
 }
 
 function Rectf32
@@ -311,6 +346,7 @@ ui_mouse_in_rect(Rectf32 rect)
   return result;
 }
 
+#if 0
 function UI_Cache*
 ui_get_cached_widget(UI_Widget* widget)
 {
@@ -337,12 +373,14 @@ ui_get_cached_widget(UI_Widget* widget)
     cached_widget->bounds = widget->bounds;
     cached_widget->clip   = widget->clip;
     cached_widget->cursor = widget->cursor;
+    cached_widget->actual_background_color = BROWN(1);
 
     ui_cached_widgets_count += 1;
   }
 
   return cached_widget;
 }
+#endif
 
 // Widget tree
 function void

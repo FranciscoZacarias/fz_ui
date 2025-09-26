@@ -14,6 +14,8 @@ enum
 {
   UI_Widget_Flags_Mouse_Clickable = (1<<0),
   UI_Widget_Flags_Display_String  = (1<<1),
+  UI_Widget_Flags_Display_Draggable = (1<<2),
+  UI_Widget_Flags_Display_Hoverable = (1<<3),
 };
 
 typedef u64 UI_Signal_Flags;
@@ -68,22 +70,6 @@ struct UI_Widget
   f32 text_pixel_height;
 };
 
-typedef struct UI_Cache UI_Cache;
-struct UI_Cache
-{
-  u64 hash;
-
-  Rectf32 bounds;
-  Rectf32 clip;
-  Vec2f32 cursor;
-
-  Color actual_background_color;
-};
-
-#define UI_MAX_CACHED_WIDGETS 64
-global UI_Cache ui_cached_widgets[UI_MAX_CACHED_WIDGETS];
-global u32 ui_cached_widgets_count = 0;
-
 typedef struct UI_Signal UI_Signal;
 struct UI_Signal
 {
@@ -101,6 +87,11 @@ struct UI_Context
 
   // Cross frame 
   Arena* arena;
+
+  u64 hash_active;
+  f32 hash_active_depth;
+  u64 hash_hot;
+  f32 hash_hot_depth;
 
   // State
   ui_stack(UI_Widget*,   widget,           UI_STACKS_MAX);
@@ -149,10 +140,10 @@ function UI_Signal  ui_signal_from_widget(UI_Widget* widget);
 function Rectf32    ui_clip_rect(Rectf32 parent, Rectf32 child);
 
 // Helper
-function String8   ui_clean_string(Arena* arena, String8 string);
-function void      ui_debug_draw_widget(UI_Widget* widget);
-function b32       ui_mouse_in_rect(Rectf32 rect);
-function UI_Cache* ui_get_cached_widget(UI_Widget* widget);
+function String8    ui_clean_string(Arena* arena, String8 string);
+function void       ui_debug_draw_widget(UI_Widget* widget, f32 depth);
+function b32        ui_mouse_in_rect(Rectf32 rect);
+function UI_Widget* ui_get_cached_widget(UI_Widget* widget);
 
 // Widget tree
 function void ui_add_widget_child(UI_Widget *parent, UI_Widget *child);
