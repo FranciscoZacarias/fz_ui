@@ -96,7 +96,7 @@ ui_render_widget(UI_Widget* widget)
   if (ui_context.root != widget)
   {
     r_draw_quad(widget->bounds.top_left, widget->bounds.size, 0, widget->background_color, widget->depth);
-    if (widget->show_string)
+    if (HasFlags(widget->flags, UI_Widget_Flags_Display_String))
     {
       r_draw_text(widget->string_top_left, widget->text_pixel_height, widget->text_color, widget->string, widget->depth - F32_EPSILON);
     }
@@ -208,7 +208,6 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
   widget->background_color = ui_stack_top(background_color);
   if (HasFlags(flags, UI_Widget_Flags_Display_String))
   {
-    widget->show_string       = true;
     widget->string            = string;
     widget->string_top_left   = vec2f32_add(widget->clip.top_left, widget->cursor);
     widget->text_pixel_height = ui_stack_top(text_height);
@@ -269,26 +268,6 @@ ui_debug_draw_widget(UI_Widget* widget)
   if (ui_context.debug.show_clip)   r_draw_box(widget->clip.top_left, widget->clip.size, YELLOW(1), widget->depth - (F32_EPSILON*2));
 }
 
-// Widget tree
-function void
-ui_add_widget_child(UI_Widget *parent, UI_Widget *child)
-{
-  child->parent   = parent;
-  child->next     = NULL;
-  child->previous = parent->last;
-
-  if (parent->last)
-  {
-    parent->last->next = child;
-  }
-  else
-  {
-    parent->first = child;
-  }
-
-  parent->last = child;
-}
-
 function Rectf32
 ui_clip_rect(Rectf32 parent, Rectf32 child)
 {
@@ -323,4 +302,56 @@ ui_mouse_in_rect(Rectf32 rect)
   b32 result = (mouse.x >= rect.top_left.x && mouse.x <= rect.top_left.x + rect.size.x &&
                 mouse.y >= rect.top_left.y && mouse.y <= rect.top_left.y + rect.size.y);
   return result;
+}
+
+function UI_Cache*
+ui_get_cached_widget(UI_Widget* widget)
+{
+  UI_Cache* cached_widget = NULL;
+
+  for (u32 i = 0; i < ui_cached_widgets_count; i += 1)
+  {
+    if (ui_cached_widgets[i].hash == widget->hash)
+    {
+      cached_widget = &ui_cached_widgets[i];
+      break;
+    }
+  }
+
+  if (cached_widget == NULL)
+  {
+    if (ui_cached_widgets_count >= UI_MAX_CACHED_WIDGETS)
+    {
+      emit_fatal(S("Too many widgets"));
+    }
+
+    cached_widget->hash   = widget->hash;
+    cached_widget->bounds = widget->bounds;
+    cached_widget->clip   = widget->clip;
+    cached_widget->cursor = widget->cursor;
+
+    ui_cached_widgets_count += 1;
+  }
+
+  return cached_widget;
+}
+
+// Widget tree
+function void
+ui_add_widget_child(UI_Widget *parent, UI_Widget *child)
+{
+  child->parent   = parent;
+  child->next     = NULL;
+  child->previous = parent->last;
+
+  if (parent->last)
+  {
+    parent->last->next = child;
+  }
+  else
+  {
+    parent->first = child;
+  }
+
+  parent->last = child;
 }

@@ -62,13 +62,25 @@ struct UI_Widget
   Color text_color;
 
   // String stuff
-  b32 show_string;
   String8 string;
   Vec2f32 string_top_left;
   Vec2f32 string_dimensions;
   f32 text_pixel_height;
 };
 
+typedef struct UI_Cache UI_Cache;
+struct UI_Cache
+{
+  u64 hash;
+
+  Rectf32 bounds;
+  Rectf32 clip;
+  Vec2f32 cursor;
+};
+
+#define UI_MAX_CACHED_WIDGETS 64
+global UI_Cache ui_cached_widgets[UI_MAX_CACHED_WIDGETS];
+global u32 ui_cached_widgets_count = 0;
 
 typedef struct UI_Signal UI_Signal;
 struct UI_Signal
@@ -133,9 +145,10 @@ function UI_Signal  ui_signal_from_widget(UI_Widget* widget);
 function Rectf32    ui_clip_rect(Rectf32 parent, Rectf32 child);
 
 // Helper
-function String8 ui_clean_string(Arena* arena, String8 string);
-function void    ui_debug_draw_widget(UI_Widget* widget);
-function b32     ui_mouse_in_rect(Rectf32 rect);
+function String8   ui_clean_string(Arena* arena, String8 string);
+function void      ui_debug_draw_widget(UI_Widget* widget);
+function b32       ui_mouse_in_rect(Rectf32 rect);
+function UI_Cache* ui_get_cached_widget(UI_Widget* widget);
 
 // Widget tree
 function void ui_add_widget_child(UI_Widget *parent, UI_Widget *child);
