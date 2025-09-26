@@ -16,7 +16,7 @@ enum
   UI_Widget_Flags_Display_String  = (1<<1),
 };
 
-typedef u32 UI_Signal_Flags;
+typedef u64 UI_Signal_Flags;
 enum
 {
   UI_Signal_Flags_Left_Down   = (1<<0),
@@ -26,7 +26,15 @@ enum
   UI_Signal_Flags_Left_Clicked   = (1<<3),
   UI_Signal_Flags_Middle_Clicked = (1<<4),
   UI_Signal_Flags_Right_Clicked  = (1<<5),
+
+  UI_Signal_Flags_Mouse_Hovered  = (1<<6),
 };
+
+typedef enum
+{
+  UI_Alignment_X,
+  UI_Alignment_Y
+} UI_Alignment;
 
 typedef struct UI_Widget UI_Widget;
 struct UI_Widget
@@ -41,12 +49,13 @@ struct UI_Widget
   UI_Widget* parent;   /* Parent of current widget */
 
   // Widget Settings
-  Rectf32 bounds;  /* Container rectangle drawing bounds */
-  Rectf32 clip;    /* Clipping rectangle for children */
+  Rectf32 bounds;  /* Container rectangle drawing bounds - Absolute values */
+  Rectf32 clip;    /* Clipping rectangle for children - Absolute values */
   Vec2f32 cursor;  /* Next position to draw - Relative to widget->clip */
   f32 padding_x;
   f32 padding_y;
   f32 depth; /* Keeps track of that's in front. Smaller number means closer to the camera. 1 is root */
+  UI_Widget_Flags flags;
 
   // Style
   Color background_color;
@@ -56,8 +65,10 @@ struct UI_Widget
   b32 show_string;
   String8 string;
   Vec2f32 string_top_left;
+  Vec2f32 string_dimensions;
   f32 text_pixel_height;
 };
+
 
 typedef struct UI_Signal UI_Signal;
 struct UI_Signal
@@ -78,15 +89,18 @@ struct UI_Context
   UI_Widget* root;
 
   // State
-  ui_stack(UI_Widget*, widget,           UI_STACKS_MAX);
-  ui_stack(Vec2f32,    top_left,         UI_STACKS_MAX);
-  ui_stack(f32,        size_x,           UI_STACKS_MAX);
-  ui_stack(f32,        size_y,           UI_STACKS_MAX);
-  ui_stack(f32,        padding_x,        UI_STACKS_MAX);
-  ui_stack(f32,        padding_y,        UI_STACKS_MAX);
-  ui_stack(Color,      background_color, UI_STACKS_MAX);
-  ui_stack(Color,      text_color,       UI_STACKS_MAX);
-  ui_stack(f32,        text_height,      UI_STACKS_MAX);
+  ui_stack(UI_Widget*,   widget,           UI_STACKS_MAX);
+  ui_stack(Vec2f32,      top_left,         UI_STACKS_MAX);
+  ui_stack(f32,          size_x,           UI_STACKS_MAX);
+  ui_stack(f32,          size_y,           UI_STACKS_MAX);
+  ui_stack(f32,          padding_x,        UI_STACKS_MAX);
+  ui_stack(f32,          padding_y,        UI_STACKS_MAX);
+  ui_stack(f32,          spacing_x,        UI_STACKS_MAX); /* Spacing does not count towards the clip calculation */
+  ui_stack(f32,          spacing_y,        UI_STACKS_MAX); /* Spacing does not count towards the clip calculation */
+  ui_stack(Color,        background_color, UI_STACKS_MAX);
+  ui_stack(Color,        text_color,       UI_STACKS_MAX);
+  ui_stack(f32,          text_height,      UI_STACKS_MAX);
+  ui_stack(UI_Alignment, alignment,        UI_STACKS_MAX);
 
   b32 is_initialized; /* Has ui_init been called */
   b32 is_working;     /* If true, ui_begin() was last called. If false, ui_end() was last called */

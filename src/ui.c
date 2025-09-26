@@ -12,16 +12,19 @@ function void ui_init()
 
     ui_context.debug.show_bounds = true;
     ui_context.debug.show_clip = true;
-    ui_context.debug.show_cursor = true;
+    ui_context.debug.show_cursor = false;
 
     ui_stack_init(top_left, vec2f32(10.0f, 10.0f));
     ui_stack_init(size_x, 200.0f);
     ui_stack_init(size_y, 300.0f);
     ui_stack_init(padding_x, 0.0f);
     ui_stack_init(padding_y, 0.0f);
+    ui_stack_init(spacing_x, 0);
+    ui_stack_init(spacing_y, 0);
     ui_stack_init(background_color, BLACK(1));
     ui_stack_init(text_color, WHITE(1));
     ui_stack_init(text_height, 16);
+    ui_stack_init(alignment, UI_Alignment_Y);
   }
 }
 
@@ -38,11 +41,7 @@ function void ui_begin()
     ui_context.root->bounds    = rectf32(vec2f32(0,0), vec2f32(window_size.x, window_size.y));
     ui_context.root->clip      = rectf32(vec2f32(0,0), vec2f32(window_size.x, window_size.y));
     ui_context.root->cursor    = vec2f32(0.0f, 0.0f);
-    ui_context.root->padding_x = 0.0f;
-    ui_context.root->padding_y = 0.0f;
-
-    // Window widget is considered 0 depth
-    ui_context.root->depth  = 1;
+    ui_context.root->depth     = 1;
 
     ui_stack_push(widget, ui_context.root);
   }
@@ -78,7 +77,6 @@ function void ui_end()
 #endif
 
   ui_render_widget(ui_context.root);
-  printf("\n\n\n");
 
   // Reset tree
   ui_context.root->first    = NULL;
@@ -122,16 +120,19 @@ ui_window_begin(String8 text)
   ui_stack_defer(padding_x, 4.0f)
   ui_stack_defer(padding_y, 4.0f)
   {
-    UI_Widget* widget = ui_widget_from_string(window_string, 0);
-    ui_stack_push(widget, widget);
+    UI_Widget_Flags window_flags = 0;    
+    UI_Widget* window_widget = ui_widget_from_string(window_string, window_flags);
+    UI_Signal  window_signal = ui_signal_from_widget(window_widget);
+    ui_stack_push(widget, window_widget);
   }
 
-  ui_stack_defer(padding_x, 4.0f)
+  ui_stack_defer(spacing_x, 2.0f)
   ui_stack_defer(background_color, GRAY(1))
   ui_stack_defer(size_y, 20.0f)
   {
     UI_Widget_Flags title_bar_flags = UI_Widget_Flags_Mouse_Clickable|UI_Widget_Flags_Display_String;
     UI_Widget* title_bar_widget = ui_widget_from_string(text, title_bar_flags);
+    UI_Signal  title_bar_signal = ui_signal_from_widget(title_bar_widget);
   }
 
   scratch_end(&scratch);
@@ -165,6 +166,8 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
   f32 size_y        = ui_stack_top(size_y);
   f32 padding_x     = ui_stack_top(padding_x);
   f32 padding_y     = ui_stack_top(padding_y);
+  f32 spacing_x     = ui_stack_top(spacing_x);
+  f32 spacing_y     = ui_stack_top(spacing_y);
 
   widget->hash    = string8_hash(string);
   widget->bounds  = ui_clip_rect(parent->clip, rectf32(top_left, vec2f32(size_x, size_y)));
@@ -174,10 +177,32 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
   clip.size     = vec2f32(widget->bounds.size.x - (padding_x * 2), widget->bounds.size.y - (padding_y * 2));
   widget->clip  = ui_clip_rect(widget->bounds, clip);
 
-  widget->cursor    = vec2f32(0.0f, 0.0f);
   widget->padding_x = padding_x;
   widget->padding_y = padding_y;
-  widget->depth     = (parent) ? parent->depth - 0.001f : 1.0f;
+
+  widget->cursor.x = widget->cursor.x + spacing_x;
+  widget->cursor.y = widget->cursor.y + spacing_y;
+
+  widget->depth  = (parent) ? parent->depth - F32_EPSILON : 1.0f;
+  widget->flags  = flags;
+
+  // Update parent 
+  if (parent != ui_context.root)
+  {
+    UI_Alignment alignment = ui_stack_top(alignment);
+    switch (alignment)
+    {
+      case UI_Alignment_Y:
+      {
+        parent->clip.top_left.y = parent->clip.top_left.y + size_y;
+        parent->clip.size.y     = parent->clip.size.y - size_y;
+      } break;
+      default:
+      {
+        emit_fatal(S("Unhandled UI_Alignment"));
+      };
+    }
+  }
 
   // Style
   widget->background_color = ui_stack_top(background_color);
@@ -188,6 +213,10 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
     widget->string_top_left   = vec2f32_add(widget->clip.top_left, widget->cursor);
     widget->text_pixel_height = ui_stack_top(text_height);
     widget->text_color        = ui_stack_top(text_color);
+
+    // TODO(fz): Dimensions could be cached
+    widget->string_dimensions = r_text_dimensions(widget->string, widget->text_pixel_height);
+    widget->cursor.x = widget->cursor.x + widget->string_dimensions.x + widget->padding_x;
   }
 
   if (HasFlags(flags, UI_Widget_Flags_Mouse_Clickable))
@@ -205,6 +234,19 @@ function UI_Signal
 ui_signal_from_widget(UI_Widget* widget)
 {
   UI_Signal signal = (UI_Signal){0};
+
+  if (ui_mouse_in_rect(widget->bounds))
+  {
+    SetFlags(signal.flags, UI_Signal_Flags_Mouse_Hovered);
+
+    if (input_is_button_down(&g_input, Mouse_Button_Left))      SetFlags(signal.flags, UI_Signal_Flags_Left_Clicked);
+    if (input_is_button_down(&g_input, Mouse_Button_Middle))    SetFlags(signal.flags, UI_Signal_Flags_Middle_Clicked);
+    if (input_is_button_down(&g_input, Mouse_Button_Right))     SetFlags(signal.flags, UI_Signal_Flags_Right_Clicked);
+    
+    if (input_is_button_clicked(&g_input, Mouse_Button_Left))   SetFlags(signal.flags, UI_Signal_Flags_Left_Clicked);
+    if (input_is_button_clicked(&g_input, Mouse_Button_Middle)) SetFlags(signal.flags, UI_Signal_Flags_Middle_Clicked);
+    if (input_is_button_clicked(&g_input, Mouse_Button_Right))  SetFlags(signal.flags, UI_Signal_Flags_Right_Clicked);
+  }
 
   return signal;
 }
