@@ -14,8 +14,8 @@ enum
 {
   UI_Widget_Flags_Mouse_Clickable = (1<<0),
   UI_Widget_Flags_Display_String  = (1<<1),
-  UI_Widget_Flags_Display_Draggable = (1<<2),
-  UI_Widget_Flags_Display_Hoverable = (1<<3),
+  UI_Widget_Flags_Draggable = (1<<2),
+  UI_Widget_Flags_Hoverable = (1<<3),
 };
 
 typedef u64 UI_Signal_Flags;
@@ -37,6 +37,15 @@ typedef enum
   UI_Alignment_X,
   UI_Alignment_Y
 } UI_Alignment;
+
+typedef struct UI_Color_Scheme UI_Color_Scheme;
+struct UI_Color_Scheme
+{
+  Color background_color;
+  Color title_bar_color;
+  Color text_color;
+  Color border_color;
+};
 
 typedef struct UI_Widget UI_Widget;
 struct UI_Widget
@@ -61,7 +70,7 @@ struct UI_Widget
 
   // Style
   Color target_background_color;
-  Color text_color;
+  Color target_text_color;
 
   // String stuff
   String8 string;
@@ -69,6 +78,21 @@ struct UI_Widget
   Vec2f32 string_dimensions;
   f32 text_pixel_height;
 };
+
+typedef struct UI_Widget_Cache UI_Widget_Cache;
+struct UI_Widget_Cache
+{
+  u64 hash;
+
+  Vec2f32 drag_offset;
+
+  f32 hover_t;
+  f32 active_t;
+};
+
+#define UI_MAX_CACHED_WIDGETS 16
+global UI_Widget_Cache ui_cached_widgets[UI_MAX_CACHED_WIDGETS];
+global u32 ui_cached_widgets_count = 0;
 
 typedef struct UI_Signal UI_Signal;
 struct UI_Signal
@@ -107,7 +131,7 @@ struct UI_Context
   ui_stack(f32,          text_height,      UI_STACKS_MAX);
   ui_stack(UI_Alignment, alignment,        UI_STACKS_MAX);
 
-  f32 animarion_speed;
+  f32 animation_speed;
 
   b32 is_initialized; /* Has ui_init been called */
   b32 is_working;     /* If true, ui_begin() was last called. If false, ui_end() was last called */
@@ -143,7 +167,10 @@ function Rectf32    ui_clip_rect(Rectf32 parent, Rectf32 child);
 function String8    ui_clean_string(Arena* arena, String8 string);
 function void       ui_debug_draw_widget(UI_Widget* widget, f32 depth);
 function b32        ui_mouse_in_rect(Rectf32 rect);
-function UI_Widget* ui_get_cached_widget(UI_Widget* widget);
+function UI_Widget_Cache* ui_get_cached_widget(u64 hash);
+function void       ui_sync_cache_from_widget(UI_Widget *widget, UI_Widget_Cache *cache);
+function void       ui_sync_widget_from_cache(UI_Widget *widget, UI_Widget_Cache *cache);
+function void       ui_update_widget_state(UI_Widget *widget, UI_Widget_Cache *cache, f32 delta_time);
 
 // Widget tree
 function void ui_add_widget_child(UI_Widget *parent, UI_Widget *child);
