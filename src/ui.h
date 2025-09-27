@@ -168,7 +168,7 @@ function UI_Signal  ui_signal_from_widget(UI_Widget* widget);
 function String8    ui_clean_string(Arena* arena, String8 string);
 function void       ui_debug_draw_widget(UI_Widget* widget, f32 depth);
 function Rectf32    ui_clip_rect(Rectf32 parent, Rectf32 child);
-function b32        ui_mouse_in_rect(Rectf32 rect);
+function b32        ui_is_mouse_in_widget(UI_Widget* widget);
 function UI_Widget_Cache* ui_get_cached_widget(u64 hash);
 function void       ui_sync_cache_from_widget(UI_Widget *widget, UI_Widget_Cache *cache);
 function void       ui_sync_widget_from_cache(UI_Widget *widget, UI_Widget_Cache *cache);
@@ -179,5 +179,7 @@ function void ui_add_widget_child(UI_Widget *parent, UI_Widget *child);
 function void ui_propagate_in_tree_offsets(UI_Widget* widget, Vec2f32 inherited_offset);
 function void ui_update_tree_widgets(UI_Widget* widget);
 function void ui_print_tree(UI_Widget* widget, u32 depth);
+
+#define widget_bounds(widget_ptr) rectf32(vec2f32_add(widget_ptr->bounds.top_left, widget->local_drag_offset), widget_ptr->bounds.size)
 
 #endif // UI_H

@@ -211,11 +211,16 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
   widget->flags     = flags;
   widget->local_drag_offset = vec2f32(0,0);
 
+  widget->string            = string;
+  widget->string_top_left   = vec2f32(0,0);
+  widget->text_pixel_height = ui_stack_top(text_height);
+  widget->target_text_color = ui_stack_top(text_color);
+
   UI_Widget_Cache* cached_widget = ui_get_cached_widget(widget->hash);
   ui_sync_widget_from_cache(widget, cached_widget);
 
   // Input
-  if (ui_mouse_in_rect(widget->bounds))
+  if (ui_is_mouse_in_widget(widget))
   {
     if (widget->depth < ui_context.hash_hot_depth)
     {
@@ -269,18 +274,6 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
     }
   }
 
-  if (HasFlags(flags, UI_Widget_Flags_Display_String))
-  {
-    widget->string            = string;
-    widget->string_top_left   = vec2f32_add(widget->clip.top_left, widget->cursor);
-    widget->text_pixel_height = ui_stack_top(text_height);
-    widget->target_text_color = ui_stack_top(text_color);
-
-    // TODO(fz): Dimensions could be cached
-    widget->string_dimensions = r_text_dimensions(widget->string, widget->text_pixel_height);
-    widget->cursor.x = widget->cursor.x + widget->string_dimensions.x + widget->padding_x;
-  }
-
   ui_sync_cache_from_widget(widget, cached_widget);
   return widget;
 }
@@ -290,7 +283,7 @@ ui_signal_from_widget(UI_Widget* widget)
 {
   UI_Signal signal = (UI_Signal){0};
 
-  if (ui_mouse_in_rect(widget->bounds))
+  if (ui_is_mouse_in_widget(widget))
   {
     SetFlags(signal.flags, UI_Signal_Flags_Mouse_Hovered);
 
@@ -352,11 +345,16 @@ ui_clip_rect(Rectf32 parent, Rectf32 child)
 }
 
 function b32
-ui_mouse_in_rect(Rectf32 rect)
+ui_is_mouse_in_widget(UI_Widget* widget)
 {
+  UI_Widget_Cache* cached_widget = ui_get_cached_widget(widget->hash);
+
+  Rectf32 bounds = widget->bounds;
+  bounds.top_left = vec2f32_add(widget->bounds.top_left, cached_widget->accumulated_drag_offset);
+
   Vec2f32 mouse = g_input.mouse_current.screen_space;
-  b32 result = (mouse.x >= rect.top_left.x && mouse.x <= rect.top_left.x + rect.size.x &&
-                mouse.y >= rect.top_left.y && mouse.y <= rect.top_left.y + rect.size.y);
+  b32 result = (mouse.x >= bounds.top_left.x && mouse.x <= bounds.top_left.x + bounds.size.x &&
+                mouse.y >= bounds.top_left.y && mouse.y <= bounds.top_left.y + bounds.size.y);
   return result;
 }
 
@@ -447,7 +445,7 @@ ui_update_widget_state(UI_Widget *widget, UI_Widget_Cache *cache, f32 delta_time
   // Hover
   if (HasFlags(widget->flags, UI_Widget_Flags_Hoverable))
   {
-    b32 hovered = ui_mouse_in_rect(widget->bounds);
+    b32 hovered = ui_is_mouse_in_widget(widget);
     if (hovered)
     {
       cache->hover_t = Clamp(cache->hover_t + delta_time * ui_context.animation_speed, 0, 1);
@@ -527,7 +525,11 @@ ui_update_tree_widgets(UI_Widget* widget)
   
   widget->bounds.top_left = vec2f32_add(widget->bounds.top_left, cached_widget->accumulated_drag_offset);
   widget->clip.top_left   = vec2f32_add(widget->clip.top_left, cached_widget->accumulated_drag_offset);
-  
+  widget->string_top_left   = vec2f32_add(widget->clip.top_left, widget->cursor);
+  // TODO(fz): Dimensions could be cached
+  widget->string_dimensions = r_text_dimensions(widget->string, widget->text_pixel_height);
+  widget->cursor.x = widget->cursor.x + widget->string_dimensions.x + widget->padding_x;
+
   for (UI_Widget* child = widget->first; child; child = child->next)
   {
     ui_update_tree_widgets(child);
