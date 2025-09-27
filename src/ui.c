@@ -131,15 +131,19 @@ ui_window_begin(String8 text)
 
   String8 window_string = Sf(scratch.arena, "##window_text_"S_FMT"", S_ARG(text));
 
+  UI_Widget* window_widget = NULL;
+  UI_Signal  window_signal = (UI_Signal){0};
   ui_stack_defer(padding_x, 4.0f)
   ui_stack_defer(padding_y, 4.0f)
   {
-    UI_Widget_Flags window_flags = 0;
-    UI_Widget* window_widget = ui_widget_from_string(window_string, window_flags);
-    UI_Signal  window_signal = ui_signal_from_widget(window_widget);
+    UI_Widget_Flags window_flags = UI_Widget_Flags_Draggable_By_Children;
+    window_widget = ui_widget_from_string(window_string, window_flags);
+    window_signal = ui_signal_from_widget(window_widget);
     ui_stack_push(widget, window_widget);
   }
 
+  UI_Widget* title_bar_widget = NULL;
+  UI_Signal  title_bar_signal = (UI_Signal){0};
   ui_stack_defer(spacing_x, 2.0f)
   ui_stack_defer(background_color, GRAY(1))
   ui_stack_defer(size_y, 20.0f)
@@ -148,9 +152,14 @@ ui_window_begin(String8 text)
                                       UI_Widget_Flags_Hoverable|
                                       UI_Widget_Flags_Draggable|
                                       UI_Widget_Flags_Display_String;
-    UI_Widget* title_bar_widget = ui_widget_from_string(text, title_bar_flags);
-    UI_Signal  title_bar_signal = ui_signal_from_widget(title_bar_widget);
+    title_bar_widget = ui_widget_from_string(text, title_bar_flags);
+    title_bar_signal = ui_signal_from_widget(title_bar_widget);
   }
+
+  ui_propagate_in_tree_offsets(window_widget, vec2f32(0,0));
+  ui_update_tree_widgets(window_widget);
+
+  ui_print_tree(window_widget, 0);
 
   scratch_end(&scratch);
 }
@@ -193,13 +202,14 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
   clip.top_left = vec2f32(widget->bounds.top_left.x + padding_x, widget->bounds.top_left.y + padding_y);
   clip.size     = vec2f32(widget->bounds.size.x - (padding_x * 2), widget->bounds.size.y - (padding_y * 2));
   widget->clip  = clip; // ui_clip_rect(widget->bounds, clip);
-
+  
   widget->padding_x = padding_x;
   widget->padding_y = padding_y;
   widget->cursor.x  = widget->cursor.x + spacing_x;
   widget->cursor.y  = widget->cursor.y + spacing_y;
   widget->depth     = (parent) ? parent->depth - F32_EPSILON : 1.0f;
   widget->flags     = flags;
+  widget->local_drag_offset = vec2f32(0,0);
 
   UI_Widget_Cache* cached_widget = ui_get_cached_widget(widget->hash);
   ui_sync_widget_from_cache(widget, cached_widget);
@@ -251,11 +261,11 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
   widget->target_text_color = ui_stack_top(text_color);
 
   // Flags
-
   if (ui_context.hash_active == widget->hash)
   {
     if (HasFlags(widget->flags, UI_Widget_Flags_Draggable))
     {
+      widget->local_drag_offset = g_input.mouse_current.delta;
     }
   }
 
@@ -372,7 +382,7 @@ ui_get_cached_widget(u64 hash)
 
   cached_widget->hash = hash;
   cached_widget->hash = hash;
-  cached_widget->drag_offset = vec2f32(0,0);
+  cached_widget->accumulated_drag_offset = vec2f32(0,0);
   cached_widget->hover_t = 0;
   cached_widget->active_t = 0;
 
@@ -395,7 +405,7 @@ ui_sync_widget_from_cache(UI_Widget *widget, UI_Widget_Cache *cache)
   // if widget is draggable, start with drag offset applied
   //if (HasFlags(widget->flags, UI_Widget_Flags_Draggable))
   //{
-  //  widget->bounds.top_left = vec2f32_add(widget->bounds.top_left, cache->drag_offset);
+  //  widget->bounds.top_left = vec2f32_add(widget->bounds.top_left, cache->accumulated_drag_offset);
   //}
 
   // You generally don’t copy hover_t/active_t *into* the widget
@@ -412,12 +422,13 @@ ui_sync_cache_from_widget(UI_Widget *widget, UI_Widget_Cache *cache)
   }
 
   cache->hash = widget->hash;
+  
 
   // Store drag offset if widget was moved this frame
   //if (HasFlags(widget->flags, UI_Widget_Flags_Draggable))
   //{
   //  // Assuming parent-space offset
-  //  cache->drag_offset = vec2f32_add(widget->bounds.top_left, widget->clip.top_left); // or your chosen reference
+  //  cache->accumulated_drag_offset = vec2f32_add(cache->accumulated_drag_offset, g_input.mouse_current.delta); // or your chosen reference
   //}
 
   // hover_t and active_t are updated per-frame in a state update step,
@@ -481,4 +492,75 @@ ui_add_widget_child(UI_Widget *parent, UI_Widget *child)
   }
 
   parent->last = child;
+}
+
+function void
+ui_propagate_in_tree_offsets(UI_Widget* widget, Vec2f32 inherited_offset)
+{
+  if (HasFlags(widget->flags, UI_Widget_Flags_Draggable_By_Children))
+  {
+    for (UI_Widget* child = widget->first; child; child = child->next)
+    {
+      if (HasFlags(child->flags, UI_Widget_Flags_Draggable) && ui_context.hash_active == child->hash)
+      {
+        widget->local_drag_offset = child->local_drag_offset;
+      }
+    }
+  }
+
+  for (UI_Widget* child = widget->first; child; child = child->next)
+  {
+    ui_propagate_in_tree_offsets(child, widget->local_drag_offset);
+  }
+}
+
+function void
+ui_update_tree_widgets(UI_Widget* widget)
+{
+  if (!widget)
+  {
+    return;
+  }
+
+  UI_Widget_Cache* cached_widget = ui_get_cached_widget(widget->hash);
+  cached_widget->accumulated_drag_offset = vec2f32_add(widget->local_drag_offset, cached_widget->accumulated_drag_offset);
+  
+  widget->bounds.top_left = vec2f32_add(widget->bounds.top_left, cached_widget->accumulated_drag_offset);
+  widget->clip.top_left   = vec2f32_add(widget->clip.top_left, cached_widget->accumulated_drag_offset);
+  
+  for (UI_Widget* child = widget->first; child; child = child->next)
+  {
+    ui_update_tree_widgets(child);
+  }
+}
+
+function void
+ui_print_tree(UI_Widget* widget, u32 depth)
+{
+  if (!widget || (widget->local_drag_offset.x == 0 && widget->local_drag_offset.y == 0))
+  {
+    return;
+  }
+
+  // Print indentation
+  for (u32 i = 0; i < depth; ++i)
+  {
+    printf("+--");
+  }
+
+  // Print widget info
+  UI_Widget_Cache* cache = ui_get_cached_widget(widget->hash);
+  printf(
+    "+ Widget hash: %llu | local_drag: (%.2f, %.2f) | accumulated_drag: (%.2f, %.2f)\n",
+    widget->hash,
+    widget->local_drag_offset.x, widget->local_drag_offset.y,
+    cache->accumulated_drag_offset.x, cache->accumulated_drag_offset.y
+  );
+
+  // Recurse on children
+  for (UI_Widget* child = widget->first; child; child = child->next)
+  {
+    ui_print_tree(child, depth + 1);
+  }
+  printf("\n");
 }

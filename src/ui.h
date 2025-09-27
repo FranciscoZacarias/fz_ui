@@ -16,6 +16,7 @@ enum
   UI_Widget_Flags_Display_String  = (1<<1),
   UI_Widget_Flags_Draggable = (1<<2),
   UI_Widget_Flags_Hoverable = (1<<3),
+  UI_Widget_Flags_Draggable_By_Children = (1<<4),
 };
 
 typedef u64 UI_Signal_Flags;
@@ -67,6 +68,7 @@ struct UI_Widget
   f32 padding_y;
   f32 depth; /* Keeps track of that's in front. Smaller number means closer to the camera. 1 is root */
   UI_Widget_Flags flags;
+  Vec2f32 local_drag_offset; /* How much it was offseted this frame */
 
   // Style
   Color target_background_color;
@@ -84,7 +86,7 @@ struct UI_Widget_Cache
 {
   u64 hash;
 
-  Vec2f32 drag_offset;
+  Vec2f32 accumulated_drag_offset; /* How much it has been offseted in total */
 
   f32 hover_t;
   f32 active_t;
@@ -161,11 +163,11 @@ function void ui_window_end();
 // Builder code
 function UI_Widget* ui_widget_from_string(String8 string, UI_Widget_Flags flags);
 function UI_Signal  ui_signal_from_widget(UI_Widget* widget);
-function Rectf32    ui_clip_rect(Rectf32 parent, Rectf32 child);
 
 // Helper
 function String8    ui_clean_string(Arena* arena, String8 string);
 function void       ui_debug_draw_widget(UI_Widget* widget, f32 depth);
+function Rectf32    ui_clip_rect(Rectf32 parent, Rectf32 child);
 function b32        ui_mouse_in_rect(Rectf32 rect);
 function UI_Widget_Cache* ui_get_cached_widget(u64 hash);
 function void       ui_sync_cache_from_widget(UI_Widget *widget, UI_Widget_Cache *cache);
@@ -174,5 +176,8 @@ function void       ui_update_widget_state(UI_Widget *widget, UI_Widget_Cache *c
 
 // Widget tree
 function void ui_add_widget_child(UI_Widget *parent, UI_Widget *child);
+function void ui_propagate_in_tree_offsets(UI_Widget* widget, Vec2f32 inherited_offset);
+function void ui_update_tree_widgets(UI_Widget* widget);
+function void ui_print_tree(UI_Widget* widget, u32 depth);
 
 #endif // UI_H
