@@ -9,7 +9,7 @@ function void ui_init()
     ui_context.arena           = arena_alloc();
     ui_context.frame_arena     = arena_alloc();
     ui_context.is_initialized  = true;
-    ui_context.animation_speed = 10.0f;
+    ui_context.animation_speed = 6.0f;
 
     ui_context.hash_active_depth = 1.0f;
     ui_context.hash_hot_depth    = 1.0f;
@@ -25,10 +25,12 @@ function void ui_init()
     ui_stack_init(padding_y, 0.0f);
     ui_stack_init(spacing_x, 0);
     ui_stack_init(spacing_y, 0);
-    ui_stack_init(background_color, BLACK(1));
-    ui_stack_init(text_color, WHITE(1));
     ui_stack_init(text_height, 16);
     ui_stack_init(alignment, UI_Alignment_Y);
+    ui_stack_init(background_color, BLACK(1));
+    ui_stack_init(text_color, WHITE(1));
+    ui_stack_init(hover_color, BROWN(1));
+    ui_stack_init(active_color, RED(1));
   }
 }
 
@@ -159,8 +161,6 @@ ui_window_begin(String8 text)
   ui_propagate_in_tree_offsets(window_widget, vec2f32(0,0));
   ui_update_tree_widgets(window_widget);
 
-  ui_print_tree(window_widget, 0);
-
   scratch_end(&scratch);
 }
 
@@ -217,7 +217,6 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
   widget->target_text_color = ui_stack_top(text_color);
 
   UI_Widget_Cache* cached_widget = ui_get_cached_widget(widget->hash);
-  ui_sync_widget_from_cache(widget, cached_widget);
 
   // Input
   if (ui_is_mouse_in_widget(widget))
@@ -237,7 +236,7 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
     ui_context.hash_active = 0;
   }
 
-  // Update parent 
+  // Update parent clip based on this widget
   if (parent != ui_context.root)
   {
     UI_Alignment alignment = ui_stack_top(alignment);
@@ -255,17 +254,37 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
     }
   }
 
-  ui_update_widget_state(widget, cached_widget, g_delta_time);
+  // Hover
+  if (HasFlags(widget->flags, UI_Widget_Flags_Hoverable))
+  {
+    if (ui_is_mouse_in_widget(widget))
+    {
+      cached_widget->hover_t = Clamp(cached_widget->hover_t + g_delta_time * ui_context.animation_speed, 0, 1);
+    }
+    else
+    {
+      cached_widget->hover_t = Clamp(cached_widget->hover_t - g_delta_time * ui_context.animation_speed, 0, 1);
+    }
+  }
+
+  // Active
+  if (HasFlags(widget->flags, UI_Widget_Flags_Mouse_Clickable))
+  {
+    if (ui_context.hash_active == widget->hash)
+    {
+      cached_widget->active_t = Clamp(cached_widget->active_t + g_delta_time * ui_context.animation_speed, 0, 1);
+    }
+    else
+    {
+      cached_widget->active_t = Clamp(cached_widget->active_t - g_delta_time * ui_context.animation_speed, 0, 1);
+    }
+  }
 
   // Style
-  Color base   = ui_stack_top(background_color);
-  Color hover  = BLUE(1);
-  Color active = RED(1); // example
-  widget->target_background_color = color_lerp(base, hover, cached_widget->hover_t);
-  widget->target_background_color = color_lerp(widget->target_background_color, active, cached_widget->active_t);
+  widget->target_background_color = color_lerp(ui_stack_top(background_color), ui_stack_top(hover_color), cached_widget->hover_t);
+  widget->target_background_color = color_lerp(widget->target_background_color, ui_stack_top(active_color), cached_widget->active_t);
   widget->target_text_color = ui_stack_top(text_color);
 
-  // Flags
   if (ui_context.hash_active == widget->hash)
   {
     if (HasFlags(widget->flags, UI_Widget_Flags_Draggable))
@@ -274,7 +293,6 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
     }
   }
 
-  ui_sync_cache_from_widget(widget, cached_widget);
   return widget;
 }
 
@@ -389,89 +407,6 @@ ui_get_cached_widget(u64 hash)
   return cached_widget;
 }
 
-function void
-ui_sync_widget_from_cache(UI_Widget *widget, UI_Widget_Cache *cache)
-{
-  if (!cache || !widget)
-  {
-    return;
-  }
-
-  // Bring over persistent state
-  widget->hash = cache->hash;
-
-  // if widget is draggable, start with drag offset applied
-  //if (HasFlags(widget->flags, UI_Widget_Flags_Draggable))
-  //{
-  //  widget->bounds.top_left = vec2f32_add(widget->bounds.top_left, cache->accumulated_drag_offset);
-  //}
-
-  // You generally don’t copy hover_t/active_t *into* the widget
-  // because they stay in cache. Instead you’ll use them later
-  // to derive style colors during rendering.
-}
-
-function void
-ui_sync_cache_from_widget(UI_Widget *widget, UI_Widget_Cache *cache)
-{
-  if (!cache || !widget)
-  {
-    return;
-  }
-
-  cache->hash = widget->hash;
-  
-
-  // Store drag offset if widget was moved this frame
-  //if (HasFlags(widget->flags, UI_Widget_Flags_Draggable))
-  //{
-  //  // Assuming parent-space offset
-  //  cache->accumulated_drag_offset = vec2f32_add(cache->accumulated_drag_offset, g_input.mouse_current.delta); // or your chosen reference
-  //}
-
-  // hover_t and active_t are updated per-frame in a state update step,
-  // not copied from widget. So leave them here.
-}
-
-
-function void
-ui_update_widget_state(UI_Widget *widget, UI_Widget_Cache *cache, f32 delta_time)
-{
-  if (!cache || !widget)
-  {
-    return;
-  }
-
-  // Hover
-  if (HasFlags(widget->flags, UI_Widget_Flags_Hoverable))
-  {
-    b32 hovered = ui_is_mouse_in_widget(widget);
-    if (hovered)
-    {
-      cache->hover_t = Clamp(cache->hover_t + delta_time * ui_context.animation_speed, 0, 1);
-    }
-    else
-    {
-      cache->hover_t = Clamp(cache->hover_t - delta_time * ui_context.animation_speed, 0, 1);
-    }
-  }
-
-  // Active
-  if (HasFlags(widget->flags, UI_Widget_Flags_Mouse_Clickable))
-  {
-    b32 active = (ui_context.hash_active == widget->hash);
-    if (active)
-    {
-      cache->active_t = Clamp(cache->active_t + delta_time * ui_context.animation_speed, 0, 1);
-    }
-    else
-    {
-      cache->active_t = Clamp(cache->active_t - delta_time * ui_context.animation_speed, 0, 1);
-    }
-  }
-}
-
-
 // Widget tree
 function void
 ui_add_widget_child(UI_Widget *parent, UI_Widget *child)
@@ -522,13 +457,21 @@ ui_update_tree_widgets(UI_Widget* widget)
 
   UI_Widget_Cache* cached_widget = ui_get_cached_widget(widget->hash);
   cached_widget->accumulated_drag_offset = vec2f32_add(widget->local_drag_offset, cached_widget->accumulated_drag_offset);
-  
+
+  // Bounds
   widget->bounds.top_left = vec2f32_add(widget->bounds.top_left, cached_widget->accumulated_drag_offset);
   widget->clip.top_left   = vec2f32_add(widget->clip.top_left, cached_widget->accumulated_drag_offset);
+
+  // String
   widget->string_top_left   = vec2f32_add(widget->clip.top_left, widget->cursor);
-  // TODO(fz): Dimensions could be cached
-  widget->string_dimensions = r_text_dimensions(widget->string, widget->text_pixel_height);
+  widget->string_dimensions = vec2f32(0,0);
+  if (HasFlags(widget->flags, UI_Widget_Flags_Display_String))
+  {
+    // TODO(fz): Dimensions could be cached
+    widget->string_dimensions = r_text_dimensions(widget->string, widget->text_pixel_height);
+  }
   widget->cursor.x = widget->cursor.x + widget->string_dimensions.x + widget->padding_x;
+  widget->cursor.y = widget->cursor.y + widget->padding_y;
 
   for (UI_Widget* child = widget->first; child; child = child->next)
   {
@@ -544,13 +487,11 @@ ui_print_tree(UI_Widget* widget, u32 depth)
     return;
   }
 
-  // Print indentation
   for (u32 i = 0; i < depth; ++i)
   {
     printf("+--");
   }
 
-  // Print widget info
   UI_Widget_Cache* cache = ui_get_cached_widget(widget->hash);
   printf(
     "+ Widget hash: %llu | local_drag: (%.2f, %.2f) | accumulated_drag: (%.2f, %.2f)\n",
@@ -559,7 +500,6 @@ ui_print_tree(UI_Widget* widget, u32 depth)
     cache->accumulated_drag_offset.x, cache->accumulated_drag_offset.y
   );
 
-  // Recurse on children
   for (UI_Widget* child = widget->first; child; child = child->next)
   {
     ui_print_tree(child, depth + 1);

@@ -128,10 +128,12 @@ struct UI_Context
   ui_stack(f32,          padding_y,        UI_STACKS_MAX);
   ui_stack(f32,          spacing_x,        UI_STACKS_MAX); /* Spacing does not count towards the clip calculation */
   ui_stack(f32,          spacing_y,        UI_STACKS_MAX); /* Spacing does not count towards the clip calculation */
-  ui_stack(Color,        background_color, UI_STACKS_MAX);
-  ui_stack(Color,        text_color,       UI_STACKS_MAX);
   ui_stack(f32,          text_height,      UI_STACKS_MAX);
   ui_stack(UI_Alignment, alignment,        UI_STACKS_MAX);
+  ui_stack(Color,        background_color, UI_STACKS_MAX);
+  ui_stack(Color,        text_color,       UI_STACKS_MAX);
+  ui_stack(Color,        hover_color,      UI_STACKS_MAX);
+  ui_stack(Color,        active_color,     UI_STACKS_MAX);
 
   f32 animation_speed;
 
@@ -170,9 +172,6 @@ function void       ui_debug_draw_widget(UI_Widget* widget, f32 depth);
 function Rectf32    ui_clip_rect(Rectf32 parent, Rectf32 child);
 function b32        ui_is_mouse_in_widget(UI_Widget* widget);
 function UI_Widget_Cache* ui_get_cached_widget(u64 hash);
-function void       ui_sync_cache_from_widget(UI_Widget *widget, UI_Widget_Cache *cache);
-function void       ui_sync_widget_from_cache(UI_Widget *widget, UI_Widget_Cache *cache);
-function void       ui_update_widget_state(UI_Widget *widget, UI_Widget_Cache *cache, f32 delta_time);
 
 // Widget tree
 function void ui_add_widget_child(UI_Widget *parent, UI_Widget *child);
