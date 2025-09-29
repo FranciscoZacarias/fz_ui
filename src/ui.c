@@ -121,7 +121,9 @@ ui_render_widget(UI_Node* widget_root)
     r_draw_quad(widget_root->bounds.top_left, widget_root->bounds.size, 0, widget_root->target_background_color, widget_root->depth);
     if (HasFlags(widget_root->flags, UI_Widget_Flags_Display_String))
     {
-      r_draw_text(widget_root->string_top_left, widget_root->text_pixel_height, widget_root->target_text_color, widget_root->string, widget_root->depth - F32_EPSILON);
+      f32 clamp_width  = (widget_root->clip.top_left.x + widget_root->clip.size.x) - widget_root->string_top_left.x;
+      f32 clamp_height = (widget_root->clip.top_left.y + widget_root->clip.size.y) - widget_root->string_top_left.y;
+      r_draw_text_clamped(widget_root->string_top_left, widget_root->text_pixel_height, widget_root->target_text_color, widget_root->string, widget_root->depth - F32_EPSILON, clamp_width, clamp_height);
     }
     ui_debug_draw_node(widget_root, widget_root->depth);
   }
@@ -184,7 +186,7 @@ ui_window_begin(String8 text)
                                       UI_Widget_Flags_Hoverable|
                                       UI_Widget_Flags_Draggable|
                                       UI_Widget_Flags_Display_String;
-    title_bar_widget2 = ui_node_from_string(S("Another Title Bar##123abc"), title_bar_flags);
+    title_bar_widget2 = ui_node_from_string(S("Another Title Bar AAAAAAAAAAAA ##123abc"), title_bar_flags);
     title_bar_signal2 = ui_signal_from_node(title_bar_widget2);
   }
 #endif
