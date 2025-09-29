@@ -48,7 +48,8 @@ function void ui_init()
     ui_context.hash_active_depth = 1.0f;
     ui_context.hash_hot_depth    = 1.0f;
 
-    ui_context.color_scheme = ui_color_scheme_dark;
+    ui_context.text_pixel_height = 16;
+    ui_context.color_scheme      = ui_color_scheme_dark;
 
     ui_context.debug.show_bounds  = true;
     ui_context.debug.show_clip    = true;
@@ -65,7 +66,6 @@ function void ui_init()
     ui_stack_init(padding_y,        0.0f);
     ui_stack_init(spacing_x,        0);
     ui_stack_init(spacing_y,        0);
-    ui_stack_init(text_height,      16);
     ui_stack_init(alignment_kind,   UI_Alignment_Kind_Y);
     ui_stack_init(width_kind,       UI_Width_Kind_Fill);
     ui_stack_init(height_kind,      UI_Height_Kind_Fill);
@@ -113,6 +113,14 @@ function void ui_begin()
   {
     ui_context.debug.show_cursor = !ui_context.debug.show_cursor;
   }
+  if (input_is_key_clicked(&g_input, Keyboard_Key_NUMPAD4))
+  {
+    ui_context.text_pixel_height -= 1;
+  }
+  if (input_is_key_clicked(&g_input, Keyboard_Key_NUMPAD5))
+  {
+    ui_context.text_pixel_height += 1;
+  }
 }
 
 function void ui_end()
@@ -126,7 +134,6 @@ function void ui_end()
   ui_stack_assert_top_at(padding_y, 0);
   ui_stack_assert_top_at(background_color, 0);
   ui_stack_assert_top_at(text_color, 0);
-  ui_stack_assert_top_at(text_height, 0);
   if (ui_context.root->depth != 1) emit_fatal(Sf(ui_context.arena, "UI: ui_context.root->depth is expected to be 1. It was: %.10f\n", ui_context.root->depth));
 #endif
 
@@ -164,7 +171,7 @@ ui_render_widget(UI_Node* widget_root)
     {
       f32 clamp_width  = (widget_root->clip.top_left.x + widget_root->clip.size.x) - widget_root->string_top_left.x;
       f32 clamp_height = (widget_root->clip.top_left.y + widget_root->clip.size.y) - widget_root->string_top_left.y;
-      r_draw_text_clamped(widget_root->string_top_left, widget_root->text_pixel_height, widget_root->target_text_color, widget_root->string, widget_root->depth - F32_EPSILON, clamp_width, clamp_height);
+      r_draw_text_clamped(widget_root->string_top_left, ui_context.text_pixel_height, widget_root->target_text_color, widget_root->string, widget_root->depth - F32_EPSILON, clamp_width, clamp_height);
     }
     ui_debug_draw_node(widget_root, widget_root->depth);
   }
@@ -282,7 +289,6 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   widget->alignment_kind    = ui_stack_top(alignment_kind);
   widget->string            = ui_clean_string(ui_context.frame_arena, string);
   widget->string_top_left   = vec2f32(0,0);
-  widget->text_pixel_height = ui_stack_top(text_height);
   widget->local_drag_offset = vec2f32(0,0);
   widget->flags             = flags;
 
@@ -611,7 +617,7 @@ ui_update_tree_nodes(UI_Node* widget_root)
   // String
   if (HasFlags(widget_root->flags, UI_Widget_Flags_Display_Text))
   {
-    widget_root->string_dimensions = r_text_dimensions(widget_root->string, widget_root->text_pixel_height);
+    widget_root->string_dimensions = r_text_dimensions(widget_root->string, ui_context.text_pixel_height);
     widget_root->string_top_left = vec2f32_add(widget_root->clip.top_left, widget_root->cursor);
 
     if (HasFlags(widget_root->flags, UI_Widget_Flags_Center_Text_Horizontally))

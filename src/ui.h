@@ -160,6 +160,8 @@ struct UI_Context
   UI_Color_Scheme color_scheme;
 
   // State
+  u32 text_pixel_height;
+
   ui_stack(UI_Node*,          node,             UI_STACKS_MAX);
   ui_stack(Vec2f32,           top_left,         UI_STACKS_MAX);
   ui_stack(f32,               size_x,           UI_STACKS_MAX);
@@ -168,7 +170,6 @@ struct UI_Context
   ui_stack(f32,               padding_y,        UI_STACKS_MAX);
   ui_stack(f32,               spacing_x,        UI_STACKS_MAX); /* Spacing does not count towards the clip calculation */
   ui_stack(f32,               spacing_y,        UI_STACKS_MAX); /* Spacing does not count towards the clip calculation */
-  ui_stack(f32,               text_height,      UI_STACKS_MAX);
   ui_stack(UI_Alignment_Kind, alignment_kind,   UI_STACKS_MAX);
   ui_stack(UI_Width_Kind,     width_kind,       UI_STACKS_MAX);
   ui_stack(UI_Height_Kind,    height_kind,      UI_STACKS_MAX);
