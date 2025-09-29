@@ -10,8 +10,7 @@
 
 ///////////////////////////////////////////////////////
 // @Section: project
-
-#define PROJECT_NAME S("fz_render_2d")
+#define PROJECT_NAME S("fz_ui")
 
 global Input_State g_input;
 global f32 g_delta_time    = 0.0f;
