@@ -29,7 +29,7 @@ function void ui_init()
     .button = (UI_Node_Color_Scheme)
     {
       .border_color            = color(0.3f, 0.3f, 0.3f, 1.0f),
-      .background_color        = color(0.2f, 0.2f, 0.2f, 1.0f),
+      .background_color        = color(0.29f, 0.29f, 0.29f, 1.0f),
       .background_hover_color  = color(0.25f, 0.25f, 0.25f, 1.0f),
       .background_active_color = color(0.15f, 0.15f, 0.15f, 1.0f),
       .text_color        = color(0.95f, 0.95f, 0.95f, 1.0f),
@@ -160,7 +160,7 @@ ui_render_widget(UI_Node* widget_root)
   if (ui_context.root != widget_root)
   {
     r_draw_quad(widget_root->bounds.top_left, widget_root->bounds.size, 0, widget_root->target_background_color, widget_root->depth);
-    if (HasFlags(widget_root->flags, UI_Widget_Flags_Display_String))
+    if (HasFlags(widget_root->flags, UI_Widget_Flags_Display_Text))
     {
       f32 clamp_width  = (widget_root->clip.top_left.x + widget_root->clip.size.x) - widget_root->string_top_left.x;
       f32 clamp_height = (widget_root->clip.top_left.y + widget_root->clip.size.y) - widget_root->string_top_left.y;
@@ -193,7 +193,7 @@ ui_window_begin(String8 text)
   ui_stack_defer(width_kind, UI_Width_Kind_Fixed)
   ui_stack_defer(height_kind, UI_Height_Kind_Fixed)
   {
-    UI_Node_Flags window_flags = UI_Widget_Flags_Draggable;
+    UI_Node_Flags window_flags = 0;
     window_widget = ui_node_from_string(window_string, window_flags);
     window_signal = ui_signal_from_node(window_widget);
     ui_stack_push(node, window_widget);
@@ -210,37 +210,40 @@ ui_window_begin(String8 text)
     UI_Node_Flags title_bar_flags = UI_Widget_Flags_Mouse_Clickable|
                                     UI_Widget_Flags_Hoverable|
                                     UI_Widget_Flags_Draggable|
-                                    UI_Widget_Flags_Display_String;
+                                    UI_Widget_Flags_Display_Text;
     title_bar_widget = ui_node_from_string(text, title_bar_flags);
     title_bar_signal = ui_signal_from_node(title_bar_widget);
   }
 
-#if 1
-  UI_Node* title_bar_widget2 = NULL;
-  UI_Signal title_bar_signal2 = (UI_Signal){0};
-  ui_stack_defer_if_default(node_color_scheme, ui_context.color_scheme.title_bar)
-  ui_stack_defer_if_default(spacing_x, 2.0f)
-  ui_stack_defer_if_default(size_y, 20.0f)
-  ui_stack_defer_if_default(alignment_kind, UI_Alignment_Kind_X)
-  ui_stack_defer(height_kind, UI_Height_Kind_Fixed)
-  {
-    UI_Node_Flags title_bar_flags = UI_Widget_Flags_Mouse_Clickable|
-                                    UI_Widget_Flags_Hoverable|
-                                    UI_Widget_Flags_Draggable|
-                                    UI_Widget_Flags_Display_String;
-    title_bar_widget2 = ui_node_from_string(S("Another Title Bar AAAAAAAAAAAA ##123abc"), title_bar_flags);
-    title_bar_signal2 = ui_signal_from_node(title_bar_widget2);
-  }
-#endif
-  
-  ui_widget_end(window_widget);
   scratch_end(&scratch);
 }
 
 function void
 ui_window_end()
 {
-  ui_stack_pop(node);
+  ui_widget_end(ui_stack_pop(node));
+}
+
+function UI_Signal
+ui_button(String8 text)
+{
+  UI_Node* button_widget = NULL;
+  UI_Signal button_signal = (UI_Signal){0};
+  ui_stack_defer_if_default(node_color_scheme, ui_context.color_scheme.button)
+  ui_stack_defer_if_default(size_y, 20.0f)
+  ui_stack_defer_if_default(size_x, 80.0f)
+  ui_stack_defer(height_kind, UI_Height_Kind_Fixed)
+  ui_stack_defer(width_kind, UI_Width_Kind_Fixed)
+  {
+    UI_Node_Flags button_flags = UI_Widget_Flags_Mouse_Clickable|
+                                 UI_Widget_Flags_Hoverable|
+                                 UI_Widget_Flags_Display_Text|
+                                 UI_Widget_Flags_Center_Text;
+    button_widget = ui_node_from_string(text, button_flags);
+    button_signal = ui_signal_from_node(button_widget);
+  }
+  
+  return button_signal;
 }
 
 // Builder code
@@ -400,8 +403,6 @@ ui_signal_from_node(UI_Node* node)
 
   if (ui_is_mouse_in_node(node))
   {
-    SetFlags(signal.flags, UI_Signal_Flags_Mouse_Hovered);
-
     if (input_is_button_down(&g_input, Mouse_Button_Left))      SetFlags(signal.flags, UI_Signal_Flags_Left_Clicked);
     if (input_is_button_down(&g_input, Mouse_Button_Middle))    SetFlags(signal.flags, UI_Signal_Flags_Middle_Clicked);
     if (input_is_button_down(&g_input, Mouse_Button_Right))     SetFlags(signal.flags, UI_Signal_Flags_Right_Clicked);
@@ -409,6 +410,8 @@ ui_signal_from_node(UI_Node* node)
     if (input_is_button_clicked(&g_input, Mouse_Button_Left))   SetFlags(signal.flags, UI_Signal_Flags_Left_Clicked);
     if (input_is_button_clicked(&g_input, Mouse_Button_Middle)) SetFlags(signal.flags, UI_Signal_Flags_Middle_Clicked);
     if (input_is_button_clicked(&g_input, Mouse_Button_Right))  SetFlags(signal.flags, UI_Signal_Flags_Right_Clicked);
+
+    SetFlags(signal.flags, UI_Signal_Flags_Mouse_Hovered);
   }
 
   return signal;
@@ -605,12 +608,19 @@ ui_update_tree_nodes(UI_Node* widget_root)
   widget_root->clip.top_left   = vec2f32_add(widget_root->clip.top_left, cached_widget->accumulated_drag_offset);
 
   // String
-  widget_root->string_top_left   = vec2f32_add(widget_root->clip.top_left, widget_root->cursor);
-  widget_root->string_dimensions = vec2f32(0,0);
-  if (HasFlags(widget_root->flags, UI_Widget_Flags_Display_String))
+  if (HasFlags(widget_root->flags, UI_Widget_Flags_Display_Text))
   {
     // TODO(fz): Dimensions could be cached
+    widget_root->string_top_left   = vec2f32_add(widget_root->clip.top_left, widget_root->cursor);
     widget_root->string_dimensions = r_text_dimensions(widget_root->string, widget_root->text_pixel_height);
+
+    if (HasFlags(widget_root->flags, UI_Widget_Flags_Center_Text))
+    {
+      Vec2f32 clip_size = vec2f32_sub(vec2f32(widget_root->clip.top_left.x + widget_root->clip.size.x, widget_root->clip.top_left.y + widget_root->clip.size.y), widget_root->clip.top_left);
+      f32 offset_x = (clip_size.x - widget_root->string_dimensions.x) * 0.5f;
+      f32 offset_y = (clip_size.y - widget_root->string_dimensions.y) * 0.5f;
+      widget_root->string_top_left = vec2f32_add(widget_root->clip.top_left, vec2f32(offset_x, offset_y));
+    }
   }
 
   switch (widget_root->alignment_kind)

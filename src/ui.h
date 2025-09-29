@@ -41,9 +41,10 @@ typedef u32 UI_Node_Flags;
 enum
 {
   UI_Widget_Flags_Mouse_Clickable = (1<<0),
-  UI_Widget_Flags_Display_String  = (1<<1),
+  UI_Widget_Flags_Display_Text  = (1<<1),
   UI_Widget_Flags_Draggable = (1<<2),
   UI_Widget_Flags_Hoverable = (1<<3),
+  UI_Widget_Flags_Center_Text = (1<<4),
 };
 
 typedef u64 UI_Signal_Flags;
@@ -208,6 +209,11 @@ function void ui_render_widget(UI_Node* widget_root);
 #define  ui_window(text) DeferLoop(ui_window_begin((text)), ui_window_end())
 function void ui_window_begin(String8 text);
 function void ui_window_end();
+
+function UI_Signal ui_button(String8 text);
+
+// Interacation
+#define ui_clicked(signal) HasFlags(signal.flags, UI_Signal_Flags_Left_Clicked)
 
 // Builder code
 function UI_Node*  ui_node_from_string(String8 string, UI_Node_Flags flags);
