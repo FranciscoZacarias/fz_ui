@@ -4,6 +4,40 @@ function void ui_init()
 {
   AssertNoReentry();
 
+  ui_color_scheme_dark = (UI_Color_Scheme)
+  {
+    .title_bar = (UI_Node_Color_Scheme)
+    {
+      .border_color            = color(0.25f, 0.25f, 0.25f, 1.0f),
+      .background_color        = color(0.1f, 0.1f, 0.1f, 1.0f),
+      .background_hover_color  = color(0.1f, 0.1f, 0.1f, 1.0f),
+      .background_active_color = color(0.10f, 0.10f, 0.10f, 1.0f),
+      .text_color        = color(0.95f, 0.95f, 0.95f, 1.0f),
+      .text_hover_color  = color(1.0f, 1.0f, 1.0f, 1.0f),
+      .text_active_color = color(0.90f, 0.90f, 0.90f, 1.0)
+    },
+    .window = (UI_Node_Color_Scheme)
+    {
+      .border_color            = color(0.25f, 0.25f, 0.25f, 1.0f),
+      .background_color        = color(0.2f, 0.2f, 0.2f, 1.0f),
+      .background_hover_color  = color(0.12f, 0.12f, 0.12f, 1.0f),
+      .background_active_color = color(0.12f, 0.12f, 0.12f, 1.0f),
+      .text_color        = color(0.95f, 0.95f, 0.95f, 1.0f),
+      .text_hover_color  = color(0.95f, 0.95f, 0.95f, 1.0f),
+      .text_active_color = color(0.95f, 0.95f, 0.95f, 1.0)
+    },
+    .button = (UI_Node_Color_Scheme)
+    {
+      .border_color            = color(0.3f, 0.3f, 0.3f, 1.0f),
+      .background_color        = color(0.2f, 0.2f, 0.2f, 1.0f),
+      .background_hover_color  = color(0.25f, 0.25f, 0.25f, 1.0f),
+      .background_active_color = color(0.15f, 0.15f, 0.15f, 1.0f),
+      .text_color        = color(0.95f, 0.95f, 0.95f, 1.0f),
+      .text_hover_color  = color(1.0f, 1.0f, 1.0f, 1.0f),
+      .text_active_color = color(0.85f, 0.85f, 0.85f, 1.0)
+    },
+  };
+
   MemoryZeroStruct(&ui_context);
   {
     ui_context.arena           = arena_alloc();
@@ -13,6 +47,8 @@ function void ui_init()
 
     ui_context.hash_active_depth = 1.0f;
     ui_context.hash_hot_depth    = 1.0f;
+
+    ui_context.color_scheme = ui_color_scheme_dark;
 
     ui_context.debug.show_bounds  = true;
     ui_context.debug.show_clip    = true;
@@ -33,10 +69,15 @@ function void ui_init()
     ui_stack_init(alignment_kind,   UI_Alignment_Kind_Y);
     ui_stack_init(width_kind,       UI_Width_Kind_Fill);
     ui_stack_init(height_kind,      UI_Height_Kind_Fill);
-    ui_stack_init(background_color, BLACK(1));
-    ui_stack_init(text_color,       WHITE(1));
-    ui_stack_init(hover_color,      BROWN(1));
-    ui_stack_init(active_color,     RED(1));
+
+    ui_stack_init(node_color_scheme,       ui_context.color_scheme.window);
+    ui_stack_init(border_color,            PURPLE(1));
+    ui_stack_init(background_color,        PURPLE(1));
+    ui_stack_init(background_hover_color,  PURPLE(1));
+    ui_stack_init(background_active_color, PURPLE(1));
+    ui_stack_init(text_color,              PURPLE(1));
+    ui_stack_init(text_hover_color,        PURPLE(1));
+    ui_stack_init(text_active_color,       PURPLE(1));
   }
 }
 
@@ -142,7 +183,8 @@ ui_window_begin(String8 text)
 
   String8 window_string = Sf(scratch.arena, "Debug Text##window_text_"S_FMT"", S_ARG(text));
   UI_Node* window_widget = NULL;
-  UI_Signal  window_signal = (UI_Signal){0};
+  UI_Signal window_signal = (UI_Signal){0};
+  ui_stack_defer_if_default(node_color_scheme, ui_context.color_scheme.window)
   ui_stack_defer_if_default(top_left, vec2f32(200,200))
   ui_stack_defer_if_default(size_x, 200)
   ui_stack_defer_if_default(size_y, 200)
@@ -158,34 +200,34 @@ ui_window_begin(String8 text)
   }
 
   UI_Node* title_bar_widget = NULL;
-  UI_Signal  title_bar_signal = (UI_Signal){0};
+  UI_Signal title_bar_signal = (UI_Signal){0};
+  ui_stack_defer_if_default(node_color_scheme, ui_context.color_scheme.title_bar)
   ui_stack_defer_if_default(spacing_x, 2.0f)
-  ui_stack_defer_if_default(background_color, GRAY(1))
   ui_stack_defer_if_default(size_y, 20.0f)
   ui_stack_defer_if_default(alignment_kind, UI_Alignment_Kind_X)
   ui_stack_defer(height_kind, UI_Height_Kind_Fixed)
   {
     UI_Node_Flags title_bar_flags = UI_Widget_Flags_Mouse_Clickable|
-                                      UI_Widget_Flags_Hoverable|
-                                      UI_Widget_Flags_Draggable|
-                                      UI_Widget_Flags_Display_String;
+                                    UI_Widget_Flags_Hoverable|
+                                    UI_Widget_Flags_Draggable|
+                                    UI_Widget_Flags_Display_String;
     title_bar_widget = ui_node_from_string(text, title_bar_flags);
     title_bar_signal = ui_signal_from_node(title_bar_widget);
   }
 
 #if 1
   UI_Node* title_bar_widget2 = NULL;
-  UI_Signal  title_bar_signal2 = (UI_Signal){0};
+  UI_Signal title_bar_signal2 = (UI_Signal){0};
+  ui_stack_defer_if_default(node_color_scheme, ui_context.color_scheme.title_bar)
   ui_stack_defer_if_default(spacing_x, 2.0f)
-  ui_stack_defer_if_default(background_color, GRAY(1))
   ui_stack_defer_if_default(size_y, 20.0f)
   ui_stack_defer_if_default(alignment_kind, UI_Alignment_Kind_X)
   ui_stack_defer(height_kind, UI_Height_Kind_Fixed)
   {
     UI_Node_Flags title_bar_flags = UI_Widget_Flags_Mouse_Clickable|
-                                      UI_Widget_Flags_Hoverable|
-                                      UI_Widget_Flags_Draggable|
-                                      UI_Widget_Flags_Display_String;
+                                    UI_Widget_Flags_Hoverable|
+                                    UI_Widget_Flags_Draggable|
+                                    UI_Widget_Flags_Display_String;
     title_bar_widget2 = ui_node_from_string(S("Another Title Bar AAAAAAAAAAAA ##123abc"), title_bar_flags);
     title_bar_signal2 = ui_signal_from_node(title_bar_widget2);
   }
@@ -237,7 +279,6 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   widget->string            = ui_clean_string(ui_context.frame_arena, string);
   widget->string_top_left   = vec2f32(0,0);
   widget->text_pixel_height = ui_stack_top(text_height);
-  widget->target_text_color = ui_stack_top(text_color);
   widget->local_drag_offset = vec2f32(0,0);
   widget->flags             = flags;
 
@@ -324,10 +365,22 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   }
 
   // Style
-  widget->target_background_color = color_lerp(ui_stack_top(background_color), ui_stack_top(hover_color), cached_widget->hover_t);
-  widget->target_background_color = color_lerp(widget->target_background_color, ui_stack_top(active_color), cached_widget->active_t);
-  widget->target_text_color = ui_stack_top(text_color);
+  // NOTE(fz): We use colors from the stack if they were explicitly added by the user. Otherwise we just take them from the color scheme
+  widget->node_color_scheme     = ui_stack_top(node_color_scheme);
+  Color border_color            = ui_stack_is_at_bottom(border_color)            ? widget->node_color_scheme.border_color            : ui_stack_top(border_color);
+  Color background_color        = ui_stack_is_at_bottom(background_color)        ? widget->node_color_scheme.background_color        : ui_stack_top(background_color);
+  Color background_hover_color  = ui_stack_is_at_bottom(background_hover_color)  ? widget->node_color_scheme.background_hover_color  : ui_stack_top(background_hover_color);
+  Color background_active_color = ui_stack_is_at_bottom(background_active_color) ? widget->node_color_scheme.background_active_color : ui_stack_top(background_active_color);
+  Color text_color              = ui_stack_is_at_bottom(text_color)              ? widget->node_color_scheme.text_color              : ui_stack_top(text_color);
+  Color text_hover_color        = ui_stack_is_at_bottom(text_hover_color)        ? widget->node_color_scheme.text_hover_color        : ui_stack_top(text_hover_color);
+  Color text_active_color       = ui_stack_is_at_bottom(text_active_color)       ? widget->node_color_scheme.text_active_color       : ui_stack_top(text_active_color);
 
+  widget->target_background_color = color_lerp(background_color, background_hover_color, cached_widget->hover_t);
+  widget->target_background_color = color_lerp(widget->target_background_color, background_active_color, cached_widget->active_t);
+
+  widget->target_text_color = color_lerp(text_color, text_hover_color, cached_widget->hover_t);
+  widget->target_text_color = color_lerp(widget->target_text_color, text_active_color, cached_widget->active_t);
+  
   // Dragging
   if (ui_context.hash_active == widget->hash)
   {

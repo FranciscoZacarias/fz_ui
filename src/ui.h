@@ -1,6 +1,32 @@
 #ifndef UI_H
 #define UI_H
 
+// Color schemes
+typedef struct UI_Node_Color_Scheme UI_Node_Color_Scheme;
+struct UI_Node_Color_Scheme
+{
+  Color border_color;
+
+  Color background_color;
+  Color background_hover_color;
+  Color background_active_color;
+
+  Color text_color;
+  Color text_hover_color;
+  Color text_active_color;
+};
+
+typedef struct UI_Color_Scheme UI_Color_Scheme;
+struct UI_Color_Scheme 
+{
+  UI_Node_Color_Scheme title_bar;
+  UI_Node_Color_Scheme window;
+  UI_Node_Color_Scheme button;
+};
+
+global UI_Color_Scheme ui_color_scheme_dark;
+
+// Stack functions
 #define ui_stack(type, name, size) struct { type data[size]; u32 top_index; type  bottom_val; } name##_stack
 #define ui_stack_init(name, bot_val) Statement((ui_context.name##_stack).top_index = 0; (ui_context.name##_stack).bottom_val = (bot_val);)
 #define ui_stack_push(name, val) ((ui_context.name##_stack).data[((ui_context.name##_stack).top_index < sizeof((ui_context.name##_stack).data)/sizeof((ui_context.name##_stack).data[0])) ? (ui_context.name##_stack).top_index++ : (ui_context.name##_stack).top_index] = (val))
@@ -54,15 +80,6 @@ typedef enum
   UI_Height_Kind_Fixed
 } UI_Height_Kind;
 
-typedef struct UI_Color_Scheme UI_Color_Scheme;
-struct UI_Color_Scheme
-{
-  Color background_color;
-  Color title_bar_color;
-  Color text_color;
-  Color border_color;
-};
-
 typedef struct UI_Node UI_Node;
 struct UI_Node
 {
@@ -89,6 +106,7 @@ struct UI_Node
   Vec2f32 local_drag_offset; /* How much it was offseted this frame */
 
   // Style
+  UI_Node_Color_Scheme node_color_scheme;
   Color target_background_color;
   Color target_text_color;
 
@@ -137,8 +155,10 @@ struct UI_Context
   u64 hash_hot;
   f32 hash_hot_depth;
 
+  UI_Color_Scheme color_scheme;
+
   // State
-  ui_stack(UI_Node*,          node,           UI_STACKS_MAX);
+  ui_stack(UI_Node*,          node,             UI_STACKS_MAX);
   ui_stack(Vec2f32,           top_left,         UI_STACKS_MAX);
   ui_stack(f32,               size_x,           UI_STACKS_MAX);
   ui_stack(f32,               size_y,           UI_STACKS_MAX);
@@ -150,10 +170,16 @@ struct UI_Context
   ui_stack(UI_Alignment_Kind, alignment_kind,   UI_STACKS_MAX);
   ui_stack(UI_Width_Kind,     width_kind,       UI_STACKS_MAX);
   ui_stack(UI_Height_Kind,    height_kind,      UI_STACKS_MAX);
-  ui_stack(Color,             background_color, UI_STACKS_MAX);
-  ui_stack(Color,             text_color,       UI_STACKS_MAX);
-  ui_stack(Color,             hover_color,      UI_STACKS_MAX);
-  ui_stack(Color,             active_color,     UI_STACKS_MAX);
+
+  // For customizing colors without changing color scheme
+  ui_stack(UI_Node_Color_Scheme, node_color_scheme,  UI_STACKS_MAX);
+  ui_stack(Color, border_color,            UI_STACKS_MAX);
+  ui_stack(Color, background_color,        UI_STACKS_MAX);
+  ui_stack(Color, background_hover_color,  UI_STACKS_MAX);
+  ui_stack(Color, background_active_color, UI_STACKS_MAX);
+  ui_stack(Color, text_color,              UI_STACKS_MAX);
+  ui_stack(Color, text_hover_color,        UI_STACKS_MAX);
+  ui_stack(Color, text_active_color,       UI_STACKS_MAX);
 
   f32 animation_speed;
 
@@ -201,6 +227,5 @@ function UI_Node_Cache* ui_get_cached_node(u64 hash);
 function void ui_add_widget_child(UI_Node *parent, UI_Node *child);
 function void ui_update_tree_nodes(UI_Node* widget_root);
 function void ui_print_tree(UI_Node* widget_root, u32 depth);
-
 
 #endif // UI_H
