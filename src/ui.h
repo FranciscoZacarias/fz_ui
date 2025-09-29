@@ -41,10 +41,11 @@ typedef u32 UI_Node_Flags;
 enum
 {
   UI_Widget_Flags_Mouse_Clickable = (1<<0),
-  UI_Widget_Flags_Display_Text  = (1<<1),
-  UI_Widget_Flags_Draggable = (1<<2),
-  UI_Widget_Flags_Hoverable = (1<<3),
-  UI_Widget_Flags_Center_Text = (1<<4),
+  UI_Widget_Flags_Display_Text    = (1<<1),
+  UI_Widget_Flags_Draggable       = (1<<2),
+  UI_Widget_Flags_Hoverable       = (1<<3),
+  UI_Widget_Flags_Center_Text_Horizontally = (1<<4),
+  UI_Widget_Flags_Center_Text_Vertically   = (1<<5)
 };
 
 typedef u64 UI_Signal_Flags;

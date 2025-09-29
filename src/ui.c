@@ -43,7 +43,7 @@ function void ui_init()
     ui_context.arena           = arena_alloc();
     ui_context.frame_arena     = arena_alloc();
     ui_context.is_initialized  = true;
-    ui_context.animation_speed = 6.0f;
+    ui_context.animation_speed = 10.0f;
 
     ui_context.hash_active_depth = 1.0f;
     ui_context.hash_hot_depth    = 1.0f;
@@ -186,11 +186,9 @@ ui_window_begin(String8 text)
   UI_Signal window_signal = (UI_Signal){0};
   ui_stack_defer_if_default(node_color_scheme, ui_context.color_scheme.window)
   ui_stack_defer_if_default(top_left, vec2f32(200,200))
-  ui_stack_defer_if_default(size_x, 200)
-  ui_stack_defer_if_default(size_y, 200)
-  ui_stack_defer(padding_x, 4.0f)
-  ui_stack_defer(padding_y, 4.0f)
-  ui_stack_defer(width_kind, UI_Width_Kind_Fixed)
+  ui_stack_defer_if_default(size_x, 200) ui_stack_defer_if_default(size_y, 200)
+  ui_stack_defer(padding_x, 4.0f) ui_stack_defer(padding_y, 4.0f)
+  ui_stack_defer(width_kind,  UI_Width_Kind_Fixed)
   ui_stack_defer(height_kind, UI_Height_Kind_Fixed)
   {
     UI_Node_Flags window_flags = 0;
@@ -210,7 +208,8 @@ ui_window_begin(String8 text)
     UI_Node_Flags title_bar_flags = UI_Widget_Flags_Mouse_Clickable|
                                     UI_Widget_Flags_Hoverable|
                                     UI_Widget_Flags_Draggable|
-                                    UI_Widget_Flags_Display_Text;
+                                    UI_Widget_Flags_Display_Text|
+                                    UI_Widget_Flags_Center_Text_Vertically;
     title_bar_widget = ui_node_from_string(text, title_bar_flags);
     title_bar_signal = ui_signal_from_node(title_bar_widget);
   }
@@ -232,13 +231,15 @@ ui_button(String8 text)
   ui_stack_defer_if_default(node_color_scheme, ui_context.color_scheme.button)
   ui_stack_defer_if_default(size_y, 20.0f)
   ui_stack_defer_if_default(size_x, 80.0f)
-  ui_stack_defer(height_kind, UI_Height_Kind_Fixed)
-  ui_stack_defer(width_kind, UI_Width_Kind_Fixed)
+  ui_stack_defer(alignment_kind, UI_Alignment_Kind_X)
+  ui_stack_defer(height_kind,    UI_Height_Kind_Fixed)
+  ui_stack_defer(width_kind,     UI_Width_Kind_Fixed)
   {
     UI_Node_Flags button_flags = UI_Widget_Flags_Mouse_Clickable|
                                  UI_Widget_Flags_Hoverable|
                                  UI_Widget_Flags_Display_Text|
-                                 UI_Widget_Flags_Center_Text;
+                                 UI_Widget_Flags_Center_Text_Horizontally|
+                                 UI_Widget_Flags_Center_Text_Vertically;
     button_widget = ui_node_from_string(text, button_flags);
     button_signal = ui_signal_from_node(button_widget);
   }
@@ -610,33 +611,49 @@ ui_update_tree_nodes(UI_Node* widget_root)
   // String
   if (HasFlags(widget_root->flags, UI_Widget_Flags_Display_Text))
   {
-    // TODO(fz): Dimensions could be cached
-    widget_root->string_top_left   = vec2f32_add(widget_root->clip.top_left, widget_root->cursor);
     widget_root->string_dimensions = r_text_dimensions(widget_root->string, widget_root->text_pixel_height);
+    widget_root->string_top_left = vec2f32_add(widget_root->clip.top_left, widget_root->cursor);
 
-    if (HasFlags(widget_root->flags, UI_Widget_Flags_Center_Text))
+    if (HasFlags(widget_root->flags, UI_Widget_Flags_Center_Text_Horizontally))
     {
-      Vec2f32 clip_size = vec2f32_sub(vec2f32(widget_root->clip.top_left.x + widget_root->clip.size.x, widget_root->clip.top_left.y + widget_root->clip.size.y), widget_root->clip.top_left);
-      f32 offset_x = (clip_size.x - widget_root->string_dimensions.x) * 0.5f;
-      f32 offset_y = (clip_size.y - widget_root->string_dimensions.y) * 0.5f;
-      widget_root->string_top_left = vec2f32_add(widget_root->clip.top_left, vec2f32(offset_x, offset_y));
+      f32 offset_x = (widget_root->clip.size.x - widget_root->string_dimensions.x) * 0.5f;
+      widget_root->string_top_left.x = widget_root->clip.top_left.x + offset_x;
+    }
+
+    if (HasFlags(widget_root->flags, UI_Widget_Flags_Center_Text_Vertically))
+    {
+      f32 offset_y = (widget_root->clip.size.y - widget_root->string_dimensions.y) * 0.5f;
+      widget_root->string_top_left.y = widget_root->clip.top_left.y + offset_y;
     }
   }
 
+  // Advance cursor
   switch (widget_root->alignment_kind)
   {
     case UI_Alignment_Kind_X:
     {
-      widget_root->cursor.x = widget_root->cursor.x + widget_root->string_dimensions.x + widget_root->padding_x;
-      widget_root->cursor.y = widget_root->cursor.y + widget_root->padding_y;
-    } break;
-    case UI_Alignment_Kind_Y:
-    {
-      widget_root->cursor.x = widget_root->cursor.x + widget_root->padding_x;
-      widget_root->cursor.y = widget_root->cursor.y + widget_root->string_dimensions.y + widget_root->padding_y;
+      f32 advance_x = HasFlags(widget_root->flags, UI_Widget_Flags_Center_Text_Horizontally)
+                    ? widget_root->clip.size.x
+                    : widget_root->string_dimensions.x;
+
+      widget_root->cursor.x += advance_x + widget_root->padding_x;
+      widget_root->cursor.y += widget_root->padding_y;
     } break;
 
-    default: emit_fatal(S("UI: Unhandled UI_Alignment")); break;
+    case UI_Alignment_Kind_Y:
+    {
+      f32 advance_y = HasFlags(widget_root->flags, UI_Widget_Flags_Center_Text_Vertically)
+                    ? widget_root->clip.size.y
+                    : widget_root->string_dimensions.y;
+
+      widget_root->cursor.x += widget_root->padding_x;
+      widget_root->cursor.y += advance_y + widget_root->padding_y;
+    } break;
+
+    default:
+    {
+      emit_fatal(S("UI: Unhandled UI_Alignment"));
+    } break;
   }
 
   for (UI_Node* child = widget_root->first; child; child = child->next)
