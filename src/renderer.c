@@ -510,6 +510,89 @@ r_draw_text(Vec2f32 top_left, f32 pixel_height, Color color, String8 text, f32 d
 }
 
 function void
+r_draw_text_ext(Vec2f32 top_left, f32 pixel_height, Color color, String8 text, f32 depth, f32 max_width, f32 max_height)
+{
+  if (text.size == 0) 
+  {
+    return;
+  }
+
+  Font *font = g_renderer.selected_font;
+  f32 pixel_scale = pixel_height / font->height;
+
+  Vec2f32 cursor = vec2f32(top_left.x, top_left.y + (font->ascent * pixel_scale));
+  f32 initial_x = cursor.x;
+
+  f32 clip_x0 = top_left.x;
+  f32 clip_y0 = top_left.y;
+  f32 clip_x1 = top_left.x + max_width;
+  f32 clip_y1 = top_left.y + max_height;
+
+  for (u64 i = 0; i < text.size; i++) {
+    u8 c = text.str[i];
+
+    if (c == '\n') {
+      cursor.x = initial_x;
+      cursor.y += (font->line_height * pixel_scale);
+      if (cursor.y > clip_y1) break; // below clip
+      continue;
+    }
+    if (c < 32 || c > 126) continue;
+
+    Glyph *glyph = &font->glyphs[c - 32];
+
+    Vec2f32 pos  = vec2f32(cursor.x + glyph->offset.x * pixel_scale,
+                           cursor.y + glyph->offset.y * pixel_scale);
+    Vec2f32 size = vec2f32(glyph->size.x * pixel_scale,
+                           glyph->size.y * pixel_scale);
+
+    f32 gx0 = pos.x;
+    f32 gy0 = pos.y;
+    f32 gx1 = pos.x + size.x;
+    f32 gy1 = pos.y + size.y;
+
+    // Cull if fully outside
+    if (gx1 <= clip_x0 || gx0 >= clip_x1 || gy1 <= clip_y0 || gy0 >= clip_y1)
+    {
+      cursor.x += glyph->advance * pixel_scale;
+      continue;
+    }
+
+    f32 cx0 = Max(gx0, clip_x0);
+    f32 cy0 = Max(gy0, clip_y0);
+    f32 cx1 = Min(gx1, clip_x1);
+    f32 cy1 = Min(gy1, clip_y1);
+
+    f32 u0 = glyph->uv_min.x;
+    f32 v0 = glyph->uv_min.y;
+    f32 u1 = glyph->uv_max.x;
+    f32 v1 = glyph->uv_max.y;
+
+    f32 du = (u1 - u0) / (gx1 - gx0);
+    f32 dv = (v1 - v0) / (gy1 - gy0);
+
+    Vec2f32 uv_min = vec2f32(u0 + (cx0 - gx0) * du,
+                             v0 + (cy0 - gy0) * dv);
+    Vec2f32 uv_max = vec2f32(u0 + (cx1 - gx0) * du,
+                             v0 + (cy1 - gy0) * dv);
+
+    Vec2f32 cpos  = vec2f32(cx0, cy0);
+    Vec2f32 csize = vec2f32(cx1 - cx0, cy1 - cy0);
+
+    r_draw_primitive(g_renderer.batches[Render_Batch_Text],
+                     cpos, csize, 0.0f, uv_min, uv_max, color,
+                     font->texture_index, depth);
+
+    cursor.x += glyph->advance * pixel_scale;
+    if (cursor.x > clip_x1) {
+      cursor.x = initial_x;
+      cursor.y += (font->line_height * pixel_scale);
+      if (cursor.y > clip_y1) break;
+    }
+  }
+}
+
+function void
 r_draw_point(Vec2f32 position, Color color, f32 depth)
 {
   f32 len = 16.0f;

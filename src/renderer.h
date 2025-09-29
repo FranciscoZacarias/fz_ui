@@ -57,16 +57,18 @@ typedef struct
 global Vec2f32 unit_triangle[6] = {{-0.5f,-0.5f},{0.5f,-0.5f},{-0.5f,0.5f}};
 global Vec2f32 unit_quad[6] = {{-0.5f,-0.5f},{0.5f,-0.5f},{0.5f,0.5f},{-0.5f,-0.5f},{0.5f,0.5f},{-0.5f,0.5f}};
 
-typedef struct
+typedef struct Glyph Glyph;
+struct Glyph
 {
   Vec2f32 uv_min; /* Top left texture coordinate in atlas */
   Vec2f32 uv_max; /* Bottom right texture coordinate in atlas */
   Vec2f32 size; /* Pixel dimensions */
   Vec2f32 offset; /* Pixel offset from the baseline cursor position to where the glyph should be drawn. X is horizontal offset from cursor, Y is vertical offset from baseline (negative Y means above baseline) */
   f32     advance; /* How far - horizontally - to move the cursor after drawing this glyph */
-} Glyph;
+};
 
-typedef struct
+typedef struct Font Font;
+struct Font
 {
   #define FONT_LOAD_SIZE 96
   #define MAX_FONT_GLYPHS 95
@@ -78,7 +80,7 @@ typedef struct
   f32   ascent; /* Pixels from baseline to highest any glyph can reach */
   f32   descent; /* Pixels from baseline to lowest any glyph can reach */
   f32   line_gap; /* Additional spacing between lines */
-} Font;
+};
 
 typedef enum
 {
@@ -171,6 +173,7 @@ function void r_draw_triangle_texture(Vec2f32 top_left, Vec2f32 scale, f32 rotat
 function void r_draw_quad(Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Color color, f32 depth);
 function void r_draw_quad_texture(Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Vec2f32 uv_min, Vec2f32 uv_max, Color gradient, u32 texture_index, f32 depth);
 function void r_draw_text(Vec2f32 top_left, f32 pixel_height, Vec4f32 color, String8 text, f32 depth);
+function void r_draw_text_ext(Vec2f32 top_left, f32 pixel_height, Color color, String8 text, f32 depth, f32 max_width, f32 max_height);
 
 function void r_draw_point(Vec2f32 position, Color color, f32 depth);
 function void r_draw_box(Vec2f32 top_left, Vec2f32 scale, Color color, f32 depth);
