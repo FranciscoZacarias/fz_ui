@@ -11,7 +11,7 @@
 #define ui_stack_defer(name, val) DeferLoop(ui_stack_push(name, val), ui_stack_pop(name))
 #define ui_stack_defer_if_default(name,val) DeferLoop((ui_context.name##_stack.top_index == 0) && (ui_stack_push(name,val),1), (ui_stack_pop(name)))
 
-typedef u32 UI_Widget_Flags;
+typedef u32 UI_Node_Flags;
 enum
 {
   UI_Widget_Flags_Mouse_Clickable = (1<<0),
@@ -63,29 +63,29 @@ struct UI_Color_Scheme
   Color border_color;
 };
 
-typedef struct UI_Widget UI_Widget;
-struct UI_Widget
+typedef struct UI_Node UI_Node;
+struct UI_Node
 {
   u64 hash;
 
-  // Widget tree
-  UI_Widget* first; /* First child */
-  UI_Widget* last;  /* Last child */
-  UI_Widget* next;  /* Next child, after current widget */
-  UI_Widget* previous; /* Previous child, before current widget */
-  UI_Widget* parent;   /* Parent of current widget */
+  // Node tree
+  UI_Node* first; /* First child */
+  UI_Node* last;  /* Last child */
+  UI_Node* next;  /* Next child, after current node */
+  UI_Node* previous; /* Previous child, before current node */
+  UI_Node* parent;   /* Parent of current node */
 
-  // Widget Settings
+  // Node Settings
   Rectf32 bounds;  /* Container rectangle drawing bounds - Absolute values */
   Rectf32 clip;    /* Clipping rectangle for children - Absolute values */
-  Vec2f32 cursor;  /* Next position to draw - Relative to widget->clip */
+  Vec2f32 cursor;  /* Next position to draw - Relative to node->clip */
   f32 padding_x;
   f32 padding_y;
   f32 spacing_x;
   f32 spacing_y;
   UI_Alignment_Kind alignment_kind;
   f32 depth; /* Keeps track of that's in front. Smaller number means closer to the camera. 1 is root */
-  UI_Widget_Flags flags;
+  UI_Node_Flags flags;
   Vec2f32 local_drag_offset; /* How much it was offseted this frame */
 
   // Style
@@ -99,8 +99,8 @@ struct UI_Widget
   f32 text_pixel_height;
 };
 
-typedef struct UI_Widget_Cache UI_Widget_Cache;
-struct UI_Widget_Cache
+typedef struct UI_Node_Cache UI_Node_Cache;
+struct UI_Node_Cache
 {
   u64 hash;
 
@@ -110,14 +110,14 @@ struct UI_Widget_Cache
   f32 active_t;
 };
 
-#define UI_MAX_CACHED_WIDGETS 16
-global UI_Widget_Cache ui_cached_widgets[UI_MAX_CACHED_WIDGETS];
-global u32 ui_cached_widgets_count = 0;
+#define UI_MAX_CACHED_NODES 16
+global UI_Node_Cache ui_cached_nodes[UI_MAX_CACHED_NODES];
+global u32 ui_cached_nodes_count = 0;
 
 typedef struct UI_Signal UI_Signal;
 struct UI_Signal
 {
-  UI_Widget* widget;
+  UI_Node* node;
   UI_Signal_Flags flags;
 };
 
@@ -127,7 +127,7 @@ struct UI_Context
 {
   // Per frame
   Arena* frame_arena;
-  UI_Widget* root;
+  UI_Node* root;
 
   // Cross frame 
   Arena* arena;
@@ -138,7 +138,7 @@ struct UI_Context
   f32 hash_hot_depth;
 
   // State
-  ui_stack(UI_Widget*,        widget,           UI_STACKS_MAX);
+  ui_stack(UI_Node*,          node,           UI_STACKS_MAX);
   ui_stack(Vec2f32,           top_left,         UI_STACKS_MAX);
   ui_stack(f32,               size_x,           UI_STACKS_MAX);
   ui_stack(f32,               size_y,           UI_STACKS_MAX);
@@ -166,7 +166,7 @@ struct UI_Context
     b32 show_bounds : 1;
     b32 show_clip   : 1;
     b32 show_cursor : 1;
-    b32 print_widget: 1;
+    b32 print_widget_tree: 1;
   } debug;
 };
 
@@ -176,31 +176,31 @@ global UI_Context ui_context;
 function void ui_init();
 function void ui_begin();
 function void ui_end();
-function void ui_render_widget(UI_Widget* widget);
+function void ui_render_widget(UI_Node* widget_root);
 
-// UI module api
+// UI Widgets
 #define  ui_window(text) DeferLoop(ui_window_begin((text)), ui_window_end())
 function void ui_window_begin(String8 text);
 function void ui_window_end();
 
 // Builder code
-function UI_Widget* ui_widget_from_string(String8 string, UI_Widget_Flags flags);
-function UI_Signal  ui_signal_from_widget(UI_Widget* widget);
-function void       ui_widget_end(UI_Widget* root);
+function UI_Node*  ui_node_from_string(String8 string, UI_Node_Flags flags);
+function UI_Signal ui_signal_from_node(UI_Node* node);
+function void      ui_widget_end(UI_Node* root); /* Call at the end of every widget function */
 
 // Helper
 function String8    ui_clean_string(Arena* arena, String8 string);
-function void       ui_debug_draw_widget(UI_Widget* widget, f32 depth);
+function void       ui_debug_draw_node(UI_Node* widget, f32 depth);
 function Rectf32    ui_clamp_rect(Rectf32 parent, Rectf32 child);
-function b32        ui_is_mouse_in_widget(UI_Widget* widget);
-function UI_Widget_Cache* ui_get_cached_widget(u64 hash);
+function b32        ui_is_mouse_in_node(UI_Node* node);
+function UI_Node_Cache* ui_get_cached_node(u64 hash);
 
 // Widget tree
-function void ui_add_widget_child(UI_Widget *parent, UI_Widget *child);
-function b32  ui_find_first_drag_offset(UI_Widget* widget, Vec2f32* out_offset);
-function void ui_apply_drag_offset(UI_Widget* widget, Vec2f32 offset);
-function void ui_update_tree_widgets(UI_Widget* widget);
-function void ui_print_tree(UI_Widget* widget, u32 depth);
+function void ui_add_widget_child(UI_Node *parent, UI_Node *child);
+function b32  ui_find_first_drag_offset(UI_Node* widget_root, Vec2f32* out_offset);
+function void ui_apply_drag_offset(UI_Node* widget_root, Vec2f32 offset);
+function void ui_update_tree_nodes(UI_Node* widget_root);
+function void ui_print_tree(UI_Node* widget_root, u32 depth);
 
 
 #endif // UI_H
