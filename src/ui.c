@@ -151,7 +151,7 @@ ui_window_begin(String8 text)
   ui_stack_defer(width_kind, UI_Width_Kind_Fixed)
   ui_stack_defer(height_kind, UI_Height_Kind_Fixed)
   {
-    UI_Node_Flags window_flags = 0;
+    UI_Node_Flags window_flags = UI_Widget_Flags_Draggable;
     window_widget = ui_node_from_string(window_string, window_flags);
     window_signal = ui_signal_from_node(window_widget);
     ui_stack_push(node, window_widget);
@@ -376,6 +376,44 @@ ui_widget_end(UI_Node* root)
   }
 }
 
+function b32  ui_find_first_drag_offset(UI_Node* widget_root, Vec2f32* out_offset)
+{
+  b32 result = false;
+  if (HasFlags(widget_root->flags, UI_Widget_Flags_Draggable) && ui_context.hash_active == widget_root->hash)
+  {
+    *out_offset = widget_root->local_drag_offset;
+    result = true;
+  }
+  else
+  {
+    for (UI_Node* child = widget_root->first; child; child = child->next)
+    {
+      if (HasFlags(child->flags, UI_Widget_Flags_Draggable) && ui_context.hash_active == child->hash)
+      {
+        *out_offset = child->local_drag_offset;
+        result = true;
+        break;
+      }
+      if (ui_find_first_drag_offset(child, out_offset))
+      {
+        result = true;
+        break;
+      }
+    }
+  }
+
+  return result;
+}
+
+function void ui_apply_drag_offset(UI_Node* widget_root, Vec2f32 offset)
+{
+  widget_root->local_drag_offset = offset;
+  for (UI_Node* child = widget_root->first; child; child = child->next)
+  {
+    ui_apply_drag_offset(child, offset);
+  }
+}
+
 // Helper
 function String8
 ui_clean_string(Arena* arena, String8 string)
@@ -495,35 +533,6 @@ ui_add_widget_child(UI_Node *parent, UI_Node *child)
     }
 
     parent->last = child;
-  }
-}
-
-function b32  ui_find_first_drag_offset(UI_Node* widget_root, Vec2f32* out_offset)
-{
-  b32 result = false;
-  for (UI_Node* child = widget_root->first; child; child = child->next)
-  {
-    if (HasFlags(child->flags, UI_Widget_Flags_Draggable) && ui_context.hash_active == child->hash)
-    {
-      *out_offset = child->local_drag_offset;
-      result = true;
-      break;
-    }
-    if (ui_find_first_drag_offset(child, out_offset))
-    {
-      result = true;
-      break;
-    }
-  }
-  return result;
-}
-
-function void ui_apply_drag_offset(UI_Node* widget_root, Vec2f32 offset)
-{
-  widget_root->local_drag_offset = offset;
-  for (UI_Node* child = widget_root->first; child; child = child->next)
-  {
-    ui_apply_drag_offset(child, offset);
   }
 }
 

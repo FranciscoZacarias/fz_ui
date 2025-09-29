@@ -187,6 +187,8 @@ function void ui_window_end();
 function UI_Node*  ui_node_from_string(String8 string, UI_Node_Flags flags);
 function UI_Signal ui_signal_from_node(UI_Node* node);
 function void      ui_widget_end(UI_Node* root); /* Call at the end of every widget function */
+function b32       ui_find_first_drag_offset(UI_Node* widget_root, Vec2f32* out_offset);
+function void      ui_apply_drag_offset(UI_Node* widget_root, Vec2f32 offset);
 
 // Helper
 function String8    ui_clean_string(Arena* arena, String8 string);
@@ -197,8 +199,6 @@ function UI_Node_Cache* ui_get_cached_node(u64 hash);
 
 // Widget tree
 function void ui_add_widget_child(UI_Node *parent, UI_Node *child);
-function b32  ui_find_first_drag_offset(UI_Node* widget_root, Vec2f32* out_offset);
-function void ui_apply_drag_offset(UI_Node* widget_root, Vec2f32 offset);
 function void ui_update_tree_nodes(UI_Node* widget_root);
 function void ui_print_tree(UI_Node* widget_root, u32 depth);
 
