@@ -17,7 +17,7 @@ function void ui_init()
     ui_context.debug.show_bounds  = true;
     ui_context.debug.show_clip    = true;
     ui_context.debug.show_cursor  = true;
-    ui_context.debug.print_widget_tree = true;
+    ui_context.debug.print_widget_tree = false;
 
     Vec2s32 window_size = g_os_window.dimensions;
 

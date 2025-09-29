@@ -172,8 +172,9 @@ function void r_draw_triangle(Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads
 function void r_draw_triangle_texture(Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Vec2f32 uv_min, Vec2f32 uv_max, Color gradient, u32 texture_index, f32 depth);
 function void r_draw_quad(Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Color color, f32 depth);
 function void r_draw_quad_texture(Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Vec2f32 uv_min, Vec2f32 uv_max, Color gradient, u32 texture_index, f32 depth);
+function void r_draw_text_impl(Vec2f32 top_left, f32 pixel_height, Color color, String8 text, f32 depth, b32 clamp, Vec2f32 clamp_bottom_right);
 function void r_draw_text(Vec2f32 top_left, f32 pixel_height, Vec4f32 color, String8 text, f32 depth);
-function void r_draw_text_ext(Vec2f32 top_left, f32 pixel_height, Color color, String8 text, f32 depth, f32 max_width, f32 max_height);
+function void r_draw_text_clamped(Vec2f32 top_left, f32 pixel_height, Color color, String8 text, f32 depth, f32 max_width, f32 max_height);
 
 function void r_draw_point(Vec2f32 position, Color color, f32 depth);
 function void r_draw_box(Vec2f32 top_left, Vec2f32 scale, Color color, f32 depth);

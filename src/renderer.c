@@ -356,7 +356,7 @@ r_render(Mat4f32 view, Mat4f32 projection)
   glDepthMask(GL_TRUE);
   
 
-  for (s32 i = 0; i < Render_Batch_Count; i++)
+  for (s32 i = 0; i < Render_Batch_Count; i += 1)
   {
     Render_Batch* batch = g_renderer.batches[i];
     r_render_batch(batch, view, projection);
@@ -469,28 +469,24 @@ r_draw_quad_texture(Vec2f32 top_left, Vec2f32 scale, f32 rotation_rads, Vec2f32 
 }
 
 function void
-r_draw_text(Vec2f32 top_left, f32 pixel_height, Color color, String8 text, f32 depth)
+r_draw_text_impl(Vec2f32 top_left, f32 pixel_height, Color color, String8 text, f32 depth, b32 clamp, Vec2f32 clamp_bottom_right)
 {
-  if (g_renderer.batches[Render_Batch_Text]->count + text.size >= g_renderer.batches[Render_Batch_Text]->max)
-  {
-    emit_fatal(S("Tried to render more textured quads than g_renderer.batches[Render_Batch_Text]_texture->Max"));
-    return;
-  }
   if (text.size == 0) return;
-
   Font *font = g_renderer.selected_font;
   f32 pixel_scale = pixel_height / font->height;
 
-  Vec2f32 cursor = vec2f32(top_left.x, top_left.y + (font->ascent*pixel_scale));
+  Vec2f32 cursor = vec2f32(top_left.x, top_left.y + (font->ascent * pixel_scale));
   f32 initial_x = cursor.x;
 
-  for (u64 i = 0; i < text.size; i++) {
+  for (u64 i = 0; i < text.size; i += 1)
+  {
     u8 c = text.str[i];
-    
+
     if (c == '\n')
     {
       cursor.x = initial_x;
       cursor.y += (font->line_height * pixel_scale);
+      continue;
     }
     if (c < 32 || c > 126)
     {
@@ -501,95 +497,65 @@ r_draw_text(Vec2f32 top_left, f32 pixel_height, Color color, String8 text, f32 d
 
     Vec2f32 pos  = vec2f32(cursor.x + glyph->offset.x * pixel_scale, cursor.y + glyph->offset.y * pixel_scale);
     Vec2f32 size = vec2f32(glyph->size.x * pixel_scale, glyph->size.y * pixel_scale);
-    r_draw_primitive(g_renderer.batches[Render_Batch_Text], pos, size, 0.0f, glyph->uv_min, glyph->uv_max, color, font->texture_index, depth);
-#if 0
-    r_draw_box(pos, size, YELLOW(1), depth);
-#endif
+
+    f32 gx0 = pos.x, gy0 = pos.y;
+    f32 gx1 = pos.x + size.x, gy1 = pos.y + size.y;
+
+    Vec2f32 uv_min = glyph->uv_min;
+    Vec2f32 uv_max = glyph->uv_max;
+
+if (clamp)
+{
+  if (gx1 <= top_left.x || gx0 >= clamp_bottom_right.x ||
+      gy1 <= top_left.y || gy0 >= clamp_bottom_right.y)
+  {
+    cursor.x += glyph->advance * pixel_scale;
+    continue;
+  }
+
+  f32 cx0 = Max(gx0, top_left.x);
+  f32 cy0 = Max(gy0, top_left.y);
+  f32 cx1 = Min(gx1, clamp_bottom_right.x);
+  f32 cy1 = Min(gy1, clamp_bottom_right.y);
+
+  f32 du = (uv_max.x - uv_min.x) / (gx1 - gx0);
+
+  // Y UV scale (flip because screen Y is top-down, UV Y is bottom-up)
+  f32 dv = (uv_max.y - uv_min.y) / (gy1 - gy0);
+
+  // X stays the same
+  uv_min.x += (cx0 - gx0) * du;
+  uv_max.x -= (gx1 - cx1) * du;
+
+  // Y needs to flip: uv origin is bottom-left
+  uv_max.y -= (cy0 - gy0) * dv; // top of glyph clipped
+  uv_min.y += (gy1 - cy1) * dv; // bottom of glyph clipped
+
+  gx0 = cx0; gy0 = cy0;
+  gx1 = cx1; gy1 = cy1;
+}
+
+
+    Vec2f32 cpos  = vec2f32(gx0, gy0);
+    Vec2f32 csize = vec2f32(gx1 - gx0, gy1 - gy0);
+
+    r_draw_primitive(g_renderer.batches[Render_Batch_Text], cpos, csize, 0.0f, uv_min, uv_max, color, font->texture_index, depth);
     cursor.x += glyph->advance * pixel_scale;
   }
 }
 
+
 function void
-r_draw_text_ext(Vec2f32 top_left, f32 pixel_height, Color color, String8 text, f32 depth, f32 max_width, f32 max_height)
+r_draw_text(Vec2f32 top_left, f32 pixel_height, Color color, String8 text, f32 depth)
 {
-  if (text.size == 0) 
-  {
-    return;
-  }
+  r_draw_text_impl(top_left, pixel_height, color, text, depth, false, vec2f32(0,0));
+}
 
-  Font *font = g_renderer.selected_font;
-  f32 pixel_scale = pixel_height / font->height;
-
-  Vec2f32 cursor = vec2f32(top_left.x, top_left.y + (font->ascent * pixel_scale));
-  f32 initial_x = cursor.x;
-
-  f32 clip_x0 = top_left.x;
-  f32 clip_y0 = top_left.y;
-  f32 clip_x1 = top_left.x + max_width;
-  f32 clip_y1 = top_left.y + max_height;
-
-  for (u64 i = 0; i < text.size; i++) {
-    u8 c = text.str[i];
-
-    if (c == '\n') {
-      cursor.x = initial_x;
-      cursor.y += (font->line_height * pixel_scale);
-      if (cursor.y > clip_y1) break; // below clip
-      continue;
-    }
-    if (c < 32 || c > 126) continue;
-
-    Glyph *glyph = &font->glyphs[c - 32];
-
-    Vec2f32 pos  = vec2f32(cursor.x + glyph->offset.x * pixel_scale,
-                           cursor.y + glyph->offset.y * pixel_scale);
-    Vec2f32 size = vec2f32(glyph->size.x * pixel_scale,
-                           glyph->size.y * pixel_scale);
-
-    f32 gx0 = pos.x;
-    f32 gy0 = pos.y;
-    f32 gx1 = pos.x + size.x;
-    f32 gy1 = pos.y + size.y;
-
-    // Cull if fully outside
-    if (gx1 <= clip_x0 || gx0 >= clip_x1 || gy1 <= clip_y0 || gy0 >= clip_y1)
-    {
-      cursor.x += glyph->advance * pixel_scale;
-      continue;
-    }
-
-    f32 cx0 = Max(gx0, clip_x0);
-    f32 cy0 = Max(gy0, clip_y0);
-    f32 cx1 = Min(gx1, clip_x1);
-    f32 cy1 = Min(gy1, clip_y1);
-
-    f32 u0 = glyph->uv_min.x;
-    f32 v0 = glyph->uv_min.y;
-    f32 u1 = glyph->uv_max.x;
-    f32 v1 = glyph->uv_max.y;
-
-    f32 du = (u1 - u0) / (gx1 - gx0);
-    f32 dv = (v1 - v0) / (gy1 - gy0);
-
-    Vec2f32 uv_min = vec2f32(u0 + (cx0 - gx0) * du,
-                             v0 + (cy0 - gy0) * dv);
-    Vec2f32 uv_max = vec2f32(u0 + (cx1 - gx0) * du,
-                             v0 + (cy1 - gy0) * dv);
-
-    Vec2f32 cpos  = vec2f32(cx0, cy0);
-    Vec2f32 csize = vec2f32(cx1 - cx0, cy1 - cy0);
-
-    r_draw_primitive(g_renderer.batches[Render_Batch_Text],
-                     cpos, csize, 0.0f, uv_min, uv_max, color,
-                     font->texture_index, depth);
-
-    cursor.x += glyph->advance * pixel_scale;
-    if (cursor.x > clip_x1) {
-      cursor.x = initial_x;
-      cursor.y += (font->line_height * pixel_scale);
-      if (cursor.y > clip_y1) break;
-    }
-  }
+function void
+r_draw_text_clamped(Vec2f32 top_left, f32 pixel_height, Color color, String8 text, f32 depth, f32 max_width, f32 max_height)
+{
+  Vec2f32 bottom_right = vec2f32(top_left.x + max_width, top_left.y + max_height);
+  r_draw_text_impl(top_left, pixel_height, color, text, depth, true, bottom_right);
 }
 
 function void
@@ -671,7 +637,7 @@ r_load_font(String8 relative_path)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glBindTexture(GL_TEXTURE_2D, 0);
  
-  for (s32 i = 0; i < MAX_FONT_GLYPHS; i++)
+  for (s32 i = 0; i < MAX_FONT_GLYPHS; i += 1)
   {
     Glyph* glyph = &g_renderer.fonts[g_renderer.fonts_count].glyphs[i];
     stbtt_packedchar* ch = &char_data[i];
@@ -770,9 +736,9 @@ r_create_fallback_texture()
   u32 square_size = 2;
   u8* data = arena_push(scratch.arena, size * size * 4);
   
-  for (u32 y = 0; y < size; y++)
+  for (u32 y = 0; y < size; y += 1)
   {
-    for (u32 x = 0; x < size; x++)
+    for (u32 x = 0; x < size; x += 1)
     {
       u32 square_x = x / square_size;
       u32 square_y = y / square_size;
@@ -805,7 +771,7 @@ r_create_fallback_texture()
   glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-  for (u32 slot = 0; slot < g_renderer.texture_max; slot++)
+  for (u32 slot = 0; slot < g_renderer.texture_max; slot += 1)
   {
     glBindTextureUnit(slot, texture);
   }
@@ -822,7 +788,7 @@ r_text_dimensions(String8 text, f32 pixel_height)
   f32 line_width = 0.0f;
   u64 line_count = 1;
 
-  for (u64 i = 0; i < text.size; i++)
+  for (u64 i = 0; i < text.size; i += 1)
   {
     u8 c = text.str[i];
     if (c == '\n')
