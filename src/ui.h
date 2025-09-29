@@ -9,7 +9,7 @@
 #define ui_stack_assert_top_at(name, at) if((ui_context.name##_stack).top_index != (at)) emit_fatal(Sf(ui_context.arena, "UI: %s not at expected top value: '%u'. Actual value: '%u'", Stringify((ui_context.name##_stack)), (at), (ui_context.name##_stack).top_index))
 #define ui_stack_is_at_bottom(name) ((ui_context.name##_stack).top_index == 0)
 #define ui_stack_defer(name, val) DeferLoop(ui_stack_push(name, val), ui_stack_pop(name))
-#define ui_stack_defer_if_default(name,val) DeferLoop((ui_context.name##_stack.top_index == 0) && (ui_stack_push(name,val),1), (ui_context.name##_stack.top_index == 1) && (ui_stack_pop(name),1))
+#define ui_stack_defer_if_default(name,val) DeferLoop((ui_context.name##_stack.top_index == 0) && (ui_stack_push(name,val),1), (ui_stack_pop(name)))
 
 typedef u32 UI_Widget_Flags;
 enum
@@ -18,7 +18,6 @@ enum
   UI_Widget_Flags_Display_String  = (1<<1),
   UI_Widget_Flags_Draggable = (1<<2),
   UI_Widget_Flags_Hoverable = (1<<3),
-  UI_Widget_Flags_Draggable_By_Children = (1<<4),
 };
 
 typedef u64 UI_Signal_Flags;
@@ -111,7 +110,7 @@ struct UI_Widget_Cache
   f32 active_t;
 };
 
-#define UI_MAX_CACHED_WIDGETS 8
+#define UI_MAX_CACHED_WIDGETS 16
 global UI_Widget_Cache ui_cached_widgets[UI_MAX_CACHED_WIDGETS];
 global u32 ui_cached_widgets_count = 0;
 
@@ -122,7 +121,7 @@ struct UI_Signal
   UI_Signal_Flags flags;
 };
 
-#define UI_STACKS_MAX 32
+#define UI_STACKS_MAX 8
 typedef struct UI_Context UI_Context;
 struct UI_Context
 {
@@ -167,6 +166,7 @@ struct UI_Context
     b32 show_bounds : 1;
     b32 show_clip   : 1;
     b32 show_cursor : 1;
+    b32 print_widget: 1;
   } debug;
 };
 
@@ -186,6 +186,7 @@ function void ui_window_end();
 // Builder code
 function UI_Widget* ui_widget_from_string(String8 string, UI_Widget_Flags flags);
 function UI_Signal  ui_signal_from_widget(UI_Widget* widget);
+function void       ui_widget_end(UI_Widget* root);
 
 // Helper
 function String8    ui_clean_string(Arena* arena, String8 string);
@@ -196,10 +197,10 @@ function UI_Widget_Cache* ui_get_cached_widget(u64 hash);
 
 // Widget tree
 function void ui_add_widget_child(UI_Widget *parent, UI_Widget *child);
-function void ui_propagate_in_tree_offsets(UI_Widget* widget, Vec2f32 inherited_offset);
+function b32  ui_find_first_drag_offset(UI_Widget* widget, Vec2f32* out_offset);
+function void ui_apply_drag_offset(UI_Widget* widget, Vec2f32 offset);
 function void ui_update_tree_widgets(UI_Widget* widget);
 function void ui_print_tree(UI_Widget* widget, u32 depth);
 
-#define widget_bounds(widget_ptr) rectf32(vec2f32_add(widget_ptr->bounds.top_left, widget->local_drag_offset), widget_ptr->bounds.size)
 
 #endif // UI_H

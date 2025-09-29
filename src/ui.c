@@ -14,9 +14,10 @@ function void ui_init()
     ui_context.hash_active_depth = 1.0f;
     ui_context.hash_hot_depth    = 1.0f;
 
-    ui_context.debug.show_bounds = true;
-    ui_context.debug.show_clip   = true;
-    ui_context.debug.show_cursor = true;
+    ui_context.debug.show_bounds  = true;
+    ui_context.debug.show_clip    = true;
+    ui_context.debug.show_cursor  = true;
+    ui_context.debug.print_widget = true;
 
     Vec2s32 window_size = g_os_window.dimensions;
 
@@ -85,7 +86,7 @@ function void ui_end()
   ui_stack_assert_top_at(background_color, 0);
   ui_stack_assert_top_at(text_color, 0);
   ui_stack_assert_top_at(text_height, 0);
-  Assert(ui_context.root->depth == 1);
+  if (ui_context.root->depth != 1) emit_fatal(Sf(ui_context.arena, "UI: ui_context.root->depth is expected to be 1. It was: %.10f\n", ui_context.root->depth));
 #endif
 
   ui_render_widget(ui_context.root);
@@ -95,6 +96,7 @@ function void ui_end()
   r_draw_text(vec2f32(600, 110), 32, BLACK(1), Sf(ui_context.frame_arena, "hash_hot: %llu", ui_context.hash_hot), 0);
   r_draw_text(vec2f32(600, 140), 32, BLACK(1), Sf(ui_context.frame_arena, "hash_hot_depth: %.10f", ui_context.hash_hot_depth), 0);
   r_draw_text(vec2f32(600, 170), 32, BLACK(1), Sf(ui_context.frame_arena, "mouse delta: %.2f,%.2f", g_input.mouse_current.delta.x, g_input.mouse_current.delta.y), 0);
+  r_draw_text(vec2f32(600, 200), 32, BLACK(1), Sf(ui_context.frame_arena, "Frame: %d", g_frame_counter), 0);
 
   // Reset
   ui_context.hash_hot = 0;
@@ -137,16 +139,17 @@ ui_window_begin(String8 text)
   Scratch scratch = scratch_begin(0,0);
 
   String8 window_string = Sf(scratch.arena, "Debug Text##window_text_"S_FMT"", S_ARG(text));
-
   UI_Widget* window_widget = NULL;
   UI_Signal  window_signal = (UI_Signal){0};
   ui_stack_defer_if_default(top_left, vec2f32(200,200))
   ui_stack_defer_if_default(size_x, 200)
   ui_stack_defer_if_default(size_y, 200)
+  ui_stack_defer(padding_x, 4.0f)
+  ui_stack_defer(padding_y, 4.0f)
   ui_stack_defer(width_kind, UI_Width_Kind_Fixed)
   ui_stack_defer(height_kind, UI_Height_Kind_Fixed)
   {
-    UI_Widget_Flags window_flags = UI_Widget_Flags_Draggable_By_Children|UI_Widget_Flags_Display_String;
+    UI_Widget_Flags window_flags = 0;
     window_widget = ui_widget_from_string(window_string, window_flags);
     window_signal = ui_signal_from_widget(window_widget);
     ui_stack_push(widget, window_widget);
@@ -168,26 +171,25 @@ ui_window_begin(String8 text)
     title_bar_signal = ui_signal_from_widget(title_bar_widget);
   }
 
-#if 0
+#if 1
   UI_Widget* title_bar_widget2 = NULL;
   UI_Signal  title_bar_signal2 = (UI_Signal){0};
-  ui_stack_defer(spacing_x, 2.0f)
-  ui_stack_defer(background_color, GRAY(1))
-  ui_stack_defer(size_y, 20.0f)
-  ui_stack_defer(alignment, UI_Alignment_X)
+  ui_stack_defer_if_default(spacing_x, 2.0f)
+  ui_stack_defer_if_default(background_color, GRAY(1))
+  ui_stack_defer_if_default(size_y, 20.0f)
+  ui_stack_defer_if_default(alignment_kind, UI_Alignment_Kind_X)
+  ui_stack_defer(height_kind, UI_Height_Kind_Fixed)
   {
     UI_Widget_Flags title_bar_flags = UI_Widget_Flags_Mouse_Clickable|
                                       UI_Widget_Flags_Hoverable|
                                       UI_Widget_Flags_Draggable|
                                       UI_Widget_Flags_Display_String;
-    title_bar_widget2 = ui_widget_from_string(text, title_bar_flags);
+    title_bar_widget2 = ui_widget_from_string(S("Another Title Bar##123abc"), title_bar_flags);
     title_bar_signal2 = ui_signal_from_widget(title_bar_widget2);
   }
 #endif
-
-  ui_propagate_in_tree_offsets(window_widget, vec2f32(0,0));
-  ui_update_tree_widgets(window_widget);
-
+  
+  ui_widget_end(window_widget);
   scratch_end(&scratch);
 }
 
@@ -231,8 +233,7 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
   widget->padding_x = ui_stack_top(padding_x);
   widget->padding_y = ui_stack_top(padding_y);
   widget->alignment_kind = ui_stack_top(alignment_kind);
-  
-  widget->string            = string;
+  widget->string            = ui_clean_string(ui_context.frame_arena, string);
   widget->string_top_left   = vec2f32(0,0);
   widget->text_pixel_height = ui_stack_top(text_height);
   widget->target_text_color = ui_stack_top(text_color);
@@ -254,19 +255,10 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
     default: emit_fatal(S("UI: Unhandled width_kind"));        break;
   }
 
-  Vec2f32 top_left;
-  if (ui_stack_is_at_bottom(top_left))
-  {
-    top_left = parent->clip.top_left;
-  }
-  else
-  {
-    top_left = ui_stack_top(top_left);
-  }
+  Vec2f32 top_left = ui_stack_is_at_bottom(top_left) ? parent->clip.top_left : ui_stack_top(top_left);
   widget->bounds.top_left = top_left;
-
-  widget->bounds.size     = vec2f32(size_x, size_y);
-  widget->bounds = ui_clamp_rect(parent->clip, widget->bounds);
+  widget->bounds.size = vec2f32(size_x, size_y);
+  widget->bounds      = ui_clamp_rect(parent->clip, widget->bounds);
 
   Rectf32 clip;
   clip.top_left = vec2f32(widget->bounds.top_left.x + widget->padding_x, widget->bounds.top_left.y + widget->padding_y);
@@ -366,6 +358,21 @@ ui_signal_from_widget(UI_Widget* widget)
   }
 
   return signal;
+}
+
+function void
+ui_widget_end(UI_Widget* root)
+{
+  Vec2f32 offset = {0};
+  if (ui_find_first_drag_offset(root, &offset))
+  {
+    ui_apply_drag_offset(root, offset);
+  }
+  ui_update_tree_widgets(root);
+  if (ui_context.debug.print_widget)
+  {
+    ui_print_tree(root, 0);
+  }
 }
 
 // Helper
@@ -490,23 +497,32 @@ ui_add_widget_child(UI_Widget *parent, UI_Widget *child)
   }
 }
 
-function void
-ui_propagate_in_tree_offsets(UI_Widget* widget, Vec2f32 inherited_offset)
+function b32  ui_find_first_drag_offset(UI_Widget* widget, Vec2f32* out_offset)
 {
-  if (HasFlags(widget->flags, UI_Widget_Flags_Draggable_By_Children))
-  {
-    for (UI_Widget* child = widget->first; child; child = child->next)
-    {
-      if (HasFlags(child->flags, UI_Widget_Flags_Draggable) && ui_context.hash_active == child->hash)
-      {
-        widget->local_drag_offset = child->local_drag_offset;
-      }
-    }
-  }
-
+  b32 result = false;
   for (UI_Widget* child = widget->first; child; child = child->next)
   {
-    ui_propagate_in_tree_offsets(child, widget->local_drag_offset);
+    if (HasFlags(child->flags, UI_Widget_Flags_Draggable) && ui_context.hash_active == child->hash)
+    {
+      *out_offset = child->local_drag_offset;
+      result = true;
+      break;
+    }
+    if (ui_find_first_drag_offset(child, out_offset))
+    {
+      result = true;
+      break;
+    }
+  }
+  return result;
+}
+
+function void ui_apply_drag_offset(UI_Widget* widget, Vec2f32 offset)
+{
+  widget->local_drag_offset = offset;
+  for (UI_Widget* child = widget->first; child; child = child->next)
+  {
+    ui_apply_drag_offset(child, offset);
   }
 }
 
@@ -546,10 +562,8 @@ ui_update_tree_widgets(UI_Widget* widget)
       widget->cursor.x = widget->cursor.x + widget->padding_x;
       widget->cursor.y = widget->cursor.y + widget->string_dimensions.y + widget->padding_y;
     } break;
-    default:
-    {
-      emit_fatal(S("UI: Unhandled UI_Alignment"));
-    };
+
+    default: emit_fatal(S("UI: Unhandled UI_Alignment")); break;
   }
 
   for (UI_Widget* child = widget->first; child; child = child->next)
@@ -561,11 +575,6 @@ ui_update_tree_widgets(UI_Widget* widget)
 function void
 ui_print_tree(UI_Widget* widget, u32 depth)
 {
-  if (!widget || (widget->local_drag_offset.x == 0 && widget->local_drag_offset.y == 0))
-  {
-    return;
-  }
-
   for (u32 i = 0; i < depth; ++i)
   {
     printf("+--");
@@ -573,8 +582,8 @@ ui_print_tree(UI_Widget* widget, u32 depth)
 
   UI_Widget_Cache* cache = ui_get_cached_widget(widget->hash);
   printf(
-    "+ Widget hash: %llu | local_drag: (%.2f, %.2f) | accumulated_drag: (%.2f, %.2f)\n",
-    widget->hash,
+    "+ Widget hash: %llu, Text: "S_FMT"\n",
+    widget->hash, S_ARG(widget->string),
     widget->local_drag_offset.x, widget->local_drag_offset.y,
     cache->accumulated_drag_offset.x, cache->accumulated_drag_offset.y
   );
