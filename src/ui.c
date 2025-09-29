@@ -239,8 +239,8 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
   // Update parent clip based on this widget
   if (parent != ui_context.root)
   {
-    parent->clip.top_left.y = parent->clip.top_left.y + widget->bounds.size.y;
-    parent->clip.size.y     = parent->clip.size.y - widget->bounds.size.y;
+    parent->clip.top_left.y = parent->clip.top_left.y + widget->bounds.size.y + parent->padding_y;
+    parent->clip.size.y     = parent->clip.size.y - widget->bounds.size.y - parent->padding_y;
   }
 
   // Hover
