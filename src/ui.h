@@ -35,6 +35,7 @@ enum
 
 typedef enum
 {
+  UI_Alignment_None = 0,
   UI_Alignment_X,
   UI_Alignment_Y
 } UI_Alignment;
@@ -66,6 +67,9 @@ struct UI_Widget
   Vec2f32 cursor;  /* Next position to draw - Relative to widget->clip */
   f32 padding_x;
   f32 padding_y;
+  f32 spacing_x;
+  f32 spacing_y;
+  UI_Alignment alignment;
   f32 depth; /* Keeps track of that's in front. Smaller number means closer to the camera. 1 is root */
   UI_Widget_Flags flags;
   Vec2f32 local_drag_offset; /* How much it was offseted this frame */

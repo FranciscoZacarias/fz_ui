@@ -11,7 +11,7 @@ struct String8 {
 #define Sf(arena,fmt,...) string8_from_format(arena, fmt, __VA_ARGS__)
 
 #define S_FMT "%.*s"
-#define S_ARG(str8) str8.size, str8.str
+#define S_ARG(str8) (s32)str8.size, str8.str
 
 typedef struct String8_Node String8_Node;
 struct String8_Node {

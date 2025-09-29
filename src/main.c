@@ -43,11 +43,6 @@ entry_point(Command_Line* command_line)
     ui_begin();
     ui_window(S("Test Window"))
     {
-      ui_stack_defer(size_x, 50)
-      ui_stack_defer(size_y, 50)
-      ui_window(S("Test Window 2"))
-      {
-      }
     }
     ui_end();
     

@@ -18,19 +18,20 @@ function void ui_init()
     ui_context.debug.show_clip   = true;
     ui_context.debug.show_cursor = true;
 
-    ui_stack_init(top_left, vec2f32(300.0f, 200.0f));
-    ui_stack_init(size_x, 200.0f);
-    ui_stack_init(size_y, 300.0f);
-    ui_stack_init(padding_x, 0.0f);
-    ui_stack_init(padding_y, 0.0f);
-    ui_stack_init(spacing_x, 0);
-    ui_stack_init(spacing_y, 0);
-    ui_stack_init(text_height, 16);
-    ui_stack_init(alignment, UI_Alignment_Y);
+    // Default values
+    ui_stack_init(top_left,         vec2f32(300.0f, 200.0f));
+    ui_stack_init(size_x,           200.0f);
+    ui_stack_init(size_y,           300.0f);
+    ui_stack_init(padding_x,        0.0f);
+    ui_stack_init(padding_y,        0.0f);
+    ui_stack_init(spacing_x,        0);
+    ui_stack_init(spacing_y,        0);
+    ui_stack_init(text_height,      16);
+    ui_stack_init(alignment,        UI_Alignment_Y);
     ui_stack_init(background_color, BLACK(1));
-    ui_stack_init(text_color, WHITE(1));
-    ui_stack_init(hover_color, BROWN(1));
-    ui_stack_init(active_color, RED(1));
+    ui_stack_init(text_color,       WHITE(1));
+    ui_stack_init(hover_color,      BROWN(1));
+    ui_stack_init(active_color,     RED(1));
   }
 }
 
@@ -111,7 +112,6 @@ ui_render_widget(UI_Widget* widget)
   if (ui_context.root != widget)
   {
     r_draw_quad(widget->bounds.top_left, widget->bounds.size, 0, widget->target_background_color, widget->depth);
-
     if (HasFlags(widget->flags, UI_Widget_Flags_Display_String))
     {
       r_draw_text(widget->string_top_left, widget->text_pixel_height, widget->target_text_color, widget->string, widget->depth - F32_EPSILON);
@@ -131,14 +131,14 @@ ui_window_begin(String8 text)
 {
   Scratch scratch = scratch_begin(0,0);
 
-  String8 window_string = Sf(scratch.arena, "##window_text_"S_FMT"", S_ARG(text));
+  String8 window_string = Sf(scratch.arena, "Debug Text##window_text_"S_FMT"", S_ARG(text));
 
   UI_Widget* window_widget = NULL;
   UI_Signal  window_signal = (UI_Signal){0};
   ui_stack_defer(padding_x, 4.0f)
   ui_stack_defer(padding_y, 4.0f)
   {
-    UI_Widget_Flags window_flags = UI_Widget_Flags_Draggable_By_Children;
+    UI_Widget_Flags window_flags = UI_Widget_Flags_Draggable_By_Children|UI_Widget_Flags_Display_String;
     window_widget = ui_widget_from_string(window_string, window_flags);
     window_signal = ui_signal_from_widget(window_widget);
     ui_stack_push(widget, window_widget);
@@ -149,6 +149,7 @@ ui_window_begin(String8 text)
   ui_stack_defer(spacing_x, 2.0f)
   ui_stack_defer(background_color, GRAY(1))
   ui_stack_defer(size_y, 20.0f)
+  ui_stack_defer(alignment, UI_Alignment_X)
   {
     UI_Widget_Flags title_bar_flags = UI_Widget_Flags_Mouse_Clickable|
                                       UI_Widget_Flags_Hoverable|
@@ -187,34 +188,33 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
   UI_Widget* widget = push_array(ui_context.frame_arena, UI_Widget, 1);
   ui_add_widget_child(parent, widget);
 
-  Vec2f32 top_left  = ui_stack_top(top_left);
-  f32 size_x        = ui_stack_top(size_x);
-  f32 size_y        = ui_stack_top(size_y);
-  f32 padding_x     = ui_stack_top(padding_x);
-  f32 padding_y     = ui_stack_top(padding_y);
-  f32 spacing_x     = ui_stack_top(spacing_x);
-  f32 spacing_y     = ui_stack_top(spacing_y);
-
   widget->hash    = string8_hash(string);
-  widget->bounds  = ui_clip_rect(parent->clip, rectf32(top_left, vec2f32(size_x, size_y)));
 
-  Rectf32 clip;
-  clip.top_left = vec2f32(widget->bounds.top_left.x + padding_x, widget->bounds.top_left.y + padding_y);
-  clip.size     = vec2f32(widget->bounds.size.x - (padding_x * 2), widget->bounds.size.y - (padding_y * 2));
-  widget->clip  = clip; // ui_clip_rect(widget->bounds, clip);
+  widget->spacing_x = ui_stack_top(spacing_x);
+  widget->spacing_y = ui_stack_top(spacing_y);
+  widget->padding_x = ui_stack_top(padding_x);
+  widget->padding_y = ui_stack_top(padding_y);
+  widget->alignment = ui_stack_top(alignment);
   
-  widget->padding_x = padding_x;
-  widget->padding_y = padding_y;
-  widget->cursor.x  = widget->cursor.x + spacing_x;
-  widget->cursor.y  = widget->cursor.y + spacing_y;
-  widget->depth     = (parent) ? parent->depth - F32_EPSILON : 1.0f;
-  widget->flags     = flags;
-  widget->local_drag_offset = vec2f32(0,0);
-
   widget->string            = string;
   widget->string_top_left   = vec2f32(0,0);
   widget->text_pixel_height = ui_stack_top(text_height);
   widget->target_text_color = ui_stack_top(text_color);
+  widget->local_drag_offset = vec2f32(0,0);
+  widget->flags             = flags;
+
+  widget->bounds.top_left = ui_stack_top(top_left);
+  widget->bounds.size     = vec2f32(ui_stack_top(size_x), ui_stack_top(size_y));
+  widget->bounds = ui_clip_rect(parent->clip, widget->bounds);
+
+  Rectf32 clip;
+  clip.top_left = vec2f32(widget->bounds.top_left.x + widget->padding_x, widget->bounds.top_left.y + widget->padding_y);
+  clip.size     = vec2f32(widget->bounds.size.x - (widget->padding_x * 2), widget->bounds.size.y - (widget->padding_y * 2));
+  widget->clip  = clip; // ui_clip_rect(widget->bounds, clip); // TODO(Fz): Clip
+  
+  widget->cursor.x  = widget->cursor.x + widget->spacing_x;
+  widget->cursor.y  = widget->cursor.y + widget->spacing_y;
+  widget->depth     = (parent) ? parent->depth - F32_EPSILON : 1.0f;
 
   UI_Widget_Cache* cached_widget = ui_get_cached_widget(widget->hash);
 
@@ -239,19 +239,8 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
   // Update parent clip based on this widget
   if (parent != ui_context.root)
   {
-    UI_Alignment alignment = ui_stack_top(alignment);
-    switch (alignment)
-    {
-      case UI_Alignment_Y:
-      {
-        parent->clip.top_left.y = parent->clip.top_left.y + size_y;
-        parent->clip.size.y     = parent->clip.size.y - size_y;
-      } break;
-      default:
-      {
-        emit_fatal(S("Unhandled UI_Alignment"));
-      };
-    }
+    parent->clip.top_left.y = parent->clip.top_left.y + widget->bounds.size.y;
+    parent->clip.size.y     = parent->clip.size.y - widget->bounds.size.y;
   }
 
   // Hover
@@ -470,8 +459,24 @@ ui_update_tree_widgets(UI_Widget* widget)
     // TODO(fz): Dimensions could be cached
     widget->string_dimensions = r_text_dimensions(widget->string, widget->text_pixel_height);
   }
-  widget->cursor.x = widget->cursor.x + widget->string_dimensions.x + widget->padding_x;
-  widget->cursor.y = widget->cursor.y + widget->padding_y;
+
+  switch (widget->alignment)
+  {
+    case UI_Alignment_X:
+    {
+      widget->cursor.x = widget->cursor.x + widget->string_dimensions.x + widget->padding_x;
+      widget->cursor.y = widget->cursor.y + widget->padding_y;
+    } break;
+    case UI_Alignment_Y:
+    {
+      widget->cursor.x = widget->cursor.x + widget->padding_x;
+      widget->cursor.y = widget->cursor.y + widget->string_dimensions.y + widget->padding_y;
+    } break;
+    default:
+    {
+      emit_fatal(S("Unhandled UI_Alignment"));
+    };
+  }
 
   for (UI_Widget* child = widget->first; child; child = child->next)
   {
