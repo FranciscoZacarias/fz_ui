@@ -18,16 +18,20 @@ function void ui_init()
     ui_context.debug.show_clip   = true;
     ui_context.debug.show_cursor = true;
 
+    Vec2s32 window_size = g_os_window.dimensions;
+
     // Default values
-    ui_stack_init(top_left,         vec2f32(300.0f, 200.0f));
-    ui_stack_init(size_x,           200.0f);
-    ui_stack_init(size_y,           300.0f);
+    ui_stack_init(top_left,         vec2f32(0.0f, 0.0f));
+    ui_stack_init(size_x,           window_size.x);
+    ui_stack_init(size_y,           window_size.y);
     ui_stack_init(padding_x,        0.0f);
     ui_stack_init(padding_y,        0.0f);
     ui_stack_init(spacing_x,        0);
     ui_stack_init(spacing_y,        0);
     ui_stack_init(text_height,      16);
-    ui_stack_init(alignment,        UI_Alignment_Y);
+    ui_stack_init(alignment_kind,   UI_Alignment_Kind_Y);
+    ui_stack_init(width_kind,       UI_Width_Kind_Fill);
+    ui_stack_init(height_kind,      UI_Height_Kind_Fill);
     ui_stack_init(background_color, BLACK(1));
     ui_stack_init(text_color,       WHITE(1));
     ui_stack_init(hover_color,      BROWN(1));
@@ -41,16 +45,17 @@ function void ui_begin()
 
   // Window widget
   {
-    String8 root_name = S("##Root Window Widget");
-    Vec2s32 window_size = g_os_window.dimensions;
     ui_context.root = push_array(ui_context.frame_arena, UI_Widget, 1);
-    ui_context.root->hash      = string8_hash(root_name);
-    ui_context.root->bounds    = rectf32(vec2f32(0,0), vec2f32(window_size.x, window_size.y));
-    ui_context.root->clip      = rectf32(vec2f32(0,0), vec2f32(window_size.x, window_size.y));
-    ui_context.root->cursor    = vec2f32(0.0f, 0.0f);
-    ui_context.root->depth     = 1;
 
-    ui_stack_push(widget, ui_context.root);
+    String8 root_name = S("##Root Window Widget");
+    UI_Widget* root_widget = NULL;
+    {
+      UI_Widget_Flags root_flags = 0;
+      root_widget = ui_widget_from_string(root_name, root_flags);
+      ui_context.root = root_widget;
+      ui_context.root->depth = 1.0f;
+      ui_stack_push(widget, ui_context.root);
+    }
   }
 
   // Input handling
@@ -71,7 +76,7 @@ function void ui_begin()
 function void ui_end()
 {
 #if DEBUG
-  ui_stack_assert_top_at(widget, 1);
+  ui_stack_assert_top_at(widget, 1); // Root should bere
   ui_stack_assert_top_at(top_left, 0);
   ui_stack_assert_top_at(size_x, 0);
   ui_stack_assert_top_at(size_y, 0);
@@ -135,8 +140,11 @@ ui_window_begin(String8 text)
 
   UI_Widget* window_widget = NULL;
   UI_Signal  window_signal = (UI_Signal){0};
-  ui_stack_defer(padding_x, 4.0f)
-  ui_stack_defer(padding_y, 4.0f)
+  ui_stack_defer_if_default(top_left, vec2f32(200,200))
+  ui_stack_defer_if_default(size_x, 200)
+  ui_stack_defer_if_default(size_y, 200)
+  ui_stack_defer(width_kind, UI_Width_Kind_Fixed)
+  ui_stack_defer(height_kind, UI_Height_Kind_Fixed)
   {
     UI_Widget_Flags window_flags = UI_Widget_Flags_Draggable_By_Children|UI_Widget_Flags_Display_String;
     window_widget = ui_widget_from_string(window_string, window_flags);
@@ -146,6 +154,23 @@ ui_window_begin(String8 text)
 
   UI_Widget* title_bar_widget = NULL;
   UI_Signal  title_bar_signal = (UI_Signal){0};
+  ui_stack_defer_if_default(spacing_x, 2.0f)
+  ui_stack_defer_if_default(background_color, GRAY(1))
+  ui_stack_defer_if_default(size_y, 20.0f)
+  ui_stack_defer_if_default(alignment_kind, UI_Alignment_Kind_X)
+  ui_stack_defer(height_kind, UI_Height_Kind_Fixed)
+  {
+    UI_Widget_Flags title_bar_flags = UI_Widget_Flags_Mouse_Clickable|
+                                      UI_Widget_Flags_Hoverable|
+                                      UI_Widget_Flags_Draggable|
+                                      UI_Widget_Flags_Display_String;
+    title_bar_widget = ui_widget_from_string(text, title_bar_flags);
+    title_bar_signal = ui_signal_from_widget(title_bar_widget);
+  }
+
+#if 0
+  UI_Widget* title_bar_widget2 = NULL;
+  UI_Signal  title_bar_signal2 = (UI_Signal){0};
   ui_stack_defer(spacing_x, 2.0f)
   ui_stack_defer(background_color, GRAY(1))
   ui_stack_defer(size_y, 20.0f)
@@ -155,9 +180,10 @@ ui_window_begin(String8 text)
                                       UI_Widget_Flags_Hoverable|
                                       UI_Widget_Flags_Draggable|
                                       UI_Widget_Flags_Display_String;
-    title_bar_widget = ui_widget_from_string(text, title_bar_flags);
-    title_bar_signal = ui_signal_from_widget(title_bar_widget);
+    title_bar_widget2 = ui_widget_from_string(text, title_bar_flags);
+    title_bar_signal2 = ui_signal_from_widget(title_bar_widget2);
   }
+#endif
 
   ui_propagate_in_tree_offsets(window_widget, vec2f32(0,0));
   ui_update_tree_widgets(window_widget);
@@ -177,14 +203,24 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
 {
   if (!ui_context.is_initialized)
   {
-    emit_fatal(S("Did not unit UI"));
+    emit_fatal(S("UI: Did not unit UI"));
   }
   if (!ui_context.is_working)
   {
-    emit_fatal(S("Not within ui_begin and ui_end"));
+    emit_fatal(S("UI: Not within ui_begin and ui_end"));
   }
 
   UI_Widget* parent = ui_stack_top(widget);
+  if (parent == NULL)
+  {
+    // If we're the ui_context.root (screen)
+    // We simulate a parent with the same values as screen just so it goes through this iteration
+    parent = push_array(ui_context.frame_arena, UI_Widget, 1);
+    parent->bounds.top_left = ui_stack_top(top_left);
+    parent->bounds.size     = vec2f32(ui_stack_top(size_x), ui_stack_top(size_y));
+    parent->clip            = parent->bounds;
+    parent->depth           = 1.0f + F32_EPSILON;
+  }
   UI_Widget* widget = push_array(ui_context.frame_arena, UI_Widget, 1);
   ui_add_widget_child(parent, widget);
 
@@ -194,7 +230,7 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
   widget->spacing_y = ui_stack_top(spacing_y);
   widget->padding_x = ui_stack_top(padding_x);
   widget->padding_y = ui_stack_top(padding_y);
-  widget->alignment = ui_stack_top(alignment);
+  widget->alignment_kind = ui_stack_top(alignment_kind);
   
   widget->string            = string;
   widget->string_top_left   = vec2f32(0,0);
@@ -203,14 +239,39 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
   widget->local_drag_offset = vec2f32(0,0);
   widget->flags             = flags;
 
-  widget->bounds.top_left = ui_stack_top(top_left);
-  widget->bounds.size     = vec2f32(ui_stack_top(size_x), ui_stack_top(size_y));
-  widget->bounds = ui_clip_rect(parent->clip, widget->bounds);
+  f32 size_x = 0;
+  switch (ui_stack_top(width_kind))
+  {
+    case UI_Width_Kind_Fill:  size_x = parent->bounds.size.x; break;
+    case UI_Width_Kind_Fixed: size_x = ui_stack_top(size_x);  break;
+    default: emit_fatal(S("UI: Unhandled width_kind"));       break;
+  }
+  f32 size_y = 0;
+  switch (ui_stack_top(height_kind))
+  {
+    case UI_Height_Kind_Fill:  size_y = parent->bounds.size.y; break;      
+    case UI_Height_Kind_Fixed: size_y = ui_stack_top(size_y);  break;      
+    default: emit_fatal(S("UI: Unhandled width_kind"));        break;
+  }
+
+  Vec2f32 top_left;
+  if (ui_stack_is_at_bottom(top_left))
+  {
+    top_left = parent->clip.top_left;
+  }
+  else
+  {
+    top_left = ui_stack_top(top_left);
+  }
+  widget->bounds.top_left = top_left;
+
+  widget->bounds.size     = vec2f32(size_x, size_y);
+  widget->bounds = ui_clamp_rect(parent->clip, widget->bounds);
 
   Rectf32 clip;
   clip.top_left = vec2f32(widget->bounds.top_left.x + widget->padding_x, widget->bounds.top_left.y + widget->padding_y);
   clip.size     = vec2f32(widget->bounds.size.x - (widget->padding_x * 2), widget->bounds.size.y - (widget->padding_y * 2));
-  widget->clip  = clip; // ui_clip_rect(widget->bounds, clip); // TODO(Fz): Clip
+  widget->clip  = ui_clamp_rect(widget->bounds, clip);
   
   widget->cursor.x  = widget->cursor.x + widget->spacing_x;
   widget->cursor.y  = widget->cursor.y + widget->spacing_y;
@@ -274,6 +335,7 @@ ui_widget_from_string(String8 string, UI_Widget_Flags flags)
   widget->target_background_color = color_lerp(widget->target_background_color, ui_stack_top(active_color), cached_widget->active_t);
   widget->target_text_color = ui_stack_top(text_color);
 
+  // Dragging
   if (ui_context.hash_active == widget->hash)
   {
     if (HasFlags(widget->flags, UI_Widget_Flags_Draggable))
@@ -325,7 +387,7 @@ ui_debug_draw_widget(UI_Widget* widget, f32 depth)
 }
 
 function Rectf32
-ui_clip_rect(Rectf32 parent, Rectf32 child)
+ui_clamp_rect(Rectf32 parent, Rectf32 child)
 {
   f32 parent_x0 = parent.top_left.x;
   f32 parent_y0 = parent.top_left.y;
@@ -378,7 +440,7 @@ ui_get_cached_widget(u64 hash)
 
   if (ui_cached_widgets_count >= UI_MAX_CACHED_WIDGETS)
   {
-    emit_fatal(S("Too many widgets"));
+    emit_fatal(S("UI: Too many widgets"));
   }
 
   UI_Widget_Cache* cached_widget = NULL;
@@ -400,20 +462,32 @@ ui_get_cached_widget(u64 hash)
 function void
 ui_add_widget_child(UI_Widget *parent, UI_Widget *child)
 {
-  child->parent   = parent;
-  child->next     = NULL;
-  child->previous = parent->last;
-
-  if (parent->last)
+  if (parent == NULL)
   {
-    parent->last->next = child;
+    // If we're the ui_context.root (screen)
+    child->first    = NULL;
+    child->last     = NULL;
+    child->next     = NULL;
+    child->previous = NULL;
+    child->parent   = NULL;
   }
   else
   {
-    parent->first = child;
-  }
+    child->parent   = parent;
+    child->next     = NULL;
+    child->previous = parent->last;
 
-  parent->last = child;
+    if (parent->last)
+    {
+      parent->last->next = child;
+    }
+    else
+    {
+      parent->first = child;
+    }
+
+    parent->last = child;
+  }
 }
 
 function void
@@ -460,21 +534,21 @@ ui_update_tree_widgets(UI_Widget* widget)
     widget->string_dimensions = r_text_dimensions(widget->string, widget->text_pixel_height);
   }
 
-  switch (widget->alignment)
+  switch (widget->alignment_kind)
   {
-    case UI_Alignment_X:
+    case UI_Alignment_Kind_X:
     {
       widget->cursor.x = widget->cursor.x + widget->string_dimensions.x + widget->padding_x;
       widget->cursor.y = widget->cursor.y + widget->padding_y;
     } break;
-    case UI_Alignment_Y:
+    case UI_Alignment_Kind_Y:
     {
       widget->cursor.x = widget->cursor.x + widget->padding_x;
       widget->cursor.y = widget->cursor.y + widget->string_dimensions.y + widget->padding_y;
     } break;
     default:
     {
-      emit_fatal(S("Unhandled UI_Alignment"));
+      emit_fatal(S("UI: Unhandled UI_Alignment"));
     };
   }
 

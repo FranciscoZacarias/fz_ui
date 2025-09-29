@@ -6,8 +6,10 @@
 #define ui_stack_push(name, val) ((ui_context.name##_stack).data[((ui_context.name##_stack).top_index < sizeof((ui_context.name##_stack).data)/sizeof((ui_context.name##_stack).data[0])) ? (ui_context.name##_stack).top_index++ : (ui_context.name##_stack).top_index] = (val))
 #define ui_stack_pop(name) (((ui_context.name##_stack).top_index > 0) ? (ui_context.name##_stack).data[--(ui_context.name##_stack).top_index] : (ui_context.name##_stack).bottom_val)
 #define ui_stack_top(name) (((ui_context.name##_stack).top_index > 0) ? (ui_context.name##_stack).data[(ui_context.name##_stack).top_index-1] : (ui_context.name##_stack).bottom_val)
-#define ui_stack_assert_top_at(name, at) if((ui_context.name##_stack).top_index != (at)) emit_fatal(Sf(ui_context.arena, "%s not at expected top value: '%u'. Actual value: '%u'", Stringify((ui_context.name##_stack)), (at), (ui_context.name##_stack).top_index))
+#define ui_stack_assert_top_at(name, at) if((ui_context.name##_stack).top_index != (at)) emit_fatal(Sf(ui_context.arena, "UI: %s not at expected top value: '%u'. Actual value: '%u'", Stringify((ui_context.name##_stack)), (at), (ui_context.name##_stack).top_index))
+#define ui_stack_is_at_bottom(name) ((ui_context.name##_stack).top_index == 0)
 #define ui_stack_defer(name, val) DeferLoop(ui_stack_push(name, val), ui_stack_pop(name))
+#define ui_stack_defer_if_default(name,val) DeferLoop((ui_context.name##_stack.top_index == 0) && (ui_stack_push(name,val),1), (ui_context.name##_stack.top_index == 1) && (ui_stack_pop(name),1))
 
 typedef u32 UI_Widget_Flags;
 enum
@@ -35,10 +37,23 @@ enum
 
 typedef enum
 {
-  UI_Alignment_None = 0,
-  UI_Alignment_X,
-  UI_Alignment_Y
-} UI_Alignment;
+  UI_Alignment_Kind_None = 0,
+  UI_Alignment_Kind_X,
+  UI_Alignment_Kind_Y,
+  UI_Alignment_Kind_Floating,
+} UI_Alignment_Kind;
+
+typedef enum
+{
+  UI_Width_Kind_Fill,
+  UI_Width_Kind_Fixed
+} UI_Width_Kind;
+
+typedef enum
+{
+  UI_Height_Kind_Fill,
+  UI_Height_Kind_Fixed
+} UI_Height_Kind;
 
 typedef struct UI_Color_Scheme UI_Color_Scheme;
 struct UI_Color_Scheme
@@ -69,7 +84,7 @@ struct UI_Widget
   f32 padding_y;
   f32 spacing_x;
   f32 spacing_y;
-  UI_Alignment alignment;
+  UI_Alignment_Kind alignment_kind;
   f32 depth; /* Keeps track of that's in front. Smaller number means closer to the camera. 1 is root */
   UI_Widget_Flags flags;
   Vec2f32 local_drag_offset; /* How much it was offseted this frame */
@@ -96,7 +111,7 @@ struct UI_Widget_Cache
   f32 active_t;
 };
 
-#define UI_MAX_CACHED_WIDGETS 16
+#define UI_MAX_CACHED_WIDGETS 8
 global UI_Widget_Cache ui_cached_widgets[UI_MAX_CACHED_WIDGETS];
 global u32 ui_cached_widgets_count = 0;
 
@@ -124,20 +139,22 @@ struct UI_Context
   f32 hash_hot_depth;
 
   // State
-  ui_stack(UI_Widget*,   widget,           UI_STACKS_MAX);
-  ui_stack(Vec2f32,      top_left,         UI_STACKS_MAX);
-  ui_stack(f32,          size_x,           UI_STACKS_MAX);
-  ui_stack(f32,          size_y,           UI_STACKS_MAX);
-  ui_stack(f32,          padding_x,        UI_STACKS_MAX);
-  ui_stack(f32,          padding_y,        UI_STACKS_MAX);
-  ui_stack(f32,          spacing_x,        UI_STACKS_MAX); /* Spacing does not count towards the clip calculation */
-  ui_stack(f32,          spacing_y,        UI_STACKS_MAX); /* Spacing does not count towards the clip calculation */
-  ui_stack(f32,          text_height,      UI_STACKS_MAX);
-  ui_stack(UI_Alignment, alignment,        UI_STACKS_MAX);
-  ui_stack(Color,        background_color, UI_STACKS_MAX);
-  ui_stack(Color,        text_color,       UI_STACKS_MAX);
-  ui_stack(Color,        hover_color,      UI_STACKS_MAX);
-  ui_stack(Color,        active_color,     UI_STACKS_MAX);
+  ui_stack(UI_Widget*,        widget,           UI_STACKS_MAX);
+  ui_stack(Vec2f32,           top_left,         UI_STACKS_MAX);
+  ui_stack(f32,               size_x,           UI_STACKS_MAX);
+  ui_stack(f32,               size_y,           UI_STACKS_MAX);
+  ui_stack(f32,               padding_x,        UI_STACKS_MAX);
+  ui_stack(f32,               padding_y,        UI_STACKS_MAX);
+  ui_stack(f32,               spacing_x,        UI_STACKS_MAX); /* Spacing does not count towards the clip calculation */
+  ui_stack(f32,               spacing_y,        UI_STACKS_MAX); /* Spacing does not count towards the clip calculation */
+  ui_stack(f32,               text_height,      UI_STACKS_MAX);
+  ui_stack(UI_Alignment_Kind, alignment_kind,   UI_STACKS_MAX);
+  ui_stack(UI_Width_Kind,     width_kind,       UI_STACKS_MAX);
+  ui_stack(UI_Height_Kind,    height_kind,      UI_STACKS_MAX);
+  ui_stack(Color,             background_color, UI_STACKS_MAX);
+  ui_stack(Color,             text_color,       UI_STACKS_MAX);
+  ui_stack(Color,             hover_color,      UI_STACKS_MAX);
+  ui_stack(Color,             active_color,     UI_STACKS_MAX);
 
   f32 animation_speed;
 
@@ -173,7 +190,7 @@ function UI_Signal  ui_signal_from_widget(UI_Widget* widget);
 // Helper
 function String8    ui_clean_string(Arena* arena, String8 string);
 function void       ui_debug_draw_widget(UI_Widget* widget, f32 depth);
-function Rectf32    ui_clip_rect(Rectf32 parent, Rectf32 child);
+function Rectf32    ui_clamp_rect(Rectf32 parent, Rectf32 child);
 function b32        ui_is_mouse_in_widget(UI_Widget* widget);
 function UI_Widget_Cache* ui_get_cached_widget(u64 hash);
 
