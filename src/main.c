@@ -41,6 +41,29 @@ entry_point(Command_Line* command_line)
     input_update();
 
     ui_begin();
+
+    ui_stack_defer(top_left, vec2f32(2,2))
+    ui_window(S("fz_ui config"))
+    {
+      ui_row(S("font size"), 20)
+      {
+        if (ui_clicked(ui_button(S("-"))))
+        {
+          ui_context.text_pixel_height -= 1;
+        }
+        if (ui_clicked(ui_button(S("+"))))
+        {
+          ui_context.text_pixel_height += 1;
+        }
+      }
+      if (ui_clicked(ui_button(S("ui debug"))))
+      {
+        ui_context.debug.show_bounds = !ui_context.debug.show_bounds;
+        ui_context.debug.show_clip   = !ui_context.debug.show_clip;
+        ui_context.debug.show_cursor = !ui_context.debug.show_cursor;
+      }
+    }
+
     ui_window(S("Test Window"))
     {
       ui_stack_defer(padding_x, 4.0f) ui_stack_defer(padding_y, 4.0f)

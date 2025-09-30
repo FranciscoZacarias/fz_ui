@@ -21,6 +21,7 @@ r_init()
     g_renderer.shaders.f_color   = r_compile_shader(F_COLOR_PATH,   GL_FRAGMENT_SHADER);
     g_renderer.shaders.f_texture = r_compile_shader(F_TEXTURE_PATH, GL_FRAGMENT_SHADER);
     g_renderer.shaders.f_text    = r_compile_shader(F_TEXT_PATH,    GL_FRAGMENT_SHADER);
+    g_renderer.shaders.f_quad_style = r_compile_shader(F_QUAD_STYLE,GL_FRAGMENT_SHADER);
   }
 
   // Screenspace
@@ -149,7 +150,7 @@ r_init()
       Render_Batch_Kind batch_kind = Render_Batch_Quad;
       u32 max_instances     = Thousand(1);
       u32 vertex_shader     = g_renderer.shaders.v_primitive;
-      u32 fragment_shader   = g_renderer.shaders.f_texture;
+      u32 fragment_shader   = g_renderer.shaders.f_quad_style;
 
       Render_Batch* batch = r_new_render_batch(g_renderer.arena, batch_kind, max_instances, vertex_shader, 6, GL_TRIANGLES);
       g_renderer.batches[batch_kind] = batch;

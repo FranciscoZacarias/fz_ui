@@ -8,33 +8,33 @@ function void ui_init()
   {
     .title_bar = (UI_Node_Color_Scheme)
     {
-      .border_color            = color(0.25f, 0.25f, 0.25f, 1.0f),
-      .background_color        = color(0.1f, 0.1f, 0.1f, 1.0f),
-      .background_hover_color  = color(0.1f, 0.1f, 0.1f, 1.0f),
-      .background_active_color = color(0.10f, 0.10f, 0.10f, 1.0f),
-      .text_color        = color(0.95f, 0.95f, 0.95f, 1.0f),
+      .border_color            = color(0.20f, 0.20f, 0.20f, 1.0f),
+      .background_color        = color(0.07f, 0.07f, 0.07f, 1.0f),
+      .background_hover_color  = color(0.10f, 0.10f, 0.10f, 1.0f),
+      .background_active_color = color(0.12f, 0.12f, 0.12f, 1.0f),
+      .text_color        = color(0.76f, 0.71f, 0.62f, 1.0f),
       .text_hover_color  = color(1.0f, 1.0f, 1.0f, 1.0f),
-      .text_active_color = color(0.90f, 0.90f, 0.90f, 1.0)
+      .text_active_color = color(0.95f, 0.95f, 0.95f, 1.0f),
     },
     .window = (UI_Node_Color_Scheme)
     {
-      .border_color            = color(0.25f, 0.25f, 0.25f, 1.0f),
-      .background_color        = color(0.2f, 0.2f, 0.2f, 1.0f),
-      .background_hover_color  = color(0.12f, 0.12f, 0.12f, 1.0f),
-      .background_active_color = color(0.12f, 0.12f, 0.12f, 1.0f),
-      .text_color        = color(0.95f, 0.95f, 0.95f, 1.0f),
+      .border_color            = color(0.18f, 0.18f, 0.18f, 1.0f),
+      .background_color        = color(0.14f, 0.14f, 0.14f, 1.0f),
+      .background_hover_color  = color(0.17f, 0.17f, 0.17f, 1.0f),
+      .background_active_color = color(0.20f, 0.20f, 0.20f, 1.0f),
+      .text_color        = color(0.76f, 0.71f, 0.62f, 1.0f),
       .text_hover_color  = color(0.95f, 0.95f, 0.95f, 1.0f),
-      .text_active_color = color(0.95f, 0.95f, 0.95f, 1.0)
+      .text_active_color = color(1.0f, 1.0f, 1.0f, 1.0f),
     },
     .button = (UI_Node_Color_Scheme)
     {
-      .border_color            = color(0.3f, 0.3f, 0.3f, 1.0f),
-      .background_color        = color(0.29f, 0.29f, 0.29f, 1.0f),
+      .border_color            = color(0.25f, 0.25f, 0.25f, 1.0f),
+      .background_color        = color(0.20f, 0.20f, 0.20f, 1.0f),
       .background_hover_color  = color(0.25f, 0.25f, 0.25f, 1.0f),
-      .background_active_color = color(0.15f, 0.15f, 0.15f, 1.0f),
-      .text_color        = color(0.95f, 0.95f, 0.95f, 1.0f),
+      .background_active_color = color(0.30f, 0.30f, 0.30f, 1.0f),
+      .text_color        = color(0.76f, 0.71f, 0.62f, 1.0f),
       .text_hover_color  = color(1.0f, 1.0f, 1.0f, 1.0f),
-      .text_active_color = color(0.85f, 0.85f, 0.85f, 1.0)
+      .text_active_color = color(0.90f, 0.90f, 0.90f, 1.0f),
     },
   };
 
@@ -206,18 +206,16 @@ ui_render_widget(UI_Node* widget_root)
 function void
 ui_window_begin(String8 text)
 {
-  Scratch scratch = scratch_begin(0,0);
-
   UI_Signal window_signal = (UI_Signal){0};
   ui_stack_defer_if_default(node_color_scheme, ui_context.color_scheme.window)
-  ui_stack_defer_if_default(top_left, vec2f32(200,200))
+  ui_stack_defer_if_default(top_left, vec2f32(250,200))
   ui_stack_defer_if_default(size_x, 200) ui_stack_defer_if_default(size_y, 200)
   ui_stack_defer_if_default(padding_x, 4.0f) ui_stack_defer_if_default(padding_y, 4.0f)
   ui_stack_defer(width_kind,  UI_Width_Kind_Fixed)
   ui_stack_defer(height_kind, UI_Height_Kind_Fixed)
   {
     UI_Node_Flags window_flags = 0;
-    String8 window_text = Sf(scratch.arena, ""S_FMT"##_window_`"S_FMT"`", S_ARG(text));
+    String8 window_text = Sf(ui_context.frame_arena, ""S_FMT"##_window_`"S_FMT"`", S_ARG(text));
     window_signal.node = ui_node_from_string(window_text, window_flags);
     ui_stack_push(node, window_signal.node);
   }
@@ -227,7 +225,7 @@ ui_window_begin(String8 text)
   ui_stack_defer_if_default(spacing_x, 2.0f)
   ui_stack_defer_if_default(size_y, 20.0f)
   ui_stack_defer_if_default(alignment_kind, UI_Alignment_Kind_X)
-  ui_stack_defer_if_default(padding_x, 4.0f) ui_stack_defer_if_default(padding_y, 4.0f)
+  ui_stack_defer_if_default(spacing_x, 4.0f) ui_stack_defer_if_default(spacing_y, 4.0f)
   ui_stack_defer(height_kind, UI_Height_Kind_Fixed)
   {
     UI_Node_Flags title_bar_flags = UI_Widget_Flags_Mouse_Clickable|
@@ -235,11 +233,9 @@ ui_window_begin(String8 text)
                                     UI_Widget_Flags_Draggable|
                                     UI_Widget_Flags_Display_Text|
                                     UI_Widget_Flags_Center_Text_Vertically;
-    String8 window_title_bar_text = Sf(scratch.arena, ""S_FMT"##_title_bar_", S_ARG(text));
+    String8 window_title_bar_text = Sf(ui_context.frame_arena, ""S_FMT"##_title_bar_", S_ARG(text));
     title_bar_signal.node = ui_node_from_string(window_title_bar_text, title_bar_flags);
   }
-
-  scratch_end(&scratch);
 }
 
 function void
@@ -306,10 +302,11 @@ function UI_Signal
 ui_button(String8 text)
 {
   UI_Signal button_signal = (UI_Signal){0};
+  // TODO(fz): We can cache the y size of the font and set it as the default.
   ui_stack_defer_if_default(node_color_scheme, ui_context.color_scheme.button)
-  ui_stack_defer(padding_x, 1.0f) ui_stack_defer(padding_y, 1.0f)
   ui_stack_defer(size_y, 20.0f)
   ui_stack_defer(size_x, 80.0f)
+  ui_stack_defer(padding_x, 1.0f) ui_stack_defer(padding_y, 1.0f)
   ui_stack_defer(alignment_kind, UI_Alignment_Kind_X)
   ui_stack_defer(height_kind,    UI_Height_Kind_Fixed)
   ui_stack_defer(width_kind,     UI_Width_Kind_Fixed)
@@ -509,9 +506,9 @@ ui_fill_signals_from_node(UI_Signal* signal)
 {
   if (ui_is_mouse_in_node(signal->node))
   {
-    if (input_is_button_down(&g_input, Mouse_Button_Left))      SetFlags(signal->flags, UI_Signal_Flags_Left_Clicked);
-    if (input_is_button_down(&g_input, Mouse_Button_Middle))    SetFlags(signal->flags, UI_Signal_Flags_Middle_Clicked);
-    if (input_is_button_down(&g_input, Mouse_Button_Right))     SetFlags(signal->flags, UI_Signal_Flags_Right_Clicked);
+    if (input_is_button_down(&g_input, Mouse_Button_Left))      SetFlags(signal->flags, UI_Signal_Flags_Left_Down);
+    if (input_is_button_down(&g_input, Mouse_Button_Middle))    SetFlags(signal->flags, UI_Signal_Flags_Middle_Down);
+    if (input_is_button_down(&g_input, Mouse_Button_Right))     SetFlags(signal->flags, UI_Signal_Flags_Right_Down);
     
     if (input_is_button_clicked(&g_input, Mouse_Button_Left))   SetFlags(signal->flags, UI_Signal_Flags_Left_Clicked);
     if (input_is_button_clicked(&g_input, Mouse_Button_Middle)) SetFlags(signal->flags, UI_Signal_Flags_Middle_Clicked);

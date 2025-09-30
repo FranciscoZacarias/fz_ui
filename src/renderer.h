@@ -23,6 +23,7 @@
 #define F_TEXTURE_PATH S("\\src\\shaders\\f_texture.glsl")
 #define F_TEXT_PATH    S("\\src\\shaders\\f_text.glsl")
 #define F_COLOR_PATH   S("\\src\\shaders\\f_color.glsl")
+#define F_QUAD_STYLE   S("\\src\\shaders\\f_quad_style.glsl")
 
 typedef struct
 {
@@ -136,6 +137,7 @@ struct Renderer_Context
     u32 v_line;
 
     u32 f_color;
+    u32 f_quad_style;
     u32 f_texture;
     u32 f_text;
   } shaders;
