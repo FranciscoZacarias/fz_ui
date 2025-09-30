@@ -43,13 +43,14 @@ entry_point(Command_Line* command_line)
     ui_begin();
     ui_window(S("Test Window"))
     {
-      ui_stack_defer_if_default(padding_x, 4.0f) ui_stack_defer_if_default(padding_y, 4.0f)
+      ui_stack_defer(padding_x, 4.0f) ui_stack_defer(padding_y, 4.0f)
       ui_row(S("Horizontal buttons"), 50)
       {
-        ui_button(S("Button A"));
-        ui_button(S("Button B"));
+        for (u32 i = 0; i < 2; i += 1)
+        {
+          ui_button(Sf(frame_arena, "Same Name!##%d", i));
+        }
       }
-      ui_stack_defer_if_default(padding_x, 4.0f) ui_stack_defer_if_default(padding_y, 4.0f)
       ui_column(S("Vertical buttons"), 90)
       {
         ui_button(S("Button C"));

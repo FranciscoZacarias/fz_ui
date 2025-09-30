@@ -114,6 +114,7 @@ struct UI_Node
 
   // String stuff
   String8 string;
+  String8 string_clean;
   Vec2f32 string_top_left;
   Vec2f32 string_dimensions;
   f32 text_pixel_height;
@@ -239,6 +240,6 @@ function UI_Node_Cache* ui_get_cached_node(u64 hash);
 function void ui_add_widget_child(UI_Node *parent, UI_Node *child);
 function void ui_update_tree_nodes(UI_Node* widget_root);
 #define  ui_print_tree(root) ui_print_tree_impl(root, 0)
-function void ui_print_tree_impl(UI_Node* widget_root, u32 depth);
+function void ui_print_tree_impl(UI_Node* node, u32 depth);
 
 #endif // UI_H

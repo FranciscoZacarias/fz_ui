@@ -191,7 +191,7 @@ ui_render_widget(UI_Node* widget_root)
     {
       f32 clamp_width  = (widget_root->clip.top_left.x + widget_root->clip.size.x) - widget_root->string_top_left.x;
       f32 clamp_height = (widget_root->clip.top_left.y + widget_root->clip.size.y) - widget_root->string_top_left.y;
-      r_draw_text_clamped(widget_root->string_top_left, ui_context.text_pixel_height, widget_root->target_text_color, widget_root->string, widget_root->depth - F32_EPSILON, clamp_width, clamp_height);
+      r_draw_text_clamped(widget_root->string_top_left, ui_context.text_pixel_height, widget_root->target_text_color, widget_root->string_clean, widget_root->depth - F32_EPSILON, clamp_width, clamp_height);
     }
     ui_debug_draw_node(widget_root, widget_root->depth);
   }
@@ -208,8 +208,6 @@ ui_window_begin(String8 text)
 {
   Scratch scratch = scratch_begin(0,0);
 
-  String8 window_string = Sf(scratch.arena, "##_window_"S_FMT"", S_ARG(text));
-
   UI_Signal window_signal = (UI_Signal){0};
   ui_stack_defer_if_default(node_color_scheme, ui_context.color_scheme.window)
   ui_stack_defer_if_default(top_left, vec2f32(200,200))
@@ -219,11 +217,11 @@ ui_window_begin(String8 text)
   ui_stack_defer(height_kind, UI_Height_Kind_Fixed)
   {
     UI_Node_Flags window_flags = 0;
-    window_signal.node = ui_node_from_string(window_string, window_flags);
+    String8 window_text = Sf(scratch.arena, ""S_FMT"##_window_`"S_FMT"`", S_ARG(text));
+    window_signal.node = ui_node_from_string(window_text, window_flags);
     ui_stack_push(node, window_signal.node);
   }
 
-#if 1
   UI_Signal title_bar_signal = (UI_Signal){0};
   ui_stack_defer_if_default(node_color_scheme, ui_context.color_scheme.title_bar)
   ui_stack_defer_if_default(spacing_x, 2.0f)
@@ -237,41 +235,9 @@ ui_window_begin(String8 text)
                                     UI_Widget_Flags_Draggable|
                                     UI_Widget_Flags_Display_Text|
                                     UI_Widget_Flags_Center_Text_Vertically;
-    title_bar_signal.node = ui_node_from_string(text, title_bar_flags);
+    String8 window_title_bar_text = Sf(scratch.arena, ""S_FMT"##_title_bar_", S_ARG(text));
+    title_bar_signal.node = ui_node_from_string(window_title_bar_text, title_bar_flags);
   }
-#endif
-
-#if 0
-  ui_stack_defer_if_default(node_color_scheme, ui_context.color_scheme.title_bar)
-  ui_stack_defer_if_default(spacing_x, 2.0f)
-  ui_stack_defer_if_default(size_y, 20.0f)
-  ui_stack_defer_if_default(alignment_kind, UI_Alignment_Kind_X)
-  ui_stack_defer(height_kind, UI_Height_Kind_Fixed)
-  {
-    UI_Node_Flags title_bar_flags = UI_Widget_Flags_Mouse_Clickable|
-                                    UI_Widget_Flags_Hoverable|
-                                    UI_Widget_Flags_Draggable|
-                                    UI_Widget_Flags_Display_Text|
-                                    UI_Widget_Flags_Center_Text_Vertically;
-    ui_node_from_string(S("debug 1"), title_bar_flags);
-  }
-#endif
-#if 0
-  ui_stack_defer_if_default(node_color_scheme, ui_context.color_scheme.title_bar)
-  ui_stack_defer_if_default(spacing_x, 2.0f)
-  ui_stack_defer_if_default(size_y, 20.0f)
-  ui_stack_defer_if_default(alignment_kind, UI_Alignment_Kind_X)
-  ui_stack_defer(height_kind, UI_Height_Kind_Fixed)
-  {
-    UI_Node_Flags title_bar_flags = UI_Widget_Flags_Mouse_Clickable|
-                                    UI_Widget_Flags_Hoverable|
-                                    UI_Widget_Flags_Draggable|
-                                    UI_Widget_Flags_Display_Text|
-                                    UI_Widget_Flags_Center_Text_Vertically;
-    ui_node_from_string(S("debug 2"), title_bar_flags);
-  }
-
-#endif
 
   scratch_end(&scratch);
 }
@@ -341,6 +307,7 @@ ui_button(String8 text)
 {
   UI_Signal button_signal = (UI_Signal){0};
   ui_stack_defer_if_default(node_color_scheme, ui_context.color_scheme.button)
+  ui_stack_defer(padding_x, 1.0f) ui_stack_defer(padding_y, 1.0f)
   ui_stack_defer(size_y, 20.0f)
   ui_stack_defer(size_x, 80.0f)
   ui_stack_defer(alignment_kind, UI_Alignment_Kind_X)
@@ -392,7 +359,8 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   widget->padding_x = ui_stack_top(padding_x);
   widget->padding_y = ui_stack_top(padding_y);
   widget->alignment_kind    = ui_stack_top(alignment_kind);
-  widget->string            = ui_clean_string(ui_context.frame_arena, string);
+  widget->string            = string8_copy(ui_context.frame_arena, string);
+  widget->string_clean      = ui_clean_string(ui_context.frame_arena, string);
   widget->string_top_left   = vec2f32(0,0);
   widget->local_drag_offset = vec2f32(0,0);
   widget->flags             = flags;
@@ -481,6 +449,23 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
     ui_context.hash_active = 0;
   }
 
+  // Style
+  // NOTE(fz): We use colors from the stack if they were explicitly added by the user. Otherwise we just take them from the color scheme
+  widget->node_color_scheme     = ui_stack_top(node_color_scheme);
+  Color border_color            = ui_stack_is_at_bottom(border_color)            ? widget->node_color_scheme.border_color            : ui_stack_top(border_color);
+  Color background_color        = ui_stack_is_at_bottom(background_color)        ? widget->node_color_scheme.background_color        : ui_stack_top(background_color);
+  Color background_hover_color  = ui_stack_is_at_bottom(background_hover_color)  ? widget->node_color_scheme.background_hover_color  : ui_stack_top(background_hover_color);
+  Color background_active_color = ui_stack_is_at_bottom(background_active_color) ? widget->node_color_scheme.background_active_color : ui_stack_top(background_active_color);
+  Color text_color              = ui_stack_is_at_bottom(text_color)              ? widget->node_color_scheme.text_color              : ui_stack_top(text_color);
+  Color text_hover_color        = ui_stack_is_at_bottom(text_hover_color)        ? widget->node_color_scheme.text_hover_color        : ui_stack_top(text_hover_color);
+  Color text_active_color       = ui_stack_is_at_bottom(text_active_color)       ? widget->node_color_scheme.text_active_color       : ui_stack_top(text_active_color);
+
+  widget->target_background_color = color_lerp(background_color, background_hover_color, cached_widget->hover_t);
+  widget->target_background_color = color_lerp(widget->target_background_color, background_active_color, cached_widget->active_t);
+
+  widget->target_text_color = color_lerp(text_color, text_hover_color, cached_widget->hover_t);
+  widget->target_text_color = color_lerp(widget->target_text_color, text_active_color, cached_widget->active_t);
+
   // Hover
   if (HasFlags(widget->flags, UI_Widget_Flags_Hoverable))
   {
@@ -506,23 +491,6 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
       cached_widget->active_t = Clamp(cached_widget->active_t - g_delta_time * ui_context.animation_speed, 0, 1);
     }
   }
-
-  // Style
-  // NOTE(fz): We use colors from the stack if they were explicitly added by the user. Otherwise we just take them from the color scheme
-  widget->node_color_scheme     = ui_stack_top(node_color_scheme);
-  Color border_color            = ui_stack_is_at_bottom(border_color)            ? widget->node_color_scheme.border_color            : ui_stack_top(border_color);
-  Color background_color        = ui_stack_is_at_bottom(background_color)        ? widget->node_color_scheme.background_color        : ui_stack_top(background_color);
-  Color background_hover_color  = ui_stack_is_at_bottom(background_hover_color)  ? widget->node_color_scheme.background_hover_color  : ui_stack_top(background_hover_color);
-  Color background_active_color = ui_stack_is_at_bottom(background_active_color) ? widget->node_color_scheme.background_active_color : ui_stack_top(background_active_color);
-  Color text_color              = ui_stack_is_at_bottom(text_color)              ? widget->node_color_scheme.text_color              : ui_stack_top(text_color);
-  Color text_hover_color        = ui_stack_is_at_bottom(text_hover_color)        ? widget->node_color_scheme.text_hover_color        : ui_stack_top(text_hover_color);
-  Color text_active_color       = ui_stack_is_at_bottom(text_active_color)       ? widget->node_color_scheme.text_active_color       : ui_stack_top(text_active_color);
-
-  widget->target_background_color = color_lerp(background_color, background_hover_color, cached_widget->hover_t);
-  widget->target_background_color = color_lerp(widget->target_background_color, background_active_color, cached_widget->active_t);
-
-  widget->target_text_color = color_lerp(text_color, text_hover_color, cached_widget->hover_t);
-  widget->target_text_color = color_lerp(widget->target_text_color, text_active_color, cached_widget->active_t);
   
   // Dragging
   if (ui_context.hash_active == widget->hash)
@@ -743,7 +711,7 @@ ui_update_tree_nodes(UI_Node* widget_root)
   // String
   if (HasFlags(widget_root->flags, UI_Widget_Flags_Display_Text))
   {
-    widget_root->string_dimensions = r_text_dimensions(widget_root->string, ui_context.text_pixel_height);
+    widget_root->string_dimensions = r_text_dimensions(widget_root->string_clean, ui_context.text_pixel_height);
     widget_root->string_top_left = vec2f32_add(widget_root->clip.top_left, widget_root->cursor);
 
     if (HasFlags(widget_root->flags, UI_Widget_Flags_Center_Text_Horizontally))
@@ -796,24 +764,30 @@ ui_update_tree_nodes(UI_Node* widget_root)
 }
 
 function void
-ui_print_tree_impl(UI_Node* widget_root, u32 depth)
+ui_print_tree_impl(UI_Node *node, u32 depth)
 {
-  for (u32 i = 0; i < depth; ++i)
+  // Print prefix
+  for (u32 i = 0; i < depth; i += 1)
   {
-    printf("+--");
+    printf("    ");
   }
 
-  UI_Node_Cache* cache = ui_get_cached_node(widget_root->hash);
-  printf(
-    "+ Widget hash: %llu, Text: "S_FMT"\n",
-    widget_root->hash, S_ARG(widget_root->string),
-    widget_root->local_drag_offset.x, widget_root->local_drag_offset.y,
-    cache->accumulated_drag_offset.x, cache->accumulated_drag_offset.y
-  );
+  // Branch symbol
+  if (node->next == NULL)
+  {
+    printf("`-- ");
+  }
+  else
+  {
+    printf("|-- ");
+  }
 
-  for (UI_Node* child = widget_root->first; child; child = child->next)
+  UI_Node_Cache *cache = ui_get_cached_node(node->hash);
+  printf("Widget hash: %llu, Text: " S_FMT "\n", node->hash, S_ARG(node->string));
+
+  // Children
+  for (UI_Node *child = node->first; child; child = child->next)
   {
     ui_print_tree_impl(child, depth + 1);
   }
-  printf("\n");
 }
