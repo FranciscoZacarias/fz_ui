@@ -161,6 +161,11 @@ function void ui_end()
   r_draw_text(vec2f32(600, 170), 32, BLACK(1), Sf(ui_context.frame_arena, "mouse delta: %.2f,%.2f", g_input.mouse_current.delta.x, g_input.mouse_current.delta.y), 0);
   r_draw_text(vec2f32(600, 200), 32, BLACK(1), Sf(ui_context.frame_arena, "Frame: %d", g_frame_counter), 0);
 
+  if (input_is_key_clicked(&g_input, Keyboard_Key_K))
+  {
+    ui_print_tree(ui_context.root);
+  }
+
   // Reset
   ui_context.hash_hot = 0;
   ui_context.hash_hot_depth = 1.0f;
@@ -283,12 +288,12 @@ ui_window_end()
   ui_update_tree_nodes(node);
   if (ui_context.debug.print_widget_tree)
   {
-    ui_print_tree(node, 0);
+    ui_print_tree_impl(node, 0);
   }
 }
 
 function void
-ui_layout_box_begin(UI_Alignment_Kind alignment, f32 size)
+ui_layout_box_begin(UI_Alignment_Kind alignment, String8 text, f32 size)
 {
   ui_stack_push(alignment_kind, alignment);
   if (alignment == UI_Alignment_Kind_X)
@@ -308,7 +313,7 @@ ui_layout_box_begin(UI_Alignment_Kind alignment, f32 size)
   ui_stack_defer_if_default(node_color_scheme, ui_context.color_scheme.window)
   {
     UI_Node_Flags layout_box_flags = 0;
-    layout_box.node = ui_node_from_string(S("temporary text"), layout_box_flags);
+    layout_box.node = ui_node_from_string(text, layout_box_flags);
     ui_stack_push(node, layout_box.node);
   }
 }
@@ -791,7 +796,7 @@ ui_update_tree_nodes(UI_Node* widget_root)
 }
 
 function void
-ui_print_tree(UI_Node* widget_root, u32 depth)
+ui_print_tree_impl(UI_Node* widget_root, u32 depth)
 {
   for (u32 i = 0; i < depth; ++i)
   {
@@ -808,7 +813,7 @@ ui_print_tree(UI_Node* widget_root, u32 depth)
 
   for (UI_Node* child = widget_root->first; child; child = child->next)
   {
-    ui_print_tree(child, depth + 1);
+    ui_print_tree_impl(child, depth + 1);
   }
   printf("\n");
 }

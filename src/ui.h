@@ -212,10 +212,9 @@ function void ui_render_widget(UI_Node* widget_root);
 function void ui_window_begin(String8 text);
 function void ui_window_end();
 
-#define  ui_row(height)   ui_layout_box(UI_Alignment_Kind_X, height)
-#define  ui_column(width) ui_layout_box(UI_Alignment_Kind_Y, width)
-#define  ui_layout_box(align,size) DeferLoop(ui_layout_box_begin(align,size), ui_layout_box_end())
-function void ui_layout_box_begin(UI_Alignment_Kind alignment, f32 size);
+#define  ui_row(label, height)   DeferLoop(ui_layout_box_begin(UI_Alignment_Kind_X,label,height), ui_layout_box_end())
+#define  ui_column(label, width) DeferLoop(ui_layout_box_begin(UI_Alignment_Kind_Y,label,width),  ui_layout_box_end())
+function void ui_layout_box_begin(UI_Alignment_Kind alignment, String8 text, f32 size);
 function void ui_layout_box_end();
 
 function UI_Signal ui_button(String8 text);
@@ -239,6 +238,7 @@ function UI_Node_Cache* ui_get_cached_node(u64 hash);
 // Widget tree
 function void ui_add_widget_child(UI_Node *parent, UI_Node *child);
 function void ui_update_tree_nodes(UI_Node* widget_root);
-function void ui_print_tree(UI_Node* widget_root, u32 depth);
+#define  ui_print_tree(root) ui_print_tree_impl(root, 0)
+function void ui_print_tree_impl(UI_Node* widget_root, u32 depth);
 
 #endif // UI_H
