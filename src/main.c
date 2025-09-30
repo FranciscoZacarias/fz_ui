@@ -43,7 +43,6 @@ entry_point(Command_Line* command_line)
     ui_begin();
     ui_window(S("Test Window"))
     {
-      ui_button(S("Button!"));
     }
     ui_end();
     

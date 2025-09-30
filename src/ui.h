@@ -1,6 +1,17 @@
 #ifndef UI_H
 #define UI_H
 
+// Stack functions
+#define ui_stack(type, name, size) struct { type data[size]; u32 top_index; type  bottom_val; } name##_stack
+#define ui_stack_init(name, bot_val) Statement((ui_context.name##_stack).top_index = 0; (ui_context.name##_stack).bottom_val = (bot_val);)
+#define ui_stack_push(name, val) ((ui_context.name##_stack).data[((ui_context.name##_stack).top_index < sizeof((ui_context.name##_stack).data)/sizeof((ui_context.name##_stack).data[0])) ? (ui_context.name##_stack).top_index++ : (ui_context.name##_stack).top_index] = (val))
+#define ui_stack_pop(name) (((ui_context.name##_stack).top_index > 0) ? (ui_context.name##_stack).data[--(ui_context.name##_stack).top_index] : (ui_context.name##_stack).bottom_val)
+#define ui_stack_top(name) (((ui_context.name##_stack).top_index > 0) ? (ui_context.name##_stack).data[(ui_context.name##_stack).top_index-1] : (ui_context.name##_stack).bottom_val)
+#define ui_stack_assert_top_at(name, at) if((ui_context.name##_stack).top_index != (at)) emit_fatal(Sf(ui_context.arena, "UI: %s not at expected top value: '%u'. Actual value: '%u'", Stringify((ui_context.name##_stack)), (at), (ui_context.name##_stack).top_index))
+#define ui_stack_is_at_bottom(name) ((ui_context.name##_stack).top_index == 0)
+#define ui_stack_defer(name, val) DeferLoop(ui_stack_push(name, val), ui_stack_pop(name))
+#define ui_stack_defer_if_default(name,val) DeferLoop((ui_context.name##_stack.top_index == 0) && (ui_stack_push(name,val),1), (ui_stack_pop(name)))
+
 // Color schemes
 typedef struct UI_Node_Color_Scheme UI_Node_Color_Scheme;
 struct UI_Node_Color_Scheme
@@ -25,17 +36,6 @@ struct UI_Color_Scheme
 };
 
 global UI_Color_Scheme ui_color_scheme_dark;
-
-// Stack functions
-#define ui_stack(type, name, size) struct { type data[size]; u32 top_index; type  bottom_val; } name##_stack
-#define ui_stack_init(name, bot_val) Statement((ui_context.name##_stack).top_index = 0; (ui_context.name##_stack).bottom_val = (bot_val);)
-#define ui_stack_push(name, val) ((ui_context.name##_stack).data[((ui_context.name##_stack).top_index < sizeof((ui_context.name##_stack).data)/sizeof((ui_context.name##_stack).data[0])) ? (ui_context.name##_stack).top_index++ : (ui_context.name##_stack).top_index] = (val))
-#define ui_stack_pop(name) (((ui_context.name##_stack).top_index > 0) ? (ui_context.name##_stack).data[--(ui_context.name##_stack).top_index] : (ui_context.name##_stack).bottom_val)
-#define ui_stack_top(name) (((ui_context.name##_stack).top_index > 0) ? (ui_context.name##_stack).data[(ui_context.name##_stack).top_index-1] : (ui_context.name##_stack).bottom_val)
-#define ui_stack_assert_top_at(name, at) if((ui_context.name##_stack).top_index != (at)) emit_fatal(Sf(ui_context.arena, "UI: %s not at expected top value: '%u'. Actual value: '%u'", Stringify((ui_context.name##_stack)), (at), (ui_context.name##_stack).top_index))
-#define ui_stack_is_at_bottom(name) ((ui_context.name##_stack).top_index == 0)
-#define ui_stack_defer(name, val) DeferLoop(ui_stack_push(name, val), ui_stack_pop(name))
-#define ui_stack_defer_if_default(name,val) DeferLoop((ui_context.name##_stack.top_index == 0) && (ui_stack_push(name,val),1), (ui_stack_pop(name)))
 
 typedef u32 UI_Node_Flags;
 enum
@@ -212,6 +212,12 @@ function void ui_render_widget(UI_Node* widget_root);
 function void ui_window_begin(String8 text);
 function void ui_window_end();
 
+#define  ui_row(height)   ui_layout_box(UI_Alignment_Kind_X, height)
+#define  ui_column(width) ui_layout_box(UI_Alignment_Kind_Y, width)
+#define  ui_layout_box(align,size) DeferLoop(ui_layout_box_begin(align,size), ui_layout_box_end())
+function void ui_layout_box_begin(UI_Alignment_Kind alignment, f32 size);
+function void ui_layout_box_end();
+
 function UI_Signal ui_button(String8 text);
 
 // Interacation
@@ -219,16 +225,15 @@ function UI_Signal ui_button(String8 text);
 
 // Builder code
 function UI_Node*  ui_node_from_string(String8 string, UI_Node_Flags flags);
-function UI_Signal ui_signal_from_node(UI_Node* node);
-function void      ui_widget_end(UI_Node* root); /* Call at the end of every widget function */
+function void      ui_fill_signals_from_node(UI_Signal* signal); /* Signal in argument must contain the node already attached to it */
 function b32       ui_find_first_drag_offset(UI_Node* widget_root, Vec2f32* out_offset);
 function void      ui_apply_drag_offset(UI_Node* widget_root, Vec2f32 offset);
 
 // Helper
-function String8    ui_clean_string(Arena* arena, String8 string);
-function void       ui_debug_draw_node(UI_Node* widget, f32 depth);
-function Rectf32    ui_clamp_rect(Rectf32 parent, Rectf32 child);
-function b32        ui_is_mouse_in_node(UI_Node* node);
+function String8        ui_clean_string(Arena* arena, String8 string);
+function void           ui_debug_draw_node(UI_Node* widget, f32 depth);
+function Rectf32        ui_clamp_rect(Rectf32 parent, Rectf32 child);
+function b32            ui_is_mouse_in_node(UI_Node* node);
 function UI_Node_Cache* ui_get_cached_node(u64 hash);
 
 // Widget tree

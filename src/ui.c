@@ -126,15 +126,30 @@ function void ui_begin()
 function void ui_end()
 {
 #if DEBUG
-  ui_stack_assert_top_at(node, 1); // Root should bere
+  // Ensure all the stacks are properly cleaned
+  ui_stack_assert_top_at(node, 1); // Root should be in the stack
   ui_stack_assert_top_at(top_left, 0);
   ui_stack_assert_top_at(size_x, 0);
   ui_stack_assert_top_at(size_y, 0);
   ui_stack_assert_top_at(padding_x, 0);
   ui_stack_assert_top_at(padding_y, 0);
+  ui_stack_assert_top_at(spacing_x, 0);
+  ui_stack_assert_top_at(spacing_y, 0);
+  ui_stack_assert_top_at(alignment_kind, 0);
+  ui_stack_assert_top_at(width_kind, 0);
+  ui_stack_assert_top_at(height_kind, 0);
+  ui_stack_assert_top_at(node_color_scheme, 0);
+  ui_stack_assert_top_at(border_color, 0);
   ui_stack_assert_top_at(background_color, 0);
+  ui_stack_assert_top_at(background_hover_color, 0);
+  ui_stack_assert_top_at(background_active_color, 0);
   ui_stack_assert_top_at(text_color, 0);
-  if (ui_context.root->depth != 1) emit_fatal(Sf(ui_context.arena, "UI: ui_context.root->depth is expected to be 1. It was: %.10f\n", ui_context.root->depth));
+  ui_stack_assert_top_at(text_hover_color, 0);
+  ui_stack_assert_top_at(text_active_color, 0);
+  if (ui_context.root->depth != 1)
+  {
+    emit_fatal(Sf(ui_context.arena, "UI: ui_context.root->depth is expected to be 1. It was: %.10f\n", ui_context.root->depth));
+  }
 #endif
 
   ui_render_widget(ui_context.root);
@@ -188,8 +203,8 @@ ui_window_begin(String8 text)
 {
   Scratch scratch = scratch_begin(0,0);
 
-  String8 window_string = Sf(scratch.arena, "Debug Text##window_text_"S_FMT"", S_ARG(text));
-  UI_Node* window_widget = NULL;
+  String8 window_string = Sf(scratch.arena, "##"S_FMT"", S_ARG(text));
+
   UI_Signal window_signal = (UI_Signal){0};
   ui_stack_defer_if_default(node_color_scheme, ui_context.color_scheme.window)
   ui_stack_defer_if_default(top_left, vec2f32(200,200))
@@ -199,12 +214,10 @@ ui_window_begin(String8 text)
   ui_stack_defer(height_kind, UI_Height_Kind_Fixed)
   {
     UI_Node_Flags window_flags = 0;
-    window_widget = ui_node_from_string(window_string, window_flags);
-    window_signal = ui_signal_from_node(window_widget);
-    ui_stack_push(node, window_widget);
+    window_signal.node = ui_node_from_string(window_string, window_flags);
+    ui_stack_push(node, window_signal.node);
   }
 
-  UI_Node* title_bar_widget = NULL;
   UI_Signal title_bar_signal = (UI_Signal){0};
   ui_stack_defer_if_default(node_color_scheme, ui_context.color_scheme.title_bar)
   ui_stack_defer_if_default(spacing_x, 2.0f)
@@ -217,8 +230,7 @@ ui_window_begin(String8 text)
                                     UI_Widget_Flags_Draggable|
                                     UI_Widget_Flags_Display_Text|
                                     UI_Widget_Flags_Center_Text_Vertically;
-    title_bar_widget = ui_node_from_string(text, title_bar_flags);
-    title_bar_signal = ui_signal_from_node(title_bar_widget);
+    title_bar_signal.node = ui_node_from_string(text, title_bar_flags);
   }
 
   scratch_end(&scratch);
@@ -227,17 +239,68 @@ ui_window_begin(String8 text)
 function void
 ui_window_end()
 {
-  ui_widget_end(ui_stack_pop(node));
+  UI_Node* node = ui_stack_pop(node);
+  Vec2f32 offset = {0};
+  if (ui_find_first_drag_offset(node, &offset))
+  {
+    ui_apply_drag_offset(node, offset);
+  }
+  ui_update_tree_nodes(node);
+  if (ui_context.debug.print_widget_tree)
+  {
+    ui_print_tree(node, 0);
+  }
+}
+
+function void
+ui_layout_box_begin(UI_Alignment_Kind alignment, f32 size)
+{
+  ui_stack_push(alignment_kind, alignment);
+  if (alignment == UI_Alignment_Kind_X)
+  {
+    ui_stack_push(height_kind, UI_Height_Kind_Fixed);
+    ui_stack_push(width_kind, UI_Width_Kind_Fill);
+    ui_stack_push(size_y, size);
+  }
+  else if (alignment == UI_Alignment_Kind_Y)
+  {
+    ui_stack_push(height_kind, UI_Height_Kind_Fill);
+    ui_stack_push(width_kind, UI_Width_Kind_Fixed);
+    ui_stack_push(size_x, size);
+  }
+
+  UI_Signal layout_box = (UI_Signal){0};
+  ui_stack_defer_if_default(node_color_scheme, ui_context.color_scheme.window)
+  {
+    UI_Node_Flags layout_box_flags = 0;
+    layout_box.node = ui_node_from_string(S("temporary text"), layout_box_flags);
+  }
+}
+
+function void
+ui_layout_box_end()
+{
+  ui_stack_pop(width_kind);
+  ui_stack_pop(height_kind);
+
+  UI_Alignment_Kind alignment = ui_stack_pop(alignment_kind);
+  if (alignment == UI_Alignment_Kind_X)
+  {
+    ui_stack_pop(size_y);
+  }
+  else if (alignment == UI_Alignment_Kind_Y)
+  {
+    ui_stack_pop(size_x);
+  }
 }
 
 function UI_Signal
 ui_button(String8 text)
 {
-  UI_Node* button_widget = NULL;
   UI_Signal button_signal = (UI_Signal){0};
   ui_stack_defer_if_default(node_color_scheme, ui_context.color_scheme.button)
-  ui_stack_defer_if_default(size_y, 20.0f)
-  ui_stack_defer_if_default(size_x, 80.0f)
+  ui_stack_defer(size_y, 20.0f)
+  ui_stack_defer(size_x, 80.0f)
   ui_stack_defer(alignment_kind, UI_Alignment_Kind_X)
   ui_stack_defer(height_kind,    UI_Height_Kind_Fixed)
   ui_stack_defer(width_kind,     UI_Width_Kind_Fixed)
@@ -247,8 +310,8 @@ ui_button(String8 text)
                                  UI_Widget_Flags_Display_Text|
                                  UI_Widget_Flags_Center_Text_Horizontally|
                                  UI_Widget_Flags_Center_Text_Vertically;
-    button_widget = ui_node_from_string(text, button_flags);
-    button_signal = ui_signal_from_node(button_widget);
+    button_signal.node = ui_node_from_string(text, button_flags);
+    ui_fill_signals_from_node(&button_signal);
   }
   
   return button_signal;
@@ -295,16 +358,28 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   f32 size_x = 0;
   switch (ui_stack_top(width_kind))
   {
-    case UI_Width_Kind_Fill:  size_x = parent->bounds.size.x; break;
-    case UI_Width_Kind_Fixed: size_x = ui_stack_top(size_x);  break;
-    default: emit_fatal(S("UI: Unhandled width_kind"));       break;
+    case UI_Width_Kind_Fill:
+    {
+      size_x = parent->bounds.size.x;
+    } break;
+    case UI_Width_Kind_Fixed:
+    {
+      size_x = ui_stack_top(size_x); 
+    } break;
+    default: emit_fatal(S("UI: Unhandled width_kind")); break;
   }
   f32 size_y = 0;
   switch (ui_stack_top(height_kind))
   {
-    case UI_Height_Kind_Fill:  size_y = parent->bounds.size.y; break;      
-    case UI_Height_Kind_Fixed: size_y = ui_stack_top(size_y);  break;      
-    default: emit_fatal(S("UI: Unhandled width_kind"));        break;
+    case UI_Height_Kind_Fill:
+    {
+      size_y = parent->bounds.size.y;
+    } break;      
+    case UI_Height_Kind_Fixed:
+    {
+      size_y = ui_stack_top(size_y); 
+    } break;
+    default: emit_fatal(S("UI: Unhandled width_kind")); break;
   }
 
   Vec2f32 top_left = ui_stack_is_at_bottom(top_left) ? parent->clip.top_left : ui_stack_top(top_left);
@@ -403,39 +478,20 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   return widget;
 }
 
-function UI_Signal
-ui_signal_from_node(UI_Node* node)
-{
-  UI_Signal signal = (UI_Signal){0};
-
-  if (ui_is_mouse_in_node(node))
-  {
-    if (input_is_button_down(&g_input, Mouse_Button_Left))      SetFlags(signal.flags, UI_Signal_Flags_Left_Clicked);
-    if (input_is_button_down(&g_input, Mouse_Button_Middle))    SetFlags(signal.flags, UI_Signal_Flags_Middle_Clicked);
-    if (input_is_button_down(&g_input, Mouse_Button_Right))     SetFlags(signal.flags, UI_Signal_Flags_Right_Clicked);
-    
-    if (input_is_button_clicked(&g_input, Mouse_Button_Left))   SetFlags(signal.flags, UI_Signal_Flags_Left_Clicked);
-    if (input_is_button_clicked(&g_input, Mouse_Button_Middle)) SetFlags(signal.flags, UI_Signal_Flags_Middle_Clicked);
-    if (input_is_button_clicked(&g_input, Mouse_Button_Right))  SetFlags(signal.flags, UI_Signal_Flags_Right_Clicked);
-
-    SetFlags(signal.flags, UI_Signal_Flags_Mouse_Hovered);
-  }
-
-  return signal;
-}
-
 function void
-ui_widget_end(UI_Node* root)
+ui_fill_signals_from_node(UI_Signal* signal)
 {
-  Vec2f32 offset = {0};
-  if (ui_find_first_drag_offset(root, &offset))
+  if (ui_is_mouse_in_node(signal->node))
   {
-    ui_apply_drag_offset(root, offset);
-  }
-  ui_update_tree_nodes(root);
-  if (ui_context.debug.print_widget_tree)
-  {
-    ui_print_tree(root, 0);
+    if (input_is_button_down(&g_input, Mouse_Button_Left))      SetFlags(signal->flags, UI_Signal_Flags_Left_Clicked);
+    if (input_is_button_down(&g_input, Mouse_Button_Middle))    SetFlags(signal->flags, UI_Signal_Flags_Middle_Clicked);
+    if (input_is_button_down(&g_input, Mouse_Button_Right))     SetFlags(signal->flags, UI_Signal_Flags_Right_Clicked);
+    
+    if (input_is_button_clicked(&g_input, Mouse_Button_Left))   SetFlags(signal->flags, UI_Signal_Flags_Left_Clicked);
+    if (input_is_button_clicked(&g_input, Mouse_Button_Middle)) SetFlags(signal->flags, UI_Signal_Flags_Middle_Clicked);
+    if (input_is_button_clicked(&g_input, Mouse_Button_Right))  SetFlags(signal->flags, UI_Signal_Flags_Right_Clicked);
+
+    SetFlags(signal->flags, UI_Signal_Flags_Mouse_Hovered);
   }
 }
 
