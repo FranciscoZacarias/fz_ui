@@ -41,8 +41,27 @@ entry_point(Command_Line* command_line)
     input_update();
 
     ui_begin();
+
+    local_persist b32 show = false;
+    if (input_is_key_clicked(&g_input, Keyboard_Key_Y)) show = !show;
+
     ui_window(S("Test Window"))
     {
+      if (show) 
+      {
+        ui_stack_defer_if_default(padding_x, 4.0f) ui_stack_defer_if_default(padding_y, 4.0f)
+        ui_row(50)
+        {
+          ui_button(S("Button A"));
+          ui_button(S("Button B"));
+        }
+        ui_stack_defer_if_default(padding_x, 4.0f) ui_stack_defer_if_default(padding_y, 4.0f)
+        ui_column(90)
+        {
+          ui_button(S("Button C"));
+          ui_button(S("Button D"));
+        }
+      }
     }
     ui_end();
     
