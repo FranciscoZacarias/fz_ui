@@ -45,7 +45,7 @@ entry_point(Command_Line* command_line)
     ui_stack_defer(top_left, vec2f32(2,2))
     ui_window(S("fz_ui config"))
     {
-      ui_row(S("font size"), 20)
+      ui_row(S("font size"), 40)
       {
         if (ui_clicked(ui_button(S("-"))))
         {

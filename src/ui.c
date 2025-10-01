@@ -305,8 +305,8 @@ ui_button(String8 text)
   UI_Signal button_signal = (UI_Signal){0};
   // TODO(fz): We can cache the y size of the font and set it as the default.
   ui_stack_defer_if_default(node_color_scheme, ui_context.color_scheme.button)
-  ui_stack_defer(size_y, 20.0f)
-  ui_stack_defer(size_x, 80.0f)
+  ui_stack_defer_if_default(size_y, 20.0f)
+  ui_stack_defer_if_default(size_x, 80.0f)
   ui_stack_defer(padding_x, 1.0f) ui_stack_defer(padding_y, 1.0f)
   ui_stack_defer(alignment_kind, UI_Alignment_Kind_X)
   ui_stack_defer(height_kind,    UI_Height_Kind_Fixed)

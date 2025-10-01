@@ -10,7 +10,9 @@
 #define ui_stack_assert_top_at(name, at) if((ui_context.name##_stack).top_index != (at)) emit_fatal(Sf(ui_context.arena, "UI: %s not at expected top value: '%u'. Actual value: '%u'", Stringify((ui_context.name##_stack)), (at), (ui_context.name##_stack).top_index))
 #define ui_stack_is_at_bottom(name) ((ui_context.name##_stack).top_index == 0)
 #define ui_stack_defer(name, val) DeferLoop(ui_stack_push(name, val), ui_stack_pop(name))
-#define ui_stack_defer_if_default(name,val) DeferLoop((ui_context.name##_stack.top_index == 0) && (ui_stack_push(name,val),1), (ui_stack_pop(name)))
+#define ui_stack_defer_if_default(name,val) \
+  DeferLoop((ui_context.name##_stack.top_index == 0) && (ui_stack_push(name,val),1), \
+            (ui_context.name##_stack.top_index == 1) && (ui_stack_pop(name), 1))
 
 // Color schemes
 typedef struct UI_Node_Color_Scheme UI_Node_Color_Scheme;
