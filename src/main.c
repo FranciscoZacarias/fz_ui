@@ -45,16 +45,22 @@ entry_point(Command_Line* command_line)
     ui_stack_defer(top_left, vec2f32(2,2))
     ui_window(S("fz_ui config"))
     {
-      ui_row(S("font size"), 40)
+      ui_row(S("font size"), 20)
       {
+        ui_stack_defer(size_y, 20)
+        ui_stack_defer(size_x, 20)
+        ui_stack_defer(spacing_right, 5)
         if (ui_clicked(ui_button(S("-"))))
         {
           ui_context.text_pixel_height -= 1;
         }
+        ui_stack_defer(size_y, 20)
+        ui_stack_defer(size_x, 20)
         if (ui_clicked(ui_button(S("+"))))
         {
           ui_context.text_pixel_height += 1;
         }
+        ui_label(S("UI Font size"));
       }
       if (ui_clicked(ui_button(S("ui debug"))))
       {

@@ -11,7 +11,7 @@
 #define ui_stack_is_at_bottom(name) ((ui_context.name##_stack).top_index == 0)
 #define ui_stack_defer(name, val) DeferLoop(ui_stack_push(name, val), ui_stack_pop(name))
 #define ui_stack_defer_if_default(name,val) \
-  DeferLoop((ui_context.name##_stack.top_index == 0) && (ui_stack_push(name,val),1), \
+  DeferLoop(ui_stack_is_at_bottom(name) && (ui_stack_push(name,val),1), \
             (ui_context.name##_stack.top_index == 1) && (ui_stack_pop(name), 1))
 
 // Color schemes
@@ -47,7 +47,8 @@ enum
   UI_Widget_Flags_Draggable       = (1<<2),
   UI_Widget_Flags_Hoverable       = (1<<3),
   UI_Widget_Flags_Center_Text_Horizontally = (1<<4),
-  UI_Widget_Flags_Center_Text_Vertically   = (1<<5)
+  UI_Widget_Flags_Center_Text_Vertically   = (1<<5),
+  UI_Widget_Flags_Dimensions_Wrap_Text     = (1<<6)
 };
 
 typedef u64 UI_Signal_Flags;
@@ -225,6 +226,7 @@ function void ui_layout_box_begin(UI_Alignment_Kind alignment, String8 text, f32
 function void ui_layout_box_end();
 
 function UI_Signal ui_button(String8 text);
+function void      ui_label(String8 text);
 
 // Interacation
 #define ui_clicked(signal) HasFlags(signal.flags, UI_Signal_Flags_Left_Clicked)

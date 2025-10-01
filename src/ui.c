@@ -324,6 +324,20 @@ ui_button(String8 text)
   return button_signal;
 }
 
+function void
+ui_label(String8 text)
+{
+  // TODO(fz): We can cache the y size of the font and set it as the default.
+  ui_stack_defer_if_default(node_color_scheme, ui_context.color_scheme.window)
+  ui_stack_defer_if_default(alignment_kind, UI_Alignment_Kind_X)
+  ui_stack_defer(padding_x, 1.0f) ui_stack_defer(padding_y, 1.0f)
+  {
+    UI_Node_Flags label_flags = UI_Widget_Flags_Display_Text|
+                                UI_Widget_Flags_Dimensions_Wrap_Text;
+    ui_node_from_string(text, label_flags);
+  }
+}
+
 // Builder code
 function UI_Node*
 ui_node_from_string(String8 string, UI_Node_Flags flags)
@@ -359,6 +373,7 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   widget->alignment_kind    = ui_stack_top(alignment_kind);
   widget->string            = string8_copy(ui_context.frame_arena, string);
   widget->string_clean      = ui_clean_string(ui_context.frame_arena, string);
+  widget->string_dimensions = r_text_dimensions(widget->string_clean, ui_context.text_pixel_height);
   widget->string_top_left   = vec2f32(0,0);
   widget->local_drag_offset = vec2f32(0,0);
   widget->flags             = flags;
@@ -398,8 +413,16 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   {
     widget->bounds.top_left = ui_stack_top(top_left);  
   }
-  widget->bounds.size = vec2f32(size_x, size_y);
-  widget->bounds      = ui_clamp_rect(parent->clip, widget->bounds);
+
+  if (HasFlags(flags, UI_Widget_Flags_Dimensions_Wrap_Text))
+  {
+    widget->bounds.size = vec2f32_add(widget->string_dimensions, vec2f32(1,1));
+  }
+  else
+  {
+    widget->bounds.size = vec2f32(size_x, size_y);
+  }
+  widget->bounds = ui_clamp_rect(parent->clip, widget->bounds);
 
   // Update parent clip based on this widget
   if (parent != ui_context.root)
@@ -709,7 +732,6 @@ ui_update_tree_nodes(UI_Node* widget_root)
   // String
   if (HasFlags(widget_root->flags, UI_Widget_Flags_Display_Text))
   {
-    widget_root->string_dimensions = r_text_dimensions(widget_root->string_clean, ui_context.text_pixel_height);
     widget_root->string_top_left = vec2f32_add(widget_root->clip.top_left, widget_root->cursor);
 
     if (HasFlags(widget_root->flags, UI_Widget_Flags_Center_Text_Horizontally))
