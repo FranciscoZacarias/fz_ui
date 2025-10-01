@@ -52,8 +52,8 @@ function void ui_init()
     ui_context.color_scheme      = ui_color_scheme_dark;
 
     ui_context.debug.show_bounds  = true;
-    ui_context.debug.show_clip    = true;
-    ui_context.debug.show_cursor  = true;
+    ui_context.debug.show_clip    = false;
+    ui_context.debug.show_cursor  = false;
     ui_context.debug.print_widget_tree = false;
 
     Vec2s32 window_size = g_os_window.dimensions;
@@ -64,8 +64,10 @@ function void ui_init()
     ui_stack_init(size_y,           window_size.y);
     ui_stack_init(padding_x,        0.0f);
     ui_stack_init(padding_y,        0.0f);
-    ui_stack_init(spacing_x,        0);
-    ui_stack_init(spacing_y,        0);
+    ui_stack_init(spacing_left,        0);
+    ui_stack_init(spacing_right,       0);
+    ui_stack_init(spacing_top,         0);
+    ui_stack_init(spacing_bottom,      0);
     ui_stack_init(alignment_kind,   UI_Alignment_Kind_Y);
     ui_stack_init(width_kind,       UI_Width_Kind_Fill);
     ui_stack_init(height_kind,      UI_Height_Kind_Fill);
@@ -133,8 +135,8 @@ function void ui_end()
   ui_stack_assert_top_at(size_y, 0);
   ui_stack_assert_top_at(padding_x, 0);
   ui_stack_assert_top_at(padding_y, 0);
-  ui_stack_assert_top_at(spacing_x, 0);
-  ui_stack_assert_top_at(spacing_y, 0);
+  ui_stack_assert_top_at(spacing_left, 0);
+  ui_stack_assert_top_at(spacing_right, 0);
   ui_stack_assert_top_at(alignment_kind, 0);
   ui_stack_assert_top_at(width_kind, 0);
   ui_stack_assert_top_at(height_kind, 0);
@@ -222,10 +224,9 @@ ui_window_begin(String8 text)
 
   UI_Signal title_bar_signal = (UI_Signal){0};
   ui_stack_defer_if_default(node_color_scheme, ui_context.color_scheme.title_bar)
-  ui_stack_defer_if_default(spacing_x, 2.0f)
   ui_stack_defer_if_default(size_y, 20.0f)
   ui_stack_defer_if_default(alignment_kind, UI_Alignment_Kind_X)
-  ui_stack_defer_if_default(spacing_x, 4.0f) ui_stack_defer_if_default(spacing_y, 4.0f)
+  ui_stack_defer_if_default(spacing_left, 4.0f) ui_stack_defer_if_default(spacing_right, 4.0f)
   ui_stack_defer(height_kind, UI_Height_Kind_Fixed)
   {
     UI_Node_Flags title_bar_flags = UI_Widget_Flags_Mouse_Clickable|
@@ -351,8 +352,8 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   ui_add_widget_child(parent, widget);
 
   widget->hash      = parent->hash ^ string8_hash(string);
-  widget->spacing_x = ui_stack_top(spacing_x);
-  widget->spacing_y = ui_stack_top(spacing_y);
+  widget->spacing_left  = ui_stack_top(spacing_left);
+  widget->spacing_right = ui_stack_top(spacing_right);
   widget->padding_x = ui_stack_top(padding_x);
   widget->padding_y = ui_stack_top(padding_y);
   widget->alignment_kind    = ui_stack_top(alignment_kind);
@@ -407,24 +408,24 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
     {
       case UI_Alignment_Kind_X:
       {
-        parent->cursor.x += widget->bounds.size.x + parent->padding_x;
+        widget->bounds.top_left.x += widget->spacing_left;
+        parent->cursor.x          += widget->bounds.size.x + parent->padding_x + widget->spacing_right;
       } break;
 
       case UI_Alignment_Kind_Y:
       {
-        parent->cursor.y += widget->bounds.size.y + parent->padding_y;
+        widget->bounds.top_left.y += widget->spacing_top;
+        parent->cursor.y          += widget->bounds.size.y + parent->padding_y + widget->spacing_bottom;
       } break;
     }
   }
+  widget->depth     = (parent) ? parent->depth - F32_EPSILON : 1.0f;
 
   Rectf32 clip;
   clip.top_left = vec2f32(widget->bounds.top_left.x + widget->padding_x, widget->bounds.top_left.y + widget->padding_y);
   clip.size     = vec2f32(widget->bounds.size.x - (widget->padding_x * 2), widget->bounds.size.y - (widget->padding_y * 2));
   widget->clip  = ui_clamp_rect(widget->bounds, clip);
   
-  widget->cursor.x  = widget->cursor.x + widget->spacing_x;
-  widget->cursor.y  = widget->cursor.y + widget->spacing_y;
-  widget->depth     = (parent) ? parent->depth - F32_EPSILON : 1.0f;
 
   UI_Node_Cache* cached_widget = ui_get_cached_node(widget->hash);
 

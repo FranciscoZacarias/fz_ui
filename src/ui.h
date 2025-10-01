@@ -100,8 +100,10 @@ struct UI_Node
   Vec2f32 cursor;  /* Next position to draw - Relative to node->clip */
   f32 padding_x;
   f32 padding_y;
-  f32 spacing_x;
-  f32 spacing_y;
+  f32 spacing_left;
+  f32 spacing_right;
+  f32 spacing_top;
+  f32 spacing_bottom;
   UI_Alignment_Kind alignment_kind;
   f32 depth; /* Keeps track of that's in front. Smaller number means closer to the camera. 1 is root */
   UI_Node_Flags flags;
@@ -169,8 +171,10 @@ struct UI_Context
   ui_stack(f32,               size_y,           UI_STACKS_MAX);
   ui_stack(f32,               padding_x,        UI_STACKS_MAX);
   ui_stack(f32,               padding_y,        UI_STACKS_MAX);
-  ui_stack(f32,               spacing_x,        UI_STACKS_MAX); /* Spacing does not count towards the clip calculation */
-  ui_stack(f32,               spacing_y,        UI_STACKS_MAX); /* Spacing does not count towards the clip calculation */
+  ui_stack(f32,               spacing_left,     UI_STACKS_MAX); /* Spacing does not count towards the clip calculation */
+  ui_stack(f32,               spacing_right,    UI_STACKS_MAX); /* Spacing does not count towards the clip calculation */
+  ui_stack(f32,               spacing_top,      UI_STACKS_MAX); /* Spacing does not count towards the clip calculation */
+  ui_stack(f32,               spacing_bottom,   UI_STACKS_MAX); /* Spacing does not count towards the clip calculation */
   ui_stack(UI_Alignment_Kind, alignment_kind,   UI_STACKS_MAX);
   ui_stack(UI_Width_Kind,     width_kind,       UI_STACKS_MAX);
   ui_stack(UI_Height_Kind,    height_kind,      UI_STACKS_MAX);
