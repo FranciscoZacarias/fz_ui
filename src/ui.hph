@@ -1,0 +1,55 @@
+
+@config
+{
+  @output_file_name `ui.generated.c`
+  @output_file_path `../src/`
+}
+
+@table // Defines stacks for different types
+Stack_Table
+  (name_upper               name_lower                 type                   default_value                     max documentation)
+{
+  { Node                    node                       UI_Node*               NULL                              32 `Pointer to the current UI node`      }
+  { Top_Left                top_left                   Vec2f32               `vec2f32(5.0f, 5.0f)`              32 `Top-left corner position`            }
+  { Size_X                  size_x                     f32                    g_os_window.dimensions.x          32 `Default X size equals window width`  }
+  { Size_Y                  size_y                     f32                    g_os_window.dimensions.y          32 `Default Y size equals window height` }
+  { Padding_X               padding_x                  f32                    0.0f                              32 `Horizontal padding`                  }
+  { Padding_Y               padding_y                  f32                    0.0f                              32 `Vertical padding`                    }
+  { Spacing_Left            spacing_left               f32                    0.0f                              32 `Left spacing (not clipped)`          }
+  { Spacing_Right           spacing_right              f32                    0.0f                              32 `Right spacing (not clipped)`         }
+  { Spacing_Top             spacing_top                f32                    0.0f                              32 `Top spacing (not clipped)`           }
+  { Spacing_Bottom          spacing_bottom             f32                    0.0f                              32 `Bottom spacing (not clipped)`        }
+  { Alignment_Kind          alignment_kind             UI_Alignment_Kind      UI_Alignment_Kind_Y               32 `Default alignment along Y`           }
+  { Width_Kind              width_kind                 UI_Width_Kind          UI_Width_Kind_Fill                32 `Width filling strategy`              }
+  { Height_Kind             height_kind                UI_Height_Kind         UI_Height_Kind_Fill               32 `Height filling strategy`             }
+  { Node_Color_Scheme       node_color_scheme          UI_Node_Color_Scheme   ui_context.color_scheme.window    32 `Node color scheme override`          }
+  { Border_Color            border_color               Color                  PURPLE(1)                         32 `Default border color`                }
+  { Background_Color        background_color           Color                  PURPLE(1)                         32 `Default background color`            }
+  { Background_Hover_Color  background_hover_color     Color                  PURPLE(1)                         32 `Background color on hover`           }
+  { Background_Active_Color background_active_color    Color                  PURPLE(1)                         32 `Background color when active`        }
+  { Text_Color              text_color                 Color                  PURPLE(1)                         32 `Default text color`                  }
+  { Text_Hover_Color        text_hover_color           Color                  PURPLE(1)                         32 `Text color on hover`                 }
+  { Text_Active_Color       text_active_color          Color                  PURPLE(1)                         32 `Text color when active`              }
+}
+
+@generate
+{
+  `// @Hephaestus generated code $(@time_now)\n\n`
+
+  // Defines the data structures
+  @foreach(Stack_Table) `/* $(documentation) */
+typedef struct $(name_upper)_stack $(name_upper)_stack;
+struct $(name_upper)_stack { $(type) data[$(max)]; u32 top_index; $(type) bottom_val; };
+function void ui_stack_push_$(name_lower)(UI_Context* ctx, $(type) value) { $(name_upper)_stack* s = &ctx->$(name_lower)_stack; u32 cap = (u32)(sizeof(s->data) / sizeof(s->data[0])); u32 idx = (s->top_index < cap) ? s->top_index++ : s->top_index; s->data[idx] = value; }
+function $(type) ui_stack_pop_$(name_lower)(UI_Context* ctx) { $(name_upper)_stack* s = &ctx->$(name_lower)_stack; return (s->top_index > 0) ? s->data[--s->top_index] : s->bottom_val; }
+function $(type) ui_stack_top_$(name_lower)(UI_Context* ctx) { $(name_upper)_stack* s = &ctx->$(name_lower)_stack; return (s->top_index > 0) ? s->data[s->top_index-1] : s->bottom_val; }
+function b32 ui_stack_is_at_bottom_$(name_lower)(UI_Context* ctx) { return ctx->$(name_lower)_stack.top_index == 0; }
+function void ui_stack_assert_top_at_$(name_lower)(UI_Context* ctx, u32 at) { if(ctx->$(name_lower)_stack.top_index != at) emit_fatal(Sf(ctx->arena, "UI: %s not at expected top value: '%u'. Actual value: '%u'", Stringify(ctx->$(name_lower)_stack), at, ctx->$(name_lower)_stack.top_index)); }
+#define defer_$(name_lower)(val) DeferLoop(ui_stack_push_$(name_lower)(&ui_context, (val)), ui_stack_pop_$(name_lower)(&ui_context))\n\n`
+
+  // Defines the UI_Context member attributes
+  `// Put this macro on UI_Context`
+  `#define UI_Config_Stacks \`
+  @foreach(Stack_Table) `$(name_upper)_stack $(name_lower)_stack; \\n`
+  `/* Macro end */`
+}
