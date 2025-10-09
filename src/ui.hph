@@ -45,11 +45,15 @@ function $(type) ui_stack_pop_$(name_lower)(UI_Context* ctx) { $(name_upper)_sta
 function $(type) ui_stack_top_$(name_lower)(UI_Context* ctx) { $(name_upper)_stack* s = &ctx->$(name_lower)_stack; return (s->top_index > 0) ? s->data[s->top_index-1] : s->bottom_val; }
 function b32 ui_stack_is_at_bottom_$(name_lower)(UI_Context* ctx) { return ctx->$(name_lower)_stack.top_index == 0; }
 function void ui_stack_assert_top_at_$(name_lower)(UI_Context* ctx, u32 at) { if(ctx->$(name_lower)_stack.top_index != at) emit_fatal(Sf(ctx->arena, "UI: %s not at expected top value: '%u'. Actual value: '%u'", Stringify(ctx->$(name_lower)_stack), at, ctx->$(name_lower)_stack.top_index)); }
-#define defer_$(name_lower)(val) DeferLoop(ui_stack_push_$(name_lower)(&ui_context, (val)), ui_stack_pop_$(name_lower)(&ui_context))\n\n`
+#define set_$(name_lower)(val) DeferLoop(ui_stack_push_$(name_lower)(&ui_context, (val)), ui_stack_pop_$(name_lower)(&ui_context))\n\n`
 
   // Defines the UI_Context member attributes
-  `// Put this macro on UI_Context`
-  `#define UI_Config_Stacks \`
-  @foreach(Stack_Table) `$(name_upper)_stack $(name_lower)_stack; \\n`
+  `// Put this macro on UI_Context\n`
+  `#define UI_Config_Stacks \\n`
+  @foreach(Stack_Table) `  $(name_upper)_stack $(name_lower)_stack; \\n`
   `/* Macro end */`
+
+  // Defines the stack initialization
+
+  // Debug macro to ensure all stacks are at the bottom at ui_end
 }
