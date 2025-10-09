@@ -17,9 +17,6 @@ entry_point(Command_Line* command_line)
   // Renderer
   r_init();
 
-  // Camera
-  g_camera = camera2d_init();
-
   // Time
   g_frame_timer = os_timer_start();
 
@@ -42,6 +39,7 @@ entry_point(Command_Line* command_line)
 
     ui_begin();
 
+#if 0
     ui_stack_defer(top_left, vec2f32(2,2))
     ui_window(S("fz_ui config"))
     {
@@ -69,9 +67,13 @@ entry_point(Command_Line* command_line)
         ui_context.debug.show_cursor = !ui_context.debug.show_cursor;
       }
     }
+#endif
 
+    ui_stack_defer(top_left, vec2f32(250,200))
+    ui_stack_defer(size_x, 200) ui_stack_defer(size_y, 200)
     ui_window(S("Test Window"))
     {
+#if 0
       //ui_stack_defer(padding_x, 4.0f) ui_stack_defer(padding_y, 4.0f)
       ui_row(S("Horizontal buttons"), 30)
       {
@@ -87,10 +89,11 @@ entry_point(Command_Line* command_line)
         ui_button(S("Button C"));
         ui_button(S("Button D"));
       }
+#endif
     }
     ui_end();
     
-    r_render(g_camera.view, g_camera.projection);
+    r_render(mat4f32_identity(), mat4f32_identity());
     arena_clear(frame_arena);
   }
 
@@ -104,41 +107,4 @@ input_update()
   {
     os_exit_process(0);
   }
-}
-
-function void
-camera2d_update(Camera2D* camera, Input_State input,  f32 delta_time)
-{
-  f32 speed = 512.0;
-  Vec2f32 move = vec2f32(0.0f, 0.0f);
-  if (input_is_key_down(&g_input, Keyboard_Key_W))
-  {
-    move.y = 1;
-  }
-  if (input_is_key_down(&g_input, Keyboard_Key_S))
-  {
-    move.y = -1;
-  }
-  if (input_is_key_down(&g_input, Keyboard_Key_D))
-  {
-    move.x = 1;
-  }
-  if (input_is_key_down(&g_input, Keyboard_Key_A))
-  {
-    move.x = -1;
-  }
-
-  if (input_is_key_down(&g_input, Keyboard_Key_Q))
-  {
-    camera2d_zoom(camera, 0.01);
-  }
-  if (input_is_key_down(&g_input, Keyboard_Key_E))
-  {
-    camera2d_zoom(camera, -0.01);
-  }
-
-  Vec2f32 delta = vec2f32_normalize(move);
-  delta = vec2f32_scale(delta, speed);
-  delta = vec2f32_scale(delta, delta_time);
-  camera2d_move(camera, delta);
 }

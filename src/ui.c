@@ -59,7 +59,7 @@ function void ui_init()
     Vec2s32 window_size = g_os_window.dimensions;
 
     // Default values
-    ui_stack_init(top_left,         vec2f32(0.0f, 0.0f));
+    ui_stack_init(top_left,         vec2f32(5.0f, 5.0f));
     ui_stack_init(size_x,           window_size.x);
     ui_stack_init(size_y,           window_size.y);
     ui_stack_init(padding_x,        0.0f);
@@ -209,24 +209,23 @@ function void
 ui_window_begin(String8 text)
 {
   UI_Signal window_signal = (UI_Signal){0};
-  ui_stack_defer_if_default(node_color_scheme, ui_context.color_scheme.window)
-  ui_stack_defer_if_default(top_left, vec2f32(250,200))
-  ui_stack_defer_if_default(size_x, 200) ui_stack_defer_if_default(size_y, 200)
-  ui_stack_defer_if_default(padding_x, 4.0f) ui_stack_defer_if_default(padding_y, 4.0f)
-  ui_stack_defer(width_kind,  UI_Width_Kind_Fixed)
-  ui_stack_defer(height_kind, UI_Height_Kind_Fixed)
   {
-    UI_Node_Flags window_flags = 0;
-    String8 window_text = Sf(ui_context.frame_arena, ""S_FMT"##_window_`"S_FMT"`", S_ARG(text));
-    window_signal.node = ui_node_from_string(window_text, window_flags);
-    ui_stack_push(node, window_signal.node);
+    ui_stack_defer(node_color_scheme, ui_context.color_scheme.window)
+    ui_stack_defer(width_kind,  UI_Width_Kind_Fixed)
+    ui_stack_defer(height_kind, UI_Height_Kind_Fixed)
+    {
+      UI_Node_Flags window_flags = 0;
+      String8 window_text = Sf(ui_context.frame_arena, ""S_FMT"##_window_`"S_FMT"`", S_ARG(text));
+      window_signal.node = ui_node_from_string(window_text, window_flags);
+      ui_stack_push(node, window_signal.node);
+    }
   }
 
   UI_Signal title_bar_signal = (UI_Signal){0};
-  ui_stack_defer_if_default(node_color_scheme, ui_context.color_scheme.title_bar)
-  ui_stack_defer_if_default(size_y, 20.0f)
-  ui_stack_defer_if_default(alignment_kind, UI_Alignment_Kind_X)
-  ui_stack_defer_if_default(spacing_left, 4.0f) ui_stack_defer_if_default(spacing_right, 4.0f)
+  ui_stack_defer(node_color_scheme, ui_context.color_scheme.title_bar)
+  ui_stack_defer(size_y, 20.0f)
+  ui_stack_defer(alignment_kind, UI_Alignment_Kind_X)
+  ui_stack_defer(spacing_left, 4.0f) ui_stack_defer(spacing_right, 4.0f)
   ui_stack_defer(height_kind, UI_Height_Kind_Fixed)
   {
     UI_Node_Flags title_bar_flags = UI_Widget_Flags_Mouse_Clickable|
@@ -273,7 +272,7 @@ ui_layout_box_begin(UI_Alignment_Kind alignment, String8 text, f32 size)
   }
 
   UI_Signal layout_box = (UI_Signal){0};
-  ui_stack_defer_if_default(node_color_scheme, ui_context.color_scheme.window)
+  ui_stack_defer(node_color_scheme, ui_context.color_scheme.window)
   {
     UI_Node_Flags layout_box_flags = 0;
     layout_box.node = ui_node_from_string(text, layout_box_flags);
@@ -304,9 +303,9 @@ ui_button(String8 text)
 {
   UI_Signal button_signal = (UI_Signal){0};
   // TODO(fz): We can cache the y size of the font and set it as the default.
-  ui_stack_defer_if_default(node_color_scheme, ui_context.color_scheme.button)
-  ui_stack_defer_if_default(size_y, 20.0f)
-  ui_stack_defer_if_default(size_x, 80.0f)
+  ui_stack_defer(node_color_scheme, ui_context.color_scheme.button)
+  ui_stack_defer(size_y, 20.0f)
+  ui_stack_defer(size_x, 80.0f)
   ui_stack_defer(padding_x, 1.0f) ui_stack_defer(padding_y, 1.0f)
   ui_stack_defer(alignment_kind, UI_Alignment_Kind_X)
   ui_stack_defer(height_kind,    UI_Height_Kind_Fixed)
@@ -328,8 +327,8 @@ function void
 ui_label(String8 text)
 {
   // TODO(fz): We can cache the y size of the font and set it as the default.
-  ui_stack_defer_if_default(node_color_scheme, ui_context.color_scheme.window)
-  ui_stack_defer_if_default(alignment_kind, UI_Alignment_Kind_X)
+  ui_stack_defer(node_color_scheme, ui_context.color_scheme.window)
+  ui_stack_defer(alignment_kind, UI_Alignment_Kind_X)
   ui_stack_defer(padding_x, 1.0f) ui_stack_defer(padding_y, 1.0f)
   {
     UI_Node_Flags label_flags = UI_Widget_Flags_Display_Text|
@@ -457,17 +456,20 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   {
     if (widget->depth < ui_context.hash_hot_depth)
     {
-      ui_context.hash_hot = widget->hash;
+      ui_context.hash_hot       = widget->hash;
       ui_context.hash_hot_depth = widget->depth;
+
       if (input_is_button_clicked(&g_input, Mouse_Button_Left))
       {
-        ui_context.hash_active = widget->hash;
+        ui_context.hash_active       = widget->hash;
+        ui_context.hash_active_depth = widget->depth;
       }
     }
   }
   if (input_is_button_up(&g_input, Mouse_Button_Left) && input_was_button_down(&g_input, Mouse_Button_Left))
   {
     ui_context.hash_active = 0;
+    ui_context.hash_active_depth = 1.0f;
   }
 
   // Style
