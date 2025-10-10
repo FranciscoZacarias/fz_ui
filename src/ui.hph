@@ -3,152 +3,131 @@
 
 @config
 {
-  @output_file_name `ui.generated.h`
-  @output_file_path `../src/`
-  // TODO(fz): Add if guards to hephaestus config
+  @output_file_name `ui`
+  @output_path `../src/`
 }
 
-@generate
+// NOTE(fz): Keep as first generator
+@generate @h_file
 {
-  `#ifndef UI_GENERATED_H\n#define UI_GENERATED_H\n\n`
+  `#ifndef UI_HEPHAESTUS_H\n#define UI_HEPHAESTUS_H\n\n`
   `/*\n\n@Hephaestus generated code $(@time_now)\n\n*/\n\n`
 }
 
-@table // Defines forward declaration for UI types
-UI_Types_Table
-  (name)
+@generate @c_file
 {
-  { UI_Node_Color_Scheme }
-  { UI_Color_Scheme      }
-  { UI_Node              }
-  { UI_Node_Cache        }
-  { UI_Signal            }
-  { UI_Context           }
-}
-
-@generate
-{
-  `// Forward declare UI structures\n`
-  @foreach(UI_Types_Table) `typedef struct $(name) $(name);\n`
-  `\n`
-}
-
-@table // Defines forward declare for UI enums
-UI_Enum_Table
-  (name)
-{
-  { UI_Alignment_Kind }
-  { UI_Width_Kind     }
-  { UI_Height_Kind    }
-}
-
-@generate
-{
-  `// Forward declare UI enums\n`
-  @foreach(UI_Enum_Table) `typedef enum $(name) $(name);\n`
-  `\n`
-}
-
-@table // Bitflags
-UI_Node_Flags_Table
-  (name documentation)
-{
-  { Mouse_Clickable          `TODO(fz): Add documentation` } 
-  { Display_Text             `TODO(fz): Add documentation` } 
-  { Draggable                `TODO(fz): Add documentation` } 
-  { Hoverable                `TODO(fz): Add documentation` } 
-  { Center_Text_Horizontally `TODO(fz): Add documentation` } 
-  { Center_Text_Vertically   `TODO(fz): Add documentation` } 
-  { Dimensions_Wrap_Text     `TODO(fz): Add documentation` } 
-}
-
-@generate
-{
-  `typedef u64 UI_Node_Flags;\nenum\n{\n`
-  @foreach(UI_Node_Flags_Table) `  UI_Node_Flags_$(name) = (1 << $(@index)), /* $(documentation) */ \n`
-  `};\n`
-    `\n`
-}
-
-@table // Bitflags
-UI_Signal_Flags_Table
-  (name documentation)
-{
-  { Left_Down      `TODO(fz): Add documentation` } 
-  { Middle_Down    `TODO(fz): Add documentation` } 
-  { Right_Down     `TODO(fz): Add documentation` } 
-
-  { Left_Clicked   `TODO(fz): Add documentation` } 
-  { Middle_Clicked `TODO(fz): Add documentation` } 
-  { Right_Clicked  `TODO(fz): Add documentation` } 
-
-  { Mouse_Hovered  `TODO(fz): Add documentation` } 
-}
-
-@generate
-{
-  `typedef u64 UI_Node_Flags;\nenum\n{\n`
-  @foreach(UI_Signal_Flags_Table) `  UI_Signal_Flags_$(name) = (1 << $(@index)), /* $(documentation) */\n`
-  `};\n`
-  `\n`
+  `/*\n\n@Hephaestus generated code $(@time_now)\n\n*/\n\n`
 }
 
 @table // Defines stacks for different types
 Stack_Table
-  (name_upper               name_lower                 type                   default_value                     max documentation)
+  (name_upper               name_lower                 type                   default_value                     max debug_bottom_expected documentation)
 {
-  { Node                    node                       UI_Node*               NULL                              32 `Pointer to the current UI node`      }
-  { Top_Left                top_left                   Vec2f32               `vec2f32(5.0f, 5.0f)`              32 `Top-left corner position`            }
-  { Size_X                  size_x                     f32                    g_os_window.dimensions.x          32 `Default X size equals window width`  }
-  { Size_Y                  size_y                     f32                    g_os_window.dimensions.y          32 `Default Y size equals window height` }
-  { Padding_X               padding_x                  f32                    0.0f                              32 `Horizontal padding`                  }
-  { Padding_Y               padding_y                  f32                    0.0f                              32 `Vertical padding`                    }
-  { Spacing_Left            spacing_left               f32                    0.0f                              32 `Left spacing (not clipped)`          }
-  { Spacing_Right           spacing_right              f32                    0.0f                              32 `Right spacing (not clipped)`         }
-  { Spacing_Top             spacing_top                f32                    0.0f                              32 `Top spacing (not clipped)`           }
-  { Spacing_Bottom          spacing_bottom             f32                    0.0f                              32 `Bottom spacing (not clipped)`        }
-  { Alignment_Kind          alignment_kind             UI_Alignment_Kind      UI_Alignment_Kind_Y               32 `Default alignment along Y`           }
-  { Width_Kind              width_kind                 UI_Width_Kind          UI_Width_Kind_Fill                32 `Width filling strategy`              }
-  { Height_Kind             height_kind                UI_Height_Kind         UI_Height_Kind_Fill               32 `Height filling strategy`             }
-  { Node_Color_Scheme       node_color_scheme          UI_Node_Color_Scheme   ui_context.color_scheme.window    32 `Node color scheme override`          }
-  { Border_Color            border_color               Color                  PURPLE(1)                         32 `Default border color`                }
-  { Background_Color        background_color           Color                  PURPLE(1)                         32 `Default background color`            }
-  { Background_Hover_Color  background_hover_color     Color                  PURPLE(1)                         32 `Background color on hover`           }
-  { Background_Active_Color background_active_color    Color                  PURPLE(1)                         32 `Background color when active`        }
-  { Text_Color              text_color                 Color                  PURPLE(1)                         32 `Default text color`                  }
-  { Text_Hover_Color        text_hover_color           Color                  PURPLE(1)                         32 `Text color on hover`                 }
-  { Text_Active_Color       text_active_color          Color                  PURPLE(1)                         32 `Text color when active`              }
+  { Node                    node                       UI_Node*               &ui_node_nil_sentinel             32  1                     `Pointer to the current UI node`      }
+  { Top_Left                top_left                   Vec2f32               `vec2f32(5.0f, 5.0f)`              32  0                     `Top-left corner position`            }
+  { Size_X                  size_x                     f32                    g_os_window.dimensions.x          32  0                     `Default X size equals window width`  }
+  { Size_Y                  size_y                     f32                    g_os_window.dimensions.y          32  0                     `Default Y size equals window height` }
+  { Padding_X               padding_x                  f32                    0.0f                              32  0                     `Horizontal padding`                  }
+  { Padding_Y               padding_y                  f32                    0.0f                              32  0                     `Vertical padding`                    }
+  { Spacing_Left            spacing_left               f32                    0.0f                              32  0                     `Left spacing (not clipped)`          }
+  { Spacing_Right           spacing_right              f32                    0.0f                              32  0                     `Right spacing (not clipped)`         }
+  { Spacing_Top             spacing_top                f32                    0.0f                              32  0                     `Top spacing (not clipped)`           }
+  { Spacing_Bottom          spacing_bottom             f32                    0.0f                              32  0                     `Bottom spacing (not clipped)`        }
+  { Alignment_Kind          alignment_kind             UI_Alignment_Kind      UI_Alignment_Kind_Y               32  0                     `Default alignment along Y`           }
+  { Width_Kind              width_kind                 UI_Width_Kind          UI_Width_Kind_Fill                32  0                     `Width filling strategy`              }
+  { Height_Kind             height_kind                UI_Height_Kind         UI_Height_Kind_Fill               32  0                     `Height filling strategy`             }
+  { Node_Color_Scheme       node_color_scheme          UI_Node_Color_Scheme   ui_context.color_scheme.window    32  0                     `Node color scheme override`          }
+  { Border_Color            border_color               Color                  PURPLE(1)                         32  0                     `Default border color`                }
+  { Background_Color        background_color           Color                  PURPLE(1)                         32  0                     `Default background color`            }
+  { Background_Hover_Color  background_hover_color     Color                  PURPLE(1)                         32  0                     `Background color on hover`           }
+  { Background_Active_Color background_active_color    Color                  PURPLE(1)                         32  0                     `Background color when active`        }
+  { Text_Color              text_color                 Color                  PURPLE(1)                         32  0                     `Default text color`                  }
+  { Text_Hover_Color        text_hover_color           Color                  PURPLE(1)                         32  0                     `Text color on hover`                 }
+  { Text_Active_Color       text_active_color          Color                  PURPLE(1)                         32  0                     `Text color when active`              }
 }
 
-@generate
+@generate @c_file
 {
-  `#define ui_stack_init(ctx, name, bot_val) Statement((ctx)->name##_stack.top_index = 0; (ctx)->name##_stack.bottom_val = (bot_val);)
-#define ui_stack_push(ctx, name, val) ((ctx)->name##_stack.data[((ctx)->name##_stack.top_index < sizeof((ctx)->name##_stack.data)/sizeof((ctx)->name##_stack.data[0])) ? (ctx)->name##_stack.top_index++ : (ctx)->name##_stack.top_index] = (val))
-#define ui_stack_pop(ctx, name) (((ctx)->name##_stack.top_index > 0) ? (ctx)->name##_stack.data[--(ctx)->name##_stack.top_index] : (ctx)->name##_stack.bottom_val)
-#define ui_stack_top(ctx, name) (((ctx)->name##_stack.top_index > 0) ? (ctx)->name##_stack.data[(ctx)->name##_stack.top_index-1] : (ctx)->name##_stack.bottom_val)
-#define ui_stack_assert_top_at(ctx, name, at) if((ctx)->name##_stack.top_index != (at)) emit_fatal(Sf((ctx)->arena, "UI: %s not at expected top value: '%u'. Actual value: '%u'", Stringify((ctx)->name##_stack), (at), (ctx)->name##_stack.top_index))
-#define ui_stack_is_at_bottom(ctx, name) ((ctx)->name##_stack.top_index == 0)
-#define ui_stack_defer(ctx, name, val) DeferLoop(ui_stack_push(ctx, name, val), ui_stack_pop(ctx, name))`
-
-  `\n\n`
-
   // Defines the data structures
   @foreach(Stack_Table) `/* $(documentation) */
 typedef struct UI_$(name_upper)_stack UI_$(name_upper)_stack;
 struct UI_$(name_upper)_stack { $(type) data[$(max)]; u32 top_index; $(type) bottom_val; };
-#define ui_$(name_lower)_stack_init(bot_val) ui_stack_init(&ui_context, $(name_lower), bot_val)
-#define ui_$(name_lower)_stack_push(val) ui_stack_push(&ui_context, $(name_lower), val)
-#define ui_$(name_lower)_stack_pop() ui_stack_pop(&ui_context, $(name_lower))
-#define ui_$(name_lower)_stack_top() ui_stack_top(&ui_context, $(name_lower))
-#define ui_$(name_lower)_stack_is_at_bottom() ui_stack_is_at_bottom(&ui_context, $(name_lower))
-#define ui_$(name_lower)_stack_assert_top_at(at) ui_stack_assert_top_at(&ui_context, $(name_lower), at)
-#define ui_set_$(name_lower)(val) DeferLoop($(name_lower)_stack_push(val), $(name_lower)_stack_pop())\n\n`
+function void ui_$(name_lower)_stack_init($(type) bot_val) { ui_stack_init($(name_lower), bot_val); }
+function void ui_$(name_lower)_stack_push($(type) val) { ui_stack_push($(name_lower), val); }
+function $(type) ui_$(name_lower)_stack_pop() { ui_stack_pop($(name_lower)); }
+function $(type) ui_$(name_lower)_stack_top() { ui_stack_top($(name_lower)); }
+function b32  ui_$(name_lower)_stack_is_at_bottom() { ui_stack_is_at_bottom($(name_lower)); }
+function void ui_$(name_lower)_stack_assert_top_at(u32 at) { ui_stack_assert_top_at($(name_lower), at); }
+#define ui_$(name_lower)(val) DeferLoop($(name_lower)_stack_push(val), $(name_lower)_stack_pop())\n\n`
+}
 
-  // Defines the UI_Context member attributes
-  `// Put this macro on UI_Context\n`
-  `#define UI_Config_Stacks() \\n`
-  @foreach(Stack_Table) `  UI_$(name_upper)_stack $(name_lower)_stack; \\n`
-  `/* Macro end */`
+@table
+UI_Node_Flags_Table
+  (name documentation)
+{
+  { Mouse_Clickable          `TODO(fz): Add documentation` }
+  { Display_Text             `TODO(fz): Add documentation` }
+  { Draggable                `TODO(fz): Add documentation` }
+  { Hoverable                `TODO(fz): Add documentation` }
+  { Center_Text_Horizontally `TODO(fz): Add documentation` }
+  { Center_Text_Vertically   `TODO(fz): Add documentation` }
+  { Dimensions_Wrap_Text     `TODO(fz): Add documentation` }
+}
 
-  `\n\n#endif`
+@generate @h_file
+{
+  `typedef u32 UI_Node_Flags;\n`
+  `enum\n{\n`
+  @foreach(UI_Node_Flags_Table) `  UI_Node_Flags_$(name) = (1 << $(@index)), /* $(documentation) */\n`
+  `};\n\n`
+}
+
+@table
+UI_Signal_Flags_Table
+  (name documentation)
+{
+  { Left_Down      `TODO(fz): Add documentation` }
+  { Middle_Down    `TODO(fz): Add documentation` }
+  { Right_Down     `TODO(fz): Add documentation` }
+  { Left_Clicked   `TODO(fz): Add documentation` }
+  { Middle_Clicked `TODO(fz): Add documentation` }
+  { Right_Clicked  `TODO(fz): Add documentation` }
+  { Mouse_Hovered  `TODO(fz): Add documentation` }
+}
+
+@generate @h_file
+{
+  `typedef u32 UI_Signal_Flags;\n`
+  `enum\n{\n`
+  @foreach(UI_Signal_Flags_Table) `  UI_Signal_Flags_$(name) = (1 << $(@index)), /* $(documentation) */\n`
+  `};\n\n`
+}
+
+@generate @h_file
+{
+  `// Initializes all stack structures\n`
+  `#define UI_Init_Stacks \\n`
+  @foreach(Stack_Table) `  ui_context.$(name_lower)_stack.top_index = 0; ui_context.$(name_lower)_stack.bottom_val = $(default_value); \\n`
+
+  `\n`
+
+  `// Creates struct with all UI stacks\n`
+  `#define UI_Config_Stacks \\n`
+  `  struct \\n`
+  `  { \\n`
+  @foreach(Stack_Table) `    UI_$(name_upper)_stack $(name_lower)_stack; \\n`
+  `  }\n`
+
+  `\n`
+
+  `// Debug: Serves to check if all stacks are at the bottom by the end of the frame\n`
+  `#define UI_Debug_Stacks_At_Bottom \\n`
+  @foreach(Stack_Table) `  ui_stack_assert_top_at(($(name_lower)),($(debug_bottom_expected))) \\n`
+  `\n`
+}
+
+// NOTE(fz): Keep as last generator
+@generate @h_file
+{
+  `\n#endif`
 }

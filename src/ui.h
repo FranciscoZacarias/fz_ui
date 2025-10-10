@@ -1,8 +1,6 @@
 #ifndef UI_H
 #define UI_H
 
-#include "ui.generated.h"
-
 // Stack functions
 #define ui_stack(type, name, size) struct { type data[size]; u32 top_index; type  bottom_val; } name##_stack
 #define ui_stack_init(name, bot_val) Statement((ui_context.name##_stack).top_index = 0; (ui_context.name##_stack).bottom_val = (bot_val);)
@@ -12,6 +10,8 @@
 #define ui_stack_assert_top_at(name, at) if((ui_context.name##_stack).top_index != (at)) emit_fatal(Sf(ui_context.arena, "UI: %s not at expected top value: '%u'. Actual value: '%u'", Stringify((ui_context.name##_stack)), (at), (ui_context.name##_stack).top_index))
 #define ui_stack_is_at_bottom(name) ((ui_context.name##_stack).top_index == 0)
 #define ui_stack_defer(name, val) DeferLoop(ui_stack_push(name, val), ui_stack_pop(name))
+
+#include "ui.hephaestus.h"
 
 // Color schemes
 typedef struct UI_Node_Color_Scheme UI_Node_Color_Scheme;
@@ -37,32 +37,6 @@ struct UI_Color_Scheme
 };
 
 global UI_Color_Scheme ui_color_scheme_dark;
-
-typedef u32 UI_Node_Flags;
-enum
-{
-  UI_Widget_Flags_Mouse_Clickable = (1<<0),
-  UI_Widget_Flags_Display_Text    = (1<<1),
-  UI_Widget_Flags_Draggable       = (1<<2),
-  UI_Widget_Flags_Hoverable       = (1<<3),
-  UI_Widget_Flags_Center_Text_Horizontally = (1<<4),
-  UI_Widget_Flags_Center_Text_Vertically   = (1<<5),
-  UI_Widget_Flags_Dimensions_Wrap_Text     = (1<<6)
-};
-
-typedef u64 UI_Signal_Flags;
-enum
-{
-  UI_Signal_Flags_Left_Down   = (1<<0),
-  UI_Signal_Flags_Middle_Down = (1<<1),
-  UI_Signal_Flags_Right_Down  = (1<<2),
-
-  UI_Signal_Flags_Left_Clicked   = (1<<3),
-  UI_Signal_Flags_Middle_Clicked = (1<<4),
-  UI_Signal_Flags_Right_Clicked  = (1<<5),
-
-  UI_Signal_Flags_Mouse_Hovered  = (1<<6),
-};
 
 typedef enum
 {
@@ -204,6 +178,17 @@ struct UI_Context
     b32 show_cursor : 1;
     b32 print_widget_tree: 1;
   } debug;
+};
+
+// Used as a bottom value for UI_Node stack, since bottom value is a pointer.
+read_only global UI_Node ui_node_nil_sentinel =
+{
+  0,
+  &ui_node_nil_sentinel,
+  &ui_node_nil_sentinel,
+  &ui_node_nil_sentinel,
+  &ui_node_nil_sentinel,
+  &ui_node_nil_sentinel,
 };
 
 global UI_Context ui_context;

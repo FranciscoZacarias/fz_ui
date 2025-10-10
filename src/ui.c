@@ -1,3 +1,4 @@
+#include "ui.hephaestus.c"
 
 // Core functions
 function void ui_init()
@@ -189,7 +190,7 @@ ui_render_widget(UI_Node* widget_root)
   if (ui_context.root != widget_root)
   {
     r_draw_quad(widget_root->bounds.top_left, widget_root->bounds.size, 0, widget_root->target_background_color, widget_root->depth);
-    if (HasFlags(widget_root->flags, UI_Widget_Flags_Display_Text))
+    if (HasFlags(widget_root->flags, UI_Node_Flags_Display_Text))
     {
       f32 clamp_width  = (widget_root->clip.top_left.x + widget_root->clip.size.x) - widget_root->string_top_left.x;
       f32 clamp_height = (widget_root->clip.top_left.y + widget_root->clip.size.y) - widget_root->string_top_left.y;
@@ -228,11 +229,11 @@ ui_window_begin(String8 text)
   ui_stack_defer(spacing_left, 4.0f) ui_stack_defer(spacing_right, 4.0f)
   ui_stack_defer(height_kind, UI_Height_Kind_Fixed)
   {
-    UI_Node_Flags title_bar_flags = UI_Widget_Flags_Mouse_Clickable|
-                                    UI_Widget_Flags_Hoverable|
-                                    UI_Widget_Flags_Draggable|
-                                    UI_Widget_Flags_Display_Text|
-                                    UI_Widget_Flags_Center_Text_Vertically;
+    UI_Node_Flags title_bar_flags = UI_Node_Flags_Mouse_Clickable|
+                                    UI_Node_Flags_Hoverable|
+                                    UI_Node_Flags_Draggable|
+                                    UI_Node_Flags_Display_Text|
+                                    UI_Node_Flags_Center_Text_Vertically;
     String8 window_title_bar_text = Sf(ui_context.frame_arena, ""S_FMT"##_title_bar_", S_ARG(text));
     title_bar_signal.node = ui_node_from_string(window_title_bar_text, title_bar_flags);
   }
@@ -311,11 +312,11 @@ ui_button(String8 text)
   ui_stack_defer(height_kind,    UI_Height_Kind_Fixed)
   ui_stack_defer(width_kind,     UI_Width_Kind_Fixed)
   {
-    UI_Node_Flags button_flags = UI_Widget_Flags_Mouse_Clickable|
-                                 UI_Widget_Flags_Hoverable|
-                                 UI_Widget_Flags_Display_Text|
-                                 UI_Widget_Flags_Center_Text_Horizontally|
-                                 UI_Widget_Flags_Center_Text_Vertically;
+    UI_Node_Flags button_flags = UI_Node_Flags_Mouse_Clickable|
+                                 UI_Node_Flags_Hoverable|
+                                 UI_Node_Flags_Display_Text|
+                                 UI_Node_Flags_Center_Text_Horizontally|
+                                 UI_Node_Flags_Center_Text_Vertically;
     button_signal.node = ui_node_from_string(text, button_flags);
     ui_fill_signals_from_node(&button_signal);
   }
@@ -331,8 +332,8 @@ ui_label(String8 text)
   ui_stack_defer(alignment_kind, UI_Alignment_Kind_X)
   ui_stack_defer(padding_x, 1.0f) ui_stack_defer(padding_y, 1.0f)
   {
-    UI_Node_Flags label_flags = UI_Widget_Flags_Display_Text|
-                                UI_Widget_Flags_Dimensions_Wrap_Text;
+    UI_Node_Flags label_flags = UI_Node_Flags_Display_Text|
+                                UI_Node_Flags_Dimensions_Wrap_Text;
     ui_node_from_string(text, label_flags);
   }
 }
@@ -413,7 +414,7 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
     widget->bounds.top_left = ui_stack_top(top_left);  
   }
 
-  if (HasFlags(flags, UI_Widget_Flags_Dimensions_Wrap_Text))
+  if (HasFlags(flags, UI_Node_Flags_Dimensions_Wrap_Text))
   {
     widget->bounds.size = vec2f32_add(widget->string_dimensions, vec2f32(1,1));
   }
@@ -490,7 +491,7 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   widget->target_text_color = color_lerp(widget->target_text_color, text_active_color, cached_widget->active_t);
 
   // Hover
-  if (HasFlags(widget->flags, UI_Widget_Flags_Hoverable))
+  if (HasFlags(widget->flags, UI_Node_Flags_Hoverable))
   {
     if (ui_is_mouse_in_node(widget))
     {
@@ -503,7 +504,7 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   }
 
   // Active
-  if (HasFlags(widget->flags, UI_Widget_Flags_Mouse_Clickable))
+  if (HasFlags(widget->flags, UI_Node_Flags_Mouse_Clickable))
   {
     if (ui_context.hash_active == widget->hash)
     {
@@ -518,7 +519,7 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   // Dragging
   if (ui_context.hash_active == widget->hash)
   {
-    if (HasFlags(widget->flags, UI_Widget_Flags_Draggable))
+    if (HasFlags(widget->flags, UI_Node_Flags_Draggable))
     {
       widget->local_drag_offset = g_input.mouse_current.delta;
     }
@@ -547,7 +548,7 @@ ui_fill_signals_from_node(UI_Signal* signal)
 function b32  ui_find_first_drag_offset(UI_Node* widget_root, Vec2f32* out_offset)
 {
   b32 result = false;
-  if (HasFlags(widget_root->flags, UI_Widget_Flags_Draggable) && ui_context.hash_active == widget_root->hash)
+  if (HasFlags(widget_root->flags, UI_Node_Flags_Draggable) && ui_context.hash_active == widget_root->hash)
   {
     *out_offset = widget_root->local_drag_offset;
     result = true;
@@ -556,7 +557,7 @@ function b32  ui_find_first_drag_offset(UI_Node* widget_root, Vec2f32* out_offse
   {
     for (UI_Node* child = widget_root->first; child; child = child->next)
     {
-      if (HasFlags(child->flags, UI_Widget_Flags_Draggable) && ui_context.hash_active == child->hash)
+      if (HasFlags(child->flags, UI_Node_Flags_Draggable) && ui_context.hash_active == child->hash)
       {
         *out_offset = child->local_drag_offset;
         result = true;
@@ -732,17 +733,17 @@ ui_update_tree_nodes(UI_Node* widget_root)
   widget_root->clip.top_left   = vec2f32_add(widget_root->clip.top_left, cached_widget->accumulated_drag_offset);
 
   // String
-  if (HasFlags(widget_root->flags, UI_Widget_Flags_Display_Text))
+  if (HasFlags(widget_root->flags, UI_Node_Flags_Display_Text))
   {
     widget_root->string_top_left = vec2f32_add(widget_root->clip.top_left, widget_root->cursor);
 
-    if (HasFlags(widget_root->flags, UI_Widget_Flags_Center_Text_Horizontally))
+    if (HasFlags(widget_root->flags, UI_Node_Flags_Center_Text_Horizontally))
     {
       f32 offset_x = (widget_root->clip.size.x - widget_root->string_dimensions.x) * 0.5f;
       widget_root->string_top_left.x = widget_root->clip.top_left.x + offset_x;
     }
 
-    if (HasFlags(widget_root->flags, UI_Widget_Flags_Center_Text_Vertically))
+    if (HasFlags(widget_root->flags, UI_Node_Flags_Center_Text_Vertically))
     {
       f32 offset_y = (widget_root->clip.size.y - widget_root->string_dimensions.y) * 0.5f;
       widget_root->string_top_left.y = widget_root->clip.top_left.y + offset_y;
@@ -755,7 +756,7 @@ ui_update_tree_nodes(UI_Node* widget_root)
   {
     case UI_Alignment_Kind_X:
     {
-      f32 advance_x = HasFlags(widget_root->flags, UI_Widget_Flags_Center_Text_Horizontally)
+      f32 advance_x = HasFlags(widget_root->flags, UI_Node_Flags_Center_Text_Horizontally)
                     ? widget_root->clip.size.x
                     : widget_root->string_dimensions.x;
 
@@ -765,7 +766,7 @@ ui_update_tree_nodes(UI_Node* widget_root)
 
     case UI_Alignment_Kind_Y:
     {
-      f32 advance_y = HasFlags(widget_root->flags, UI_Widget_Flags_Center_Text_Vertically)
+      f32 advance_y = HasFlags(widget_root->flags, UI_Node_Flags_Center_Text_Vertically)
                     ? widget_root->clip.size.y
                     : widget_root->string_dimensions.y;
 
