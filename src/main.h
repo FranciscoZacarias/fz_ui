@@ -3,13 +3,9 @@
 
 #define DEBUG 1
 
-///////////////////////////////////////////////////////
-// @Section: fz_std
 #include "fz_base.h"
 #include "fz_opengl.h"
 
-///////////////////////////////////////////////////////
-// @Section: project
 #define PROJECT_NAME S("fz_ui")
 
 global Input_State g_input;

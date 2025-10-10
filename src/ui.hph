@@ -52,11 +52,11 @@ Stack_Table
   @foreach(Stack_Table) `/* $(documentation) */
 function void ui_$(name_lower)_stack_init($(type) bot_val) { ui_stack_init($(name_lower), bot_val); }
 function void ui_$(name_lower)_stack_push($(type) val) { ui_stack_push($(name_lower), val); }
-function $(type) ui_$(name_lower)_stack_pop() { ui_stack_pop($(name_lower)); }
-function $(type) ui_$(name_lower)_stack_top() { ui_stack_top($(name_lower)); }
-function b32  ui_$(name_lower)_stack_is_at_bottom() { ui_stack_is_at_bottom($(name_lower)); }
+function $(type) ui_$(name_lower)_stack_pop() { return ui_stack_pop($(name_lower)); }
+function $(type) ui_$(name_lower)_stack_top() { return ui_stack_top($(name_lower)); }
+function b32  ui_$(name_lower)_stack_is_at_bottom() { return ui_stack_is_at_bottom($(name_lower)); }
 function void ui_$(name_lower)_stack_assert_top_at(u32 at) { ui_stack_assert_top_at($(name_lower), at); }
-#define ui_$(name_lower)(val) DeferLoop($(name_lower)_stack_push(val), $(name_lower)_stack_pop())\n\n`
+#define ui_$(name_lower)(val) DeferLoop(ui_$(name_lower)_stack_push(val), ui_$(name_lower)_stack_pop())\n\n`
 }
 
 @table

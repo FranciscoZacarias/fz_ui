@@ -159,12 +159,12 @@ struct UI_Context
 // Used as a bottom value for UI_Node stack, since bottom value is a pointer.
 read_only global UI_Node ui_node_nil_sentinel =
 {
-  0,
-  &ui_node_nil_sentinel,
-  &ui_node_nil_sentinel,
-  &ui_node_nil_sentinel,
-  &ui_node_nil_sentinel,
-  &ui_node_nil_sentinel,
+  .hash     = 0,
+  .first    = &ui_node_nil_sentinel,
+  .last     = &ui_node_nil_sentinel,
+  .next     = &ui_node_nil_sentinel,
+  .previous = &ui_node_nil_sentinel,
+  .parent   = &ui_node_nil_sentinel,
 };
 
 global UI_Context ui_context;

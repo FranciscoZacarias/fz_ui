@@ -140,7 +140,7 @@ function void ui_end()
   ui_context.root->previous = NULL;
   ui_context.root->parent   = NULL;
 
-  ui_stack_pop(node); // Pop root (os window) because it's regenerated every frame
+  ui_stack_pop(parent); // Pop root (os window) because it's regenerated every frame
   ui_context.is_working = false;
   arena_clear(ui_context.frame_arena);
 }
@@ -179,7 +179,7 @@ ui_window_begin(String8 text)
       UI_Node_Flags window_flags = 0;
       String8 window_text = Sf(ui_context.frame_arena, ""S_FMT"##_window_`"S_FMT"`", S_ARG(text));
       window_signal.node = ui_node_from_string(window_text, window_flags);
-      ui_stack_push(node, window_signal.node);
+      ui_stack_push(parent, window_signal.node);
     }
   }
 
@@ -203,7 +203,7 @@ ui_window_begin(String8 text)
 function void
 ui_window_end()
 {
-  UI_Node* node = ui_stack_pop(node);
+  UI_Node* node = ui_stack_pop(parent);
   Vec2f32 offset = {0};
   if (ui_find_first_drag_offset(node, &offset))
   {
@@ -238,7 +238,7 @@ ui_layout_box_begin(UI_Alignment_Kind alignment, String8 text, f32 size)
   {
     UI_Node_Flags layout_box_flags = 0;
     layout_box.node = ui_node_from_string(text, layout_box_flags);
-    ui_stack_push(node, layout_box.node);
+    ui_stack_push(parent, layout_box.node);
   }
 }
 
@@ -257,7 +257,7 @@ ui_layout_box_end()
   {
     ui_stack_pop(size_x);
   }
-  ui_stack_pop(node);
+  ui_stack_pop(parent);
 }
 
 function UI_Signal
@@ -312,7 +312,7 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
     emit_fatal(S("UI: Not within ui_begin and ui_end"));
   }
 
-  UI_Node* parent = ui_stack_top(node);
+  UI_Node* parent = ui_stack_top(parent);
   if (parent == NULL)
   {
     // If we're the ui_context.root (screen)
@@ -650,7 +650,7 @@ ui_get_cached_node(u64 hash)
 function void
 ui_add_widget_child(UI_Node *parent, UI_Node *child)
 {
-  if (parent == NULL)
+  if (parent == &ui_node_nil_sentinel)
   {
     // If we're the ui_context.root (screen)
     child->first    = NULL;

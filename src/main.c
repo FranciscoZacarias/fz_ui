@@ -69,8 +69,8 @@ entry_point(Command_Line* command_line)
     }
 #endif
 
-    ui_stack_defer(top_left, vec2f32(250,200))
-    ui_stack_defer(size_x, 200) ui_stack_defer(size_y, 200)
+    ui_top_left(vec2f32(250,200))
+    ui_size_x(200) ui_size_y(200)
     ui_window(S("Test Window"))
     {
 #if 0
