@@ -140,13 +140,11 @@ struct UI_Context
 
   // State
   u32 text_pixel_height;
-
-  UI_Config_Stacks;
-
   f32 animation_speed;
-
   b32 is_initialized; /* Has ui_init been called */
   b32 is_working;     /* If true, ui_begin() was last called. If false, ui_end() was last called */
+
+  UI_Config_Stacks;
 
   // Debug
   struct

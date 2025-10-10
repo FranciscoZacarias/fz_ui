@@ -1,23 +1,19 @@
 /*
 
-@Hephaestus generated code 2025-October-10 15:40:48
+@Hephaestus generated code 2025-October-10 17:48:22
 
 */
 
 /* Pointer to the current UI node */
-typedef struct UI_Node_stack UI_Node_stack;
-struct UI_Node_stack { UI_Node* data[32]; u32 top_index; UI_Node* bottom_val; };
-function void ui_node_stack_init(UI_Node* bot_val) { ui_stack_init(node, bot_val); }
-function void ui_node_stack_push(UI_Node* val) { ui_stack_push(node, val); }
-function UI_Node* ui_node_stack_pop() { ui_stack_pop(node); }
-function UI_Node* ui_node_stack_top() { ui_stack_top(node); }
-function b32  ui_node_stack_is_at_bottom() { ui_stack_is_at_bottom(node); }
-function void ui_node_stack_assert_top_at(u32 at) { ui_stack_assert_top_at(node, at); }
-#define ui_node(val) DeferLoop(node_stack_push(val), node_stack_pop())
+function void ui_parent_stack_init(UI_Node* bot_val) { ui_stack_init(parent, bot_val); }
+function void ui_parent_stack_push(UI_Node* val) { ui_stack_push(parent, val); }
+function UI_Node* ui_parent_stack_pop() { ui_stack_pop(parent); }
+function UI_Node* ui_parent_stack_top() { ui_stack_top(parent); }
+function b32  ui_parent_stack_is_at_bottom() { ui_stack_is_at_bottom(parent); }
+function void ui_parent_stack_assert_top_at(u32 at) { ui_stack_assert_top_at(parent, at); }
+#define ui_parent(val) DeferLoop(parent_stack_push(val), parent_stack_pop())
 
 /* Top-left corner position */
-typedef struct UI_Top_Left_stack UI_Top_Left_stack;
-struct UI_Top_Left_stack { Vec2f32 data[32]; u32 top_index; Vec2f32 bottom_val; };
 function void ui_top_left_stack_init(Vec2f32 bot_val) { ui_stack_init(top_left, bot_val); }
 function void ui_top_left_stack_push(Vec2f32 val) { ui_stack_push(top_left, val); }
 function Vec2f32 ui_top_left_stack_pop() { ui_stack_pop(top_left); }
@@ -27,8 +23,6 @@ function void ui_top_left_stack_assert_top_at(u32 at) { ui_stack_assert_top_at(t
 #define ui_top_left(val) DeferLoop(top_left_stack_push(val), top_left_stack_pop())
 
 /* Default X size equals window width */
-typedef struct UI_Size_X_stack UI_Size_X_stack;
-struct UI_Size_X_stack { f32 data[32]; u32 top_index; f32 bottom_val; };
 function void ui_size_x_stack_init(f32 bot_val) { ui_stack_init(size_x, bot_val); }
 function void ui_size_x_stack_push(f32 val) { ui_stack_push(size_x, val); }
 function f32 ui_size_x_stack_pop() { ui_stack_pop(size_x); }
@@ -38,8 +32,6 @@ function void ui_size_x_stack_assert_top_at(u32 at) { ui_stack_assert_top_at(siz
 #define ui_size_x(val) DeferLoop(size_x_stack_push(val), size_x_stack_pop())
 
 /* Default Y size equals window height */
-typedef struct UI_Size_Y_stack UI_Size_Y_stack;
-struct UI_Size_Y_stack { f32 data[32]; u32 top_index; f32 bottom_val; };
 function void ui_size_y_stack_init(f32 bot_val) { ui_stack_init(size_y, bot_val); }
 function void ui_size_y_stack_push(f32 val) { ui_stack_push(size_y, val); }
 function f32 ui_size_y_stack_pop() { ui_stack_pop(size_y); }
@@ -49,8 +41,6 @@ function void ui_size_y_stack_assert_top_at(u32 at) { ui_stack_assert_top_at(siz
 #define ui_size_y(val) DeferLoop(size_y_stack_push(val), size_y_stack_pop())
 
 /* Horizontal padding */
-typedef struct UI_Padding_X_stack UI_Padding_X_stack;
-struct UI_Padding_X_stack { f32 data[32]; u32 top_index; f32 bottom_val; };
 function void ui_padding_x_stack_init(f32 bot_val) { ui_stack_init(padding_x, bot_val); }
 function void ui_padding_x_stack_push(f32 val) { ui_stack_push(padding_x, val); }
 function f32 ui_padding_x_stack_pop() { ui_stack_pop(padding_x); }
@@ -60,8 +50,6 @@ function void ui_padding_x_stack_assert_top_at(u32 at) { ui_stack_assert_top_at(
 #define ui_padding_x(val) DeferLoop(padding_x_stack_push(val), padding_x_stack_pop())
 
 /* Vertical padding */
-typedef struct UI_Padding_Y_stack UI_Padding_Y_stack;
-struct UI_Padding_Y_stack { f32 data[32]; u32 top_index; f32 bottom_val; };
 function void ui_padding_y_stack_init(f32 bot_val) { ui_stack_init(padding_y, bot_val); }
 function void ui_padding_y_stack_push(f32 val) { ui_stack_push(padding_y, val); }
 function f32 ui_padding_y_stack_pop() { ui_stack_pop(padding_y); }
@@ -71,8 +59,6 @@ function void ui_padding_y_stack_assert_top_at(u32 at) { ui_stack_assert_top_at(
 #define ui_padding_y(val) DeferLoop(padding_y_stack_push(val), padding_y_stack_pop())
 
 /* Left spacing (not clipped) */
-typedef struct UI_Spacing_Left_stack UI_Spacing_Left_stack;
-struct UI_Spacing_Left_stack { f32 data[32]; u32 top_index; f32 bottom_val; };
 function void ui_spacing_left_stack_init(f32 bot_val) { ui_stack_init(spacing_left, bot_val); }
 function void ui_spacing_left_stack_push(f32 val) { ui_stack_push(spacing_left, val); }
 function f32 ui_spacing_left_stack_pop() { ui_stack_pop(spacing_left); }
@@ -82,8 +68,6 @@ function void ui_spacing_left_stack_assert_top_at(u32 at) { ui_stack_assert_top_
 #define ui_spacing_left(val) DeferLoop(spacing_left_stack_push(val), spacing_left_stack_pop())
 
 /* Right spacing (not clipped) */
-typedef struct UI_Spacing_Right_stack UI_Spacing_Right_stack;
-struct UI_Spacing_Right_stack { f32 data[32]; u32 top_index; f32 bottom_val; };
 function void ui_spacing_right_stack_init(f32 bot_val) { ui_stack_init(spacing_right, bot_val); }
 function void ui_spacing_right_stack_push(f32 val) { ui_stack_push(spacing_right, val); }
 function f32 ui_spacing_right_stack_pop() { ui_stack_pop(spacing_right); }
@@ -93,8 +77,6 @@ function void ui_spacing_right_stack_assert_top_at(u32 at) { ui_stack_assert_top
 #define ui_spacing_right(val) DeferLoop(spacing_right_stack_push(val), spacing_right_stack_pop())
 
 /* Top spacing (not clipped) */
-typedef struct UI_Spacing_Top_stack UI_Spacing_Top_stack;
-struct UI_Spacing_Top_stack { f32 data[32]; u32 top_index; f32 bottom_val; };
 function void ui_spacing_top_stack_init(f32 bot_val) { ui_stack_init(spacing_top, bot_val); }
 function void ui_spacing_top_stack_push(f32 val) { ui_stack_push(spacing_top, val); }
 function f32 ui_spacing_top_stack_pop() { ui_stack_pop(spacing_top); }
@@ -104,8 +86,6 @@ function void ui_spacing_top_stack_assert_top_at(u32 at) { ui_stack_assert_top_a
 #define ui_spacing_top(val) DeferLoop(spacing_top_stack_push(val), spacing_top_stack_pop())
 
 /* Bottom spacing (not clipped) */
-typedef struct UI_Spacing_Bottom_stack UI_Spacing_Bottom_stack;
-struct UI_Spacing_Bottom_stack { f32 data[32]; u32 top_index; f32 bottom_val; };
 function void ui_spacing_bottom_stack_init(f32 bot_val) { ui_stack_init(spacing_bottom, bot_val); }
 function void ui_spacing_bottom_stack_push(f32 val) { ui_stack_push(spacing_bottom, val); }
 function f32 ui_spacing_bottom_stack_pop() { ui_stack_pop(spacing_bottom); }
@@ -115,8 +95,6 @@ function void ui_spacing_bottom_stack_assert_top_at(u32 at) { ui_stack_assert_to
 #define ui_spacing_bottom(val) DeferLoop(spacing_bottom_stack_push(val), spacing_bottom_stack_pop())
 
 /* Default alignment along Y */
-typedef struct UI_Alignment_Kind_stack UI_Alignment_Kind_stack;
-struct UI_Alignment_Kind_stack { UI_Alignment_Kind data[32]; u32 top_index; UI_Alignment_Kind bottom_val; };
 function void ui_alignment_kind_stack_init(UI_Alignment_Kind bot_val) { ui_stack_init(alignment_kind, bot_val); }
 function void ui_alignment_kind_stack_push(UI_Alignment_Kind val) { ui_stack_push(alignment_kind, val); }
 function UI_Alignment_Kind ui_alignment_kind_stack_pop() { ui_stack_pop(alignment_kind); }
@@ -126,8 +104,6 @@ function void ui_alignment_kind_stack_assert_top_at(u32 at) { ui_stack_assert_to
 #define ui_alignment_kind(val) DeferLoop(alignment_kind_stack_push(val), alignment_kind_stack_pop())
 
 /* Width filling strategy */
-typedef struct UI_Width_Kind_stack UI_Width_Kind_stack;
-struct UI_Width_Kind_stack { UI_Width_Kind data[32]; u32 top_index; UI_Width_Kind bottom_val; };
 function void ui_width_kind_stack_init(UI_Width_Kind bot_val) { ui_stack_init(width_kind, bot_val); }
 function void ui_width_kind_stack_push(UI_Width_Kind val) { ui_stack_push(width_kind, val); }
 function UI_Width_Kind ui_width_kind_stack_pop() { ui_stack_pop(width_kind); }
@@ -137,8 +113,6 @@ function void ui_width_kind_stack_assert_top_at(u32 at) { ui_stack_assert_top_at
 #define ui_width_kind(val) DeferLoop(width_kind_stack_push(val), width_kind_stack_pop())
 
 /* Height filling strategy */
-typedef struct UI_Height_Kind_stack UI_Height_Kind_stack;
-struct UI_Height_Kind_stack { UI_Height_Kind data[32]; u32 top_index; UI_Height_Kind bottom_val; };
 function void ui_height_kind_stack_init(UI_Height_Kind bot_val) { ui_stack_init(height_kind, bot_val); }
 function void ui_height_kind_stack_push(UI_Height_Kind val) { ui_stack_push(height_kind, val); }
 function UI_Height_Kind ui_height_kind_stack_pop() { ui_stack_pop(height_kind); }
@@ -148,8 +122,6 @@ function void ui_height_kind_stack_assert_top_at(u32 at) { ui_stack_assert_top_a
 #define ui_height_kind(val) DeferLoop(height_kind_stack_push(val), height_kind_stack_pop())
 
 /* Node color scheme override */
-typedef struct UI_Node_Color_Scheme_stack UI_Node_Color_Scheme_stack;
-struct UI_Node_Color_Scheme_stack { UI_Node_Color_Scheme data[32]; u32 top_index; UI_Node_Color_Scheme bottom_val; };
 function void ui_node_color_scheme_stack_init(UI_Node_Color_Scheme bot_val) { ui_stack_init(node_color_scheme, bot_val); }
 function void ui_node_color_scheme_stack_push(UI_Node_Color_Scheme val) { ui_stack_push(node_color_scheme, val); }
 function UI_Node_Color_Scheme ui_node_color_scheme_stack_pop() { ui_stack_pop(node_color_scheme); }
@@ -159,8 +131,6 @@ function void ui_node_color_scheme_stack_assert_top_at(u32 at) { ui_stack_assert
 #define ui_node_color_scheme(val) DeferLoop(node_color_scheme_stack_push(val), node_color_scheme_stack_pop())
 
 /* Default border color */
-typedef struct UI_Border_Color_stack UI_Border_Color_stack;
-struct UI_Border_Color_stack { Color data[32]; u32 top_index; Color bottom_val; };
 function void ui_border_color_stack_init(Color bot_val) { ui_stack_init(border_color, bot_val); }
 function void ui_border_color_stack_push(Color val) { ui_stack_push(border_color, val); }
 function Color ui_border_color_stack_pop() { ui_stack_pop(border_color); }
@@ -170,8 +140,6 @@ function void ui_border_color_stack_assert_top_at(u32 at) { ui_stack_assert_top_
 #define ui_border_color(val) DeferLoop(border_color_stack_push(val), border_color_stack_pop())
 
 /* Default background color */
-typedef struct UI_Background_Color_stack UI_Background_Color_stack;
-struct UI_Background_Color_stack { Color data[32]; u32 top_index; Color bottom_val; };
 function void ui_background_color_stack_init(Color bot_val) { ui_stack_init(background_color, bot_val); }
 function void ui_background_color_stack_push(Color val) { ui_stack_push(background_color, val); }
 function Color ui_background_color_stack_pop() { ui_stack_pop(background_color); }
@@ -181,8 +149,6 @@ function void ui_background_color_stack_assert_top_at(u32 at) { ui_stack_assert_
 #define ui_background_color(val) DeferLoop(background_color_stack_push(val), background_color_stack_pop())
 
 /* Background color on hover */
-typedef struct UI_Background_Hover_Color_stack UI_Background_Hover_Color_stack;
-struct UI_Background_Hover_Color_stack { Color data[32]; u32 top_index; Color bottom_val; };
 function void ui_background_hover_color_stack_init(Color bot_val) { ui_stack_init(background_hover_color, bot_val); }
 function void ui_background_hover_color_stack_push(Color val) { ui_stack_push(background_hover_color, val); }
 function Color ui_background_hover_color_stack_pop() { ui_stack_pop(background_hover_color); }
@@ -192,8 +158,6 @@ function void ui_background_hover_color_stack_assert_top_at(u32 at) { ui_stack_a
 #define ui_background_hover_color(val) DeferLoop(background_hover_color_stack_push(val), background_hover_color_stack_pop())
 
 /* Background color when active */
-typedef struct UI_Background_Active_Color_stack UI_Background_Active_Color_stack;
-struct UI_Background_Active_Color_stack { Color data[32]; u32 top_index; Color bottom_val; };
 function void ui_background_active_color_stack_init(Color bot_val) { ui_stack_init(background_active_color, bot_val); }
 function void ui_background_active_color_stack_push(Color val) { ui_stack_push(background_active_color, val); }
 function Color ui_background_active_color_stack_pop() { ui_stack_pop(background_active_color); }
@@ -203,8 +167,6 @@ function void ui_background_active_color_stack_assert_top_at(u32 at) { ui_stack_
 #define ui_background_active_color(val) DeferLoop(background_active_color_stack_push(val), background_active_color_stack_pop())
 
 /* Default text color */
-typedef struct UI_Text_Color_stack UI_Text_Color_stack;
-struct UI_Text_Color_stack { Color data[32]; u32 top_index; Color bottom_val; };
 function void ui_text_color_stack_init(Color bot_val) { ui_stack_init(text_color, bot_val); }
 function void ui_text_color_stack_push(Color val) { ui_stack_push(text_color, val); }
 function Color ui_text_color_stack_pop() { ui_stack_pop(text_color); }
@@ -214,8 +176,6 @@ function void ui_text_color_stack_assert_top_at(u32 at) { ui_stack_assert_top_at
 #define ui_text_color(val) DeferLoop(text_color_stack_push(val), text_color_stack_pop())
 
 /* Text color on hover */
-typedef struct UI_Text_Hover_Color_stack UI_Text_Hover_Color_stack;
-struct UI_Text_Hover_Color_stack { Color data[32]; u32 top_index; Color bottom_val; };
 function void ui_text_hover_color_stack_init(Color bot_val) { ui_stack_init(text_hover_color, bot_val); }
 function void ui_text_hover_color_stack_push(Color val) { ui_stack_push(text_hover_color, val); }
 function Color ui_text_hover_color_stack_pop() { ui_stack_pop(text_hover_color); }
@@ -225,8 +185,6 @@ function void ui_text_hover_color_stack_assert_top_at(u32 at) { ui_stack_assert_
 #define ui_text_hover_color(val) DeferLoop(text_hover_color_stack_push(val), text_hover_color_stack_pop())
 
 /* Text color when active */
-typedef struct UI_Text_Active_Color_stack UI_Text_Active_Color_stack;
-struct UI_Text_Active_Color_stack { Color data[32]; u32 top_index; Color bottom_val; };
 function void ui_text_active_color_stack_init(Color bot_val) { ui_stack_init(text_active_color, bot_val); }
 function void ui_text_active_color_stack_push(Color val) { ui_stack_push(text_active_color, val); }
 function Color ui_text_active_color_stack_pop() { ui_stack_pop(text_active_color); }

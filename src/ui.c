@@ -59,7 +59,7 @@ function void ui_init()
 
     Vec2s32 window_size = g_os_window.dimensions;
 
-    UI_Init_Stacks;
+    UI_Init_Stacks(ui_context);
   }
 }
 
@@ -78,7 +78,7 @@ function void ui_begin()
       root_widget = ui_node_from_string(root_name, root_flags);
       ui_context.root = root_widget;
       ui_context.root->depth = 1.0f;
-      ui_stack_push(node, ui_context.root);
+      ui_stack_push(parent, ui_context.root);
     }
   }
 
