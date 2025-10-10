@@ -59,28 +59,7 @@ function void ui_init()
 
     Vec2s32 window_size = g_os_window.dimensions;
 
-    // Default values
-    ui_stack_init(top_left,         vec2f32(5.0f, 5.0f));
-    ui_stack_init(size_x,           window_size.x);
-    ui_stack_init(size_y,           window_size.y);
-    ui_stack_init(padding_x,        0.0f);
-    ui_stack_init(padding_y,        0.0f);
-    ui_stack_init(spacing_left,        0);
-    ui_stack_init(spacing_right,       0);
-    ui_stack_init(spacing_top,         0);
-    ui_stack_init(spacing_bottom,      0);
-    ui_stack_init(alignment_kind,   UI_Alignment_Kind_Y);
-    ui_stack_init(width_kind,       UI_Width_Kind_Fill);
-    ui_stack_init(height_kind,      UI_Height_Kind_Fill);
-
-    ui_stack_init(node_color_scheme,       ui_context.color_scheme.window);
-    ui_stack_init(border_color,            PURPLE(1));
-    ui_stack_init(background_color,        PURPLE(1));
-    ui_stack_init(background_hover_color,  PURPLE(1));
-    ui_stack_init(background_active_color, PURPLE(1));
-    ui_stack_init(text_color,              PURPLE(1));
-    ui_stack_init(text_hover_color,        PURPLE(1));
-    ui_stack_init(text_active_color,       PURPLE(1));
+    UI_Init_Stacks;
   }
 }
 
@@ -130,25 +109,7 @@ function void ui_end()
 {
 #if DEBUG
   // Ensure all the stacks are properly cleaned
-  ui_stack_assert_top_at(node, 1); // Root should be in the stack
-  ui_stack_assert_top_at(top_left, 0);
-  ui_stack_assert_top_at(size_x, 0);
-  ui_stack_assert_top_at(size_y, 0);
-  ui_stack_assert_top_at(padding_x, 0);
-  ui_stack_assert_top_at(padding_y, 0);
-  ui_stack_assert_top_at(spacing_left, 0);
-  ui_stack_assert_top_at(spacing_right, 0);
-  ui_stack_assert_top_at(alignment_kind, 0);
-  ui_stack_assert_top_at(width_kind, 0);
-  ui_stack_assert_top_at(height_kind, 0);
-  ui_stack_assert_top_at(node_color_scheme, 0);
-  ui_stack_assert_top_at(border_color, 0);
-  ui_stack_assert_top_at(background_color, 0);
-  ui_stack_assert_top_at(background_hover_color, 0);
-  ui_stack_assert_top_at(background_active_color, 0);
-  ui_stack_assert_top_at(text_color, 0);
-  ui_stack_assert_top_at(text_hover_color, 0);
-  ui_stack_assert_top_at(text_active_color, 0);
+  UI_Debug_Stacks_At_Bottom;
   if (ui_context.root->depth != 1)
   {
     emit_fatal(Sf(ui_context.arena, "UI: ui_context.root->depth is expected to be 1. It was: %.10f\n", ui_context.root->depth));

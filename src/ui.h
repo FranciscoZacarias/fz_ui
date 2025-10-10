@@ -141,29 +141,7 @@ struct UI_Context
   // State
   u32 text_pixel_height;
 
-  ui_stack(UI_Node*,          node,             UI_STACKS_MAX);
-  ui_stack(Vec2f32,           top_left,         UI_STACKS_MAX);
-  ui_stack(f32,               size_x,           UI_STACKS_MAX);
-  ui_stack(f32,               size_y,           UI_STACKS_MAX);
-  ui_stack(f32,               padding_x,        UI_STACKS_MAX);
-  ui_stack(f32,               padding_y,        UI_STACKS_MAX);
-  ui_stack(f32,               spacing_left,     UI_STACKS_MAX); /* Spacing does not count towards the clip calculation */
-  ui_stack(f32,               spacing_right,    UI_STACKS_MAX); /* Spacing does not count towards the clip calculation */
-  ui_stack(f32,               spacing_top,      UI_STACKS_MAX); /* Spacing does not count towards the clip calculation */
-  ui_stack(f32,               spacing_bottom,   UI_STACKS_MAX); /* Spacing does not count towards the clip calculation */
-  ui_stack(UI_Alignment_Kind, alignment_kind,   UI_STACKS_MAX);
-  ui_stack(UI_Width_Kind,     width_kind,       UI_STACKS_MAX);
-  ui_stack(UI_Height_Kind,    height_kind,      UI_STACKS_MAX);
-
-  // For customizing colors without changing color scheme
-  ui_stack(UI_Node_Color_Scheme, node_color_scheme,  UI_STACKS_MAX);
-  ui_stack(Color, border_color,            UI_STACKS_MAX);
-  ui_stack(Color, background_color,        UI_STACKS_MAX);
-  ui_stack(Color, background_hover_color,  UI_STACKS_MAX);
-  ui_stack(Color, background_active_color, UI_STACKS_MAX);
-  ui_stack(Color, text_color,              UI_STACKS_MAX);
-  ui_stack(Color, text_hover_color,        UI_STACKS_MAX);
-  ui_stack(Color, text_active_color,       UI_STACKS_MAX);
+  UI_Config_Stacks;
 
   f32 animation_speed;
 
