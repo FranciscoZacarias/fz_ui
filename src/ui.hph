@@ -1,8 +1,96 @@
 
+// TODO(fz): Bug: `#endif // UI_GENERATED_H` Still think there is a comment here.
+
 @config
 {
-  @output_file_name `ui.generated.c`
+  @output_file_name `ui.generated.h`
   @output_file_path `../src/`
+  // TODO(fz): Add if guards to hephaestus config
+}
+
+@generate
+{
+  `#ifndef UI_GENERATED_H\n#define UI_GENERATED_H\n\n`
+  `/*\n\n@Hephaestus generated code $(@time_now)\n\n*/\n\n`
+}
+
+@table // Defines forward declaration for UI types
+UI_Types_Table
+  (name)
+{
+  { UI_Node_Color_Scheme }
+  { UI_Color_Scheme      }
+  { UI_Node              }
+  { UI_Node_Cache        }
+  { UI_Signal            }
+  { UI_Context           }
+}
+
+@generate
+{
+  `// Forward declare UI structures\n`
+  @foreach(UI_Types_Table) `typedef struct $(name) $(name);\n`
+  `\n`
+}
+
+@table // Defines forward declare for UI enums
+UI_Enum_Table
+  (name)
+{
+  { UI_Alignment_Kind }
+  { UI_Width_Kind     }
+  { UI_Height_Kind    }
+}
+
+@generate
+{
+  `// Forward declare UI enums\n`
+  @foreach(UI_Enum_Table) `typedef enum $(name) $(name);\n`
+  `\n`
+}
+
+@table // Bitflags
+UI_Node_Flags_Table
+  (name documentation)
+{
+  { Mouse_Clickable          `TODO(fz): Add documentation` } 
+  { Display_Text             `TODO(fz): Add documentation` } 
+  { Draggable                `TODO(fz): Add documentation` } 
+  { Hoverable                `TODO(fz): Add documentation` } 
+  { Center_Text_Horizontally `TODO(fz): Add documentation` } 
+  { Center_Text_Vertically   `TODO(fz): Add documentation` } 
+  { Dimensions_Wrap_Text     `TODO(fz): Add documentation` } 
+}
+
+@generate
+{
+  `typedef u64 UI_Node_Flags;\nenum\n{\n`
+  @foreach(UI_Node_Flags_Table) `  UI_Node_Flags_$(name) = (1 << $(@index)), /* $(documentation) */ \n`
+  `};\n`
+    `\n`
+}
+
+@table // Bitflags
+UI_Signal_Flags_Table
+  (name documentation)
+{
+  { Left_Down      `TODO(fz): Add documentation` } 
+  { Middle_Down    `TODO(fz): Add documentation` } 
+  { Right_Down     `TODO(fz): Add documentation` } 
+
+  { Left_Clicked   `TODO(fz): Add documentation` } 
+  { Middle_Clicked `TODO(fz): Add documentation` } 
+  { Right_Clicked  `TODO(fz): Add documentation` } 
+
+  { Mouse_Hovered  `TODO(fz): Add documentation` } 
+}
+
+@generate
+{
+  `typedef u64 UI_Node_Flags;\nenum\n{\n`
+  @foreach(UI_Signal_Flags_Table) `  UI_Signal_Flags_$(name) = (1 << $(@index)), /* $(documentation) */\n`
+  `};\n`
+  `\n`
 }
 
 @table // Defines stacks for different types
@@ -34,26 +122,33 @@ Stack_Table
 
 @generate
 {
-  `// @Hephaestus generated code $(@time_now)\n\n`
+  `#define ui_stack_init(ctx, name, bot_val) Statement((ctx)->name##_stack.top_index = 0; (ctx)->name##_stack.bottom_val = (bot_val);)
+#define ui_stack_push(ctx, name, val) ((ctx)->name##_stack.data[((ctx)->name##_stack.top_index < sizeof((ctx)->name##_stack.data)/sizeof((ctx)->name##_stack.data[0])) ? (ctx)->name##_stack.top_index++ : (ctx)->name##_stack.top_index] = (val))
+#define ui_stack_pop(ctx, name) (((ctx)->name##_stack.top_index > 0) ? (ctx)->name##_stack.data[--(ctx)->name##_stack.top_index] : (ctx)->name##_stack.bottom_val)
+#define ui_stack_top(ctx, name) (((ctx)->name##_stack.top_index > 0) ? (ctx)->name##_stack.data[(ctx)->name##_stack.top_index-1] : (ctx)->name##_stack.bottom_val)
+#define ui_stack_assert_top_at(ctx, name, at) if((ctx)->name##_stack.top_index != (at)) emit_fatal(Sf((ctx)->arena, "UI: %s not at expected top value: '%u'. Actual value: '%u'", Stringify((ctx)->name##_stack), (at), (ctx)->name##_stack.top_index))
+#define ui_stack_is_at_bottom(ctx, name) ((ctx)->name##_stack.top_index == 0)
+#define ui_stack_defer(ctx, name, val) DeferLoop(ui_stack_push(ctx, name, val), ui_stack_pop(ctx, name))`
+
+  `\n\n`
 
   // Defines the data structures
   @foreach(Stack_Table) `/* $(documentation) */
-typedef struct $(name_upper)_stack $(name_upper)_stack;
-struct $(name_upper)_stack { $(type) data[$(max)]; u32 top_index; $(type) bottom_val; };
-function void ui_stack_push_$(name_lower)(UI_Context* ctx, $(type) value) { $(name_upper)_stack* s = &ctx->$(name_lower)_stack; u32 cap = (u32)(sizeof(s->data) / sizeof(s->data[0])); u32 idx = (s->top_index < cap) ? s->top_index++ : s->top_index; s->data[idx] = value; }
-function $(type) ui_stack_pop_$(name_lower)(UI_Context* ctx) { $(name_upper)_stack* s = &ctx->$(name_lower)_stack; return (s->top_index > 0) ? s->data[--s->top_index] : s->bottom_val; }
-function $(type) ui_stack_top_$(name_lower)(UI_Context* ctx) { $(name_upper)_stack* s = &ctx->$(name_lower)_stack; return (s->top_index > 0) ? s->data[s->top_index-1] : s->bottom_val; }
-function b32 ui_stack_is_at_bottom_$(name_lower)(UI_Context* ctx) { return ctx->$(name_lower)_stack.top_index == 0; }
-function void ui_stack_assert_top_at_$(name_lower)(UI_Context* ctx, u32 at) { if(ctx->$(name_lower)_stack.top_index != at) emit_fatal(Sf(ctx->arena, "UI: %s not at expected top value: '%u'. Actual value: '%u'", Stringify(ctx->$(name_lower)_stack), at, ctx->$(name_lower)_stack.top_index)); }
-#define set_$(name_lower)(val) DeferLoop(ui_stack_push_$(name_lower)(&ui_context, (val)), ui_stack_pop_$(name_lower)(&ui_context))\n\n`
+typedef struct UI_$(name_upper)_stack UI_$(name_upper)_stack;
+struct UI_$(name_upper)_stack { $(type) data[$(max)]; u32 top_index; $(type) bottom_val; };
+#define ui_$(name_lower)_stack_init(bot_val) ui_stack_init(&ui_context, $(name_lower), bot_val)
+#define ui_$(name_lower)_stack_push(val) ui_stack_push(&ui_context, $(name_lower), val)
+#define ui_$(name_lower)_stack_pop() ui_stack_pop(&ui_context, $(name_lower))
+#define ui_$(name_lower)_stack_top() ui_stack_top(&ui_context, $(name_lower))
+#define ui_$(name_lower)_stack_is_at_bottom() ui_stack_is_at_bottom(&ui_context, $(name_lower))
+#define ui_$(name_lower)_stack_assert_top_at(at) ui_stack_assert_top_at(&ui_context, $(name_lower), at)
+#define ui_set_$(name_lower)(val) DeferLoop($(name_lower)_stack_push(val), $(name_lower)_stack_pop())\n\n`
 
   // Defines the UI_Context member attributes
   `// Put this macro on UI_Context\n`
-  `#define UI_Config_Stacks \\n`
-  @foreach(Stack_Table) `  $(name_upper)_stack $(name_lower)_stack; \\n`
+  `#define UI_Config_Stacks() \\n`
+  @foreach(Stack_Table) `  UI_$(name_upper)_stack $(name_lower)_stack; \\n`
   `/* Macro end */`
 
-  // Defines the stack initialization
-
-  // Debug macro to ensure all stacks are at the bottom at ui_end
+  `\n\n#endif`
 }

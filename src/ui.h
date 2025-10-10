@@ -1,6 +1,8 @@
 #ifndef UI_H
 #define UI_H
 
+#include "ui.generated.h"
+
 // Stack functions
 #define ui_stack(type, name, size) struct { type data[size]; u32 top_index; type  bottom_val; } name##_stack
 #define ui_stack_init(name, bot_val) Statement((ui_context.name##_stack).top_index = 0; (ui_context.name##_stack).bottom_val = (bot_val);)
