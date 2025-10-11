@@ -1,5 +1,9 @@
 #include "ui.hephaestus.c"
 
+#if DEBUG
+  #include "ui_tests.c"
+#endif
+
 // Core functions
 function void ui_init()
 {
@@ -294,7 +298,7 @@ ui_label(String8 text)
   ui_stack_defer(padding_x, 1.0f) ui_stack_defer(padding_y, 1.0f)
   {
     UI_Node_Flags label_flags = UI_Node_Flags_Display_Text|
-                                UI_Node_Flags_Dimensions_Wrap_Text;
+                                UI_Node_Flags_Bounds_Wrap_Around_Text;
     ui_node_from_string(text, label_flags);
   }
 }
@@ -313,7 +317,7 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   }
 
   UI_Node* parent = ui_stack_top(parent);
-  if (parent == NULL)
+  if (parent == &ui_node_nil_sentinel)
   {
     // If we're the ui_context.root (screen)
     // We simulate a parent with the same values as screen just so it goes through this iteration
@@ -372,10 +376,10 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   }
   else
   {
-    widget->bounds.top_left = ui_stack_top(top_left);  
+    widget->bounds.top_left = ui_stack_top(top_left);
   }
 
-  if (HasFlags(flags, UI_Node_Flags_Dimensions_Wrap_Text))
+  if (HasFlags(flags, UI_Node_Flags_Bounds_Wrap_Around_Text))
   {
     widget->bounds.size = vec2f32_add(widget->string_dimensions, vec2f32(1,1));
   }
@@ -436,14 +440,14 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
 
   // Style
   // NOTE(fz): We use colors from the stack if they were explicitly added by the user. Otherwise we just take them from the color scheme
-  widget->node_color_scheme     = ui_stack_top(node_color_scheme);
-  Color border_color            = ui_stack_is_at_bottom(border_color)            ? widget->node_color_scheme.border_color            : ui_stack_top(border_color);
-  Color background_color        = ui_stack_is_at_bottom(background_color)        ? widget->node_color_scheme.background_color        : ui_stack_top(background_color);
-  Color background_hover_color  = ui_stack_is_at_bottom(background_hover_color)  ? widget->node_color_scheme.background_hover_color  : ui_stack_top(background_hover_color);
-  Color background_active_color = ui_stack_is_at_bottom(background_active_color) ? widget->node_color_scheme.background_active_color : ui_stack_top(background_active_color);
-  Color text_color              = ui_stack_is_at_bottom(text_color)              ? widget->node_color_scheme.text_color              : ui_stack_top(text_color);
-  Color text_hover_color        = ui_stack_is_at_bottom(text_hover_color)        ? widget->node_color_scheme.text_hover_color        : ui_stack_top(text_hover_color);
-  Color text_active_color       = ui_stack_is_at_bottom(text_active_color)       ? widget->node_color_scheme.text_active_color       : ui_stack_top(text_active_color);
+  widget->node_color_scheme     = ui_stack_node_color_scheme_top();
+  Color border_color            = widget->node_color_scheme.border_color;
+  Color background_color        = widget->node_color_scheme.background_color;
+  Color background_hover_color  = widget->node_color_scheme.background_hover_color;
+  Color background_active_color = widget->node_color_scheme.background_active_color;
+  Color text_color              = widget->node_color_scheme.text_color;
+  Color text_hover_color        = widget->node_color_scheme.text_hover_color;
+  Color text_active_color       = widget->node_color_scheme.text_active_color;
 
   widget->target_background_color = color_lerp(background_color, background_hover_color, cached_widget->hover_t);
   widget->target_background_color = color_lerp(widget->target_background_color, background_active_color, cached_widget->active_t);

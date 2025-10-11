@@ -14,11 +14,6 @@
   `/*\n\n@Hephaestus generated code $(@time_now)\n\n*/\n\n`
 }
 
-@generate @c_file
-{
-  `/*\n\n@Hephaestus generated code $(@time_now)\n\n*/\n\n`
-}
-
 @table // Defines stacks for different types
 Stack_Table
   (name_upper               name_lower                 type                   default_value                     max debug_bottom_expected documentation)
@@ -37,39 +32,32 @@ Stack_Table
   { Width_Kind              width_kind                 UI_Width_Kind          UI_Width_Kind_Fill                32  0                     `Width filling strategy`              }
   { Height_Kind             height_kind                UI_Height_Kind         UI_Height_Kind_Fill               32  0                     `Height filling strategy`             }
   { Node_Color_Scheme       node_color_scheme          UI_Node_Color_Scheme   ui_context.color_scheme.window    32  0                     `Node color scheme override`          }
-  { Border_Color            border_color               Color                  PURPLE(1)                         32  0                     `Default border color`                }
-  { Background_Color        background_color           Color                  PURPLE(1)                         32  0                     `Default background color`            }
-  { Background_Hover_Color  background_hover_color     Color                  PURPLE(1)                         32  0                     `Background color on hover`           }
-  { Background_Active_Color background_active_color    Color                  PURPLE(1)                         32  0                     `Background color when active`        }
-  { Text_Color              text_color                 Color                  PURPLE(1)                         32  0                     `Default text color`                  }
-  { Text_Hover_Color        text_hover_color           Color                  PURPLE(1)                         32  0                     `Text color on hover`                 }
-  { Text_Active_Color       text_active_color          Color                  PURPLE(1)                         32  0                     `Text color when active`              }
 }
 
 @generate @c_file
 {
   // Defines the data structures
   @foreach(Stack_Table) `/* $(documentation) */
-function void ui_$(name_lower)_stack_init($(type) bot_val) { ui_stack_init($(name_lower), bot_val); }
-function void ui_$(name_lower)_stack_push($(type) val) { ui_stack_push($(name_lower), val); }
-function $(type) ui_$(name_lower)_stack_pop() { return ui_stack_pop($(name_lower)); }
-function $(type) ui_$(name_lower)_stack_top() { return ui_stack_top($(name_lower)); }
-function b32  ui_$(name_lower)_stack_is_at_bottom() { return ui_stack_is_at_bottom($(name_lower)); }
-function void ui_$(name_lower)_stack_assert_top_at(u32 at) { ui_stack_assert_top_at($(name_lower), at); }
-#define ui_$(name_lower)(val) DeferLoop(ui_$(name_lower)_stack_push(val), ui_$(name_lower)_stack_pop())\n\n`
+function void ui_stack_$(name_lower)_init($(type) bot_val) { ui_stack_init($(name_lower), bot_val); }
+function void ui_stack_$(name_lower)_push($(type) val) { ui_stack_push($(name_lower), val); }
+function $(type) ui_stack_$(name_lower)_pop() { return ui_stack_pop($(name_lower)); }
+function $(type) ui_stack_$(name_lower)_top() { return ui_stack_top($(name_lower)); }
+function b32  ui_stack_$(name_lower)_is_at_bottom() { return ui_stack_is_at_bottom($(name_lower)); }
+function void ui_stack_$(name_lower)_assert_top_at(u32 at) { ui_stack_assert_top_at($(name_lower), at); }
+#define ui_$(name_lower)(val) DeferLoop(ui_stack_$(name_lower)_push(val), ui_stack_$(name_lower)_pop())\n\n`
 }
 
 @table
 UI_Node_Flags_Table
   (name documentation)
 {
-  { Mouse_Clickable          `TODO(fz): Add documentation` }
-  { Display_Text             `TODO(fz): Add documentation` }
-  { Draggable                `TODO(fz): Add documentation` }
-  { Hoverable                `TODO(fz): Add documentation` }
-  { Center_Text_Horizontally `TODO(fz): Add documentation` }
-  { Center_Text_Vertically   `TODO(fz): Add documentation` }
-  { Dimensions_Wrap_Text     `TODO(fz): Add documentation` }
+  { Mouse_Clickable           `TODO(fz): Add documentation` }
+  { Display_Text              `TODO(fz): Add documentation` }
+  { Draggable                 `TODO(fz): Add documentation` }
+  { Hoverable                 `TODO(fz): Add documentation` }
+  { Center_Text_Horizontally  `TODO(fz): Add documentation` }
+  { Center_Text_Vertically    `TODO(fz): Add documentation` }
+  { Bounds_Wrap_Around_Text   `TODO(fz): Add documentation` }
 }
 
 @generate @h_file

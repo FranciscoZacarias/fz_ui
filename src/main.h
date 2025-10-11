@@ -25,6 +25,5 @@ global f32      g_fps           = 0.0f;
 
 function void input_update();
 function void simulation();
-function b32  is_game_running();
 
 #endif // MAIN_H

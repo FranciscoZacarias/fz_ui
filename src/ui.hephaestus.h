@@ -3,7 +3,7 @@
 
 /*
 
-@Hephaestus generated code 2025-October-11 00:30:44
+@Hephaestus generated code 2025-October-11 11:44:11
 
 */
 
@@ -16,7 +16,7 @@ enum
   UI_Node_Flags_Hoverable = (1 << 3), /* TODO(fz): Add documentation */
   UI_Node_Flags_Center_Text_Horizontally = (1 << 4), /* TODO(fz): Add documentation */
   UI_Node_Flags_Center_Text_Vertically = (1 << 5), /* TODO(fz): Add documentation */
-  UI_Node_Flags_Dimensions_Wrap_Text = (1 << 6), /* TODO(fz): Add documentation */
+  UI_Node_Flags_Bounds_Wrap_Around_Text = (1 << 6), /* TODO(fz): Add documentation */
 };
 
 typedef u32 UI_Signal_Flags;
@@ -47,13 +47,6 @@ enum
   ctx.width_kind_stack.top_index = 0; ctx.width_kind_stack.bottom_val = UI_Width_Kind_Fill; \
   ctx.height_kind_stack.top_index = 0; ctx.height_kind_stack.bottom_val = UI_Height_Kind_Fill; \
   ctx.node_color_scheme_stack.top_index = 0; ctx.node_color_scheme_stack.bottom_val = ui_context.color_scheme.window; \
-  ctx.border_color_stack.top_index = 0; ctx.border_color_stack.bottom_val = PURPLE(1); \
-  ctx.background_color_stack.top_index = 0; ctx.background_color_stack.bottom_val = PURPLE(1); \
-  ctx.background_hover_color_stack.top_index = 0; ctx.background_hover_color_stack.bottom_val = PURPLE(1); \
-  ctx.background_active_color_stack.top_index = 0; ctx.background_active_color_stack.bottom_val = PURPLE(1); \
-  ctx.text_color_stack.top_index = 0; ctx.text_color_stack.bottom_val = PURPLE(1); \
-  ctx.text_hover_color_stack.top_index = 0; ctx.text_hover_color_stack.bottom_val = PURPLE(1); \
-  ctx.text_active_color_stack.top_index = 0; ctx.text_active_color_stack.bottom_val = PURPLE(1); \
 
 // Creates struct with all UI stacks
 #define UI_Config_Stacks \
@@ -73,13 +66,6 @@ enum
     struct UI_Width_Kind_stack { UI_Width_Kind data[32]; u32 top_index; UI_Width_Kind bottom_val; } width_kind_stack; \
     struct UI_Height_Kind_stack { UI_Height_Kind data[32]; u32 top_index; UI_Height_Kind bottom_val; } height_kind_stack; \
     struct UI_Node_Color_Scheme_stack { UI_Node_Color_Scheme data[32]; u32 top_index; UI_Node_Color_Scheme bottom_val; } node_color_scheme_stack; \
-    struct UI_Border_Color_stack { Color data[32]; u32 top_index; Color bottom_val; } border_color_stack; \
-    struct UI_Background_Color_stack { Color data[32]; u32 top_index; Color bottom_val; } background_color_stack; \
-    struct UI_Background_Hover_Color_stack { Color data[32]; u32 top_index; Color bottom_val; } background_hover_color_stack; \
-    struct UI_Background_Active_Color_stack { Color data[32]; u32 top_index; Color bottom_val; } background_active_color_stack; \
-    struct UI_Text_Color_stack { Color data[32]; u32 top_index; Color bottom_val; } text_color_stack; \
-    struct UI_Text_Hover_Color_stack { Color data[32]; u32 top_index; Color bottom_val; } text_hover_color_stack; \
-    struct UI_Text_Active_Color_stack { Color data[32]; u32 top_index; Color bottom_val; } text_active_color_stack; \
   }
 
 // Debug: Serves to check if all stacks are at the bottom by the end of the frame
@@ -98,13 +84,6 @@ enum
   ui_stack_assert_top_at(width_kind,0); \
   ui_stack_assert_top_at(height_kind,0); \
   ui_stack_assert_top_at(node_color_scheme,0); \
-  ui_stack_assert_top_at(border_color,0); \
-  ui_stack_assert_top_at(background_color,0); \
-  ui_stack_assert_top_at(background_hover_color,0); \
-  ui_stack_assert_top_at(background_active_color,0); \
-  ui_stack_assert_top_at(text_color,0); \
-  ui_stack_assert_top_at(text_hover_color,0); \
-  ui_stack_assert_top_at(text_active_color,0); \
 
 
 #endif
