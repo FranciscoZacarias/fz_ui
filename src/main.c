@@ -70,7 +70,7 @@ entry_point(Command_Line* command_line)
 #endif
 
     ui_top_left(vec2f32(250,200))
-    ui_size_x(200) ui_size_y(200)
+    ui_size_x(300) ui_size_y(300)
     ui_window(S("Test Window"))
     {
 #if 0

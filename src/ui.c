@@ -1,9 +1,5 @@
 #include "ui.hephaestus.c"
 
-#if DEBUG
-  #include "ui_tests.c"
-#endif
-
 // Core functions
 function void ui_init()
 {
@@ -82,7 +78,7 @@ function void ui_begin()
       root_widget = ui_node_from_string(root_name, root_flags);
       ui_context.root = root_widget;
       ui_context.root->depth = 1.0f;
-      ui_stack_push(parent, ui_context.root);
+      ui_stack_parent_push(ui_context.root);
     }
   }
 
@@ -144,7 +140,7 @@ function void ui_end()
   ui_context.root->previous = NULL;
   ui_context.root->parent   = NULL;
 
-  ui_stack_pop(parent); // Pop root (os window) because it's regenerated every frame
+  ui_stack_parent_pop(); // Pop root (os window) because it's regenerated every frame
   ui_context.is_working = false;
   arena_clear(ui_context.frame_arena);
 }
@@ -176,23 +172,23 @@ ui_window_begin(String8 text)
 {
   UI_Signal window_signal = (UI_Signal){0};
   {
-    ui_stack_defer(node_color_scheme, ui_context.color_scheme.window)
-    ui_stack_defer(width_kind,  UI_Width_Kind_Fixed)
-    ui_stack_defer(height_kind, UI_Height_Kind_Fixed)
+    ui_node_color_scheme(ui_context.color_scheme.window)
+    ui_width_kind( UI_Width_Kind_Fixed)
+    ui_height_kind(UI_Height_Kind_Fixed)
     {
       UI_Node_Flags window_flags = 0;
-      String8 window_text = Sf(ui_context.frame_arena, ""S_FMT"##_window_`"S_FMT"`", S_ARG(text));
+      String8 window_text = Sf(ui_context.frame_arena, ""S_FMT"##_window_", S_ARG(text));
       window_signal.node = ui_node_from_string(window_text, window_flags);
-      ui_stack_push(parent, window_signal.node);
+      ui_stack_parent_push(window_signal.node);
     }
   }
 
   UI_Signal title_bar_signal = (UI_Signal){0};
-  ui_stack_defer(node_color_scheme, ui_context.color_scheme.title_bar)
-  ui_stack_defer(size_y, 20.0f)
-  ui_stack_defer(alignment_kind, UI_Alignment_Kind_X)
-  ui_stack_defer(spacing_left, 4.0f) ui_stack_defer(spacing_right, 4.0f)
-  ui_stack_defer(height_kind, UI_Height_Kind_Fixed)
+  ui_node_color_scheme(ui_context.color_scheme.title_bar)
+  ui_size_y(20.0f)
+  ui_alignment_kind(UI_Alignment_Kind_X)
+  ui_spacing_left(4.0f) ui_spacing_right(4.0f)
+  ui_height_kind(UI_Height_Kind_Fixed)
   {
     UI_Node_Flags title_bar_flags = UI_Node_Flags_Mouse_Clickable|
                                     UI_Node_Flags_Hoverable|
@@ -207,7 +203,7 @@ ui_window_begin(String8 text)
 function void
 ui_window_end()
 {
-  UI_Node* node = ui_stack_pop(parent);
+  UI_Node* node = ui_stack_parent_pop();
   Vec2f32 offset = {0};
   if (ui_find_first_drag_offset(node, &offset))
   {
@@ -223,45 +219,45 @@ ui_window_end()
 function void
 ui_layout_box_begin(UI_Alignment_Kind alignment, String8 text, f32 size)
 {
-  ui_stack_push(alignment_kind, alignment);
+  ui_stack_alignment_kind_push(alignment);
   if (alignment == UI_Alignment_Kind_X)
   {
-    ui_stack_push(height_kind, UI_Height_Kind_Fixed);
-    ui_stack_push(width_kind, UI_Width_Kind_Fill);
-    ui_stack_push(size_y, size);
+    ui_stack_height_kind_push(UI_Height_Kind_Fixed);
+    ui_stack_width_kind_push(UI_Width_Kind_Fill);
+    ui_stack_size_y_push(size);
   }
   else if (alignment == UI_Alignment_Kind_Y)
   {
-    ui_stack_push(height_kind, UI_Height_Kind_Fill);
-    ui_stack_push(width_kind, UI_Width_Kind_Fixed);
-    ui_stack_push(size_x, size);
+    ui_stack_height_kind_push(UI_Height_Kind_Fill);
+    ui_stack_width_kind_push(UI_Width_Kind_Fixed);
+    ui_stack_size_x_push(size);
   }
 
   UI_Signal layout_box = (UI_Signal){0};
-  ui_stack_defer(node_color_scheme, ui_context.color_scheme.window)
+  ui_node_color_scheme(ui_context.color_scheme.window)
   {
     UI_Node_Flags layout_box_flags = 0;
     layout_box.node = ui_node_from_string(text, layout_box_flags);
-    ui_stack_push(parent, layout_box.node);
+    ui_stack_parent_push(layout_box.node);
   }
 }
 
 function void
 ui_layout_box_end()
 {
-  ui_stack_pop(width_kind);
-  ui_stack_pop(height_kind);
+  ui_stack_width_kind_pop();
+  ui_stack_height_kind_pop();
 
-  UI_Alignment_Kind alignment = ui_stack_pop(alignment_kind);
+  UI_Alignment_Kind alignment = ui_stack_alignment_kind_pop();
   if (alignment == UI_Alignment_Kind_X)
   {
-    ui_stack_pop(size_y);
+    ui_stack_size_y_pop();
   }
   else if (alignment == UI_Alignment_Kind_Y)
   {
-    ui_stack_pop(size_x);
+    ui_stack_size_x_pop();
   }
-  ui_stack_pop(parent);
+  ui_stack_parent_pop();
 }
 
 function UI_Signal
@@ -269,13 +265,13 @@ ui_button(String8 text)
 {
   UI_Signal button_signal = (UI_Signal){0};
   // TODO(fz): We can cache the y size of the font and set it as the default.
-  ui_stack_defer(node_color_scheme, ui_context.color_scheme.button)
-  ui_stack_defer(size_y, 20.0f)
-  ui_stack_defer(size_x, 80.0f)
-  ui_stack_defer(padding_x, 1.0f) ui_stack_defer(padding_y, 1.0f)
-  ui_stack_defer(alignment_kind, UI_Alignment_Kind_X)
-  ui_stack_defer(height_kind,    UI_Height_Kind_Fixed)
-  ui_stack_defer(width_kind,     UI_Width_Kind_Fixed)
+  ui_node_color_scheme(ui_context.color_scheme.button)
+  ui_size_y(20.0f)
+  ui_size_x(80.0f)
+  ui_padding_x(1.0f) ui_padding_y(1.0f)
+  ui_alignment_kind(UI_Alignment_Kind_X)
+  ui_height_kind(   UI_Height_Kind_Fixed)
+  ui_width_kind(    UI_Width_Kind_Fixed)
   {
     UI_Node_Flags button_flags = UI_Node_Flags_Mouse_Clickable|
                                  UI_Node_Flags_Hoverable|
@@ -293,9 +289,9 @@ function void
 ui_label(String8 text)
 {
   // TODO(fz): We can cache the y size of the font and set it as the default.
-  ui_stack_defer(node_color_scheme, ui_context.color_scheme.window)
-  ui_stack_defer(alignment_kind, UI_Alignment_Kind_X)
-  ui_stack_defer(padding_x, 1.0f) ui_stack_defer(padding_y, 1.0f)
+  ui_node_color_scheme(ui_context.color_scheme.window)
+  ui_alignment_kind(UI_Alignment_Kind_X)
+  ui_padding_x(1.0f) ui_padding_y(1.0f)
   {
     UI_Node_Flags label_flags = UI_Node_Flags_Display_Text|
                                 UI_Node_Flags_Bounds_Wrap_Around_Text;
@@ -316,14 +312,14 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
     emit_fatal(S("UI: Not within ui_begin and ui_end"));
   }
 
-  UI_Node* parent = ui_stack_top(parent);
+  UI_Node* parent = ui_stack_parent_top();
   if (parent == &ui_node_nil_sentinel)
   {
     // If we're the ui_context.root (screen)
     // We simulate a parent with the same values as screen just so it goes through this iteration
     parent = push_array(ui_context.frame_arena, UI_Node, 1);
-    parent->bounds.top_left = ui_stack_top(top_left);
-    parent->bounds.size     = vec2f32(ui_stack_top(size_x), ui_stack_top(size_y));
+    parent->bounds.top_left = ui_stack_top_left_top();
+    parent->bounds.size     = vec2f32(ui_stack_size_x_top(), ui_stack_size_y_top());
     parent->clip            = parent->bounds;
     parent->depth           = 1.0f + F32_EPSILON;
   }
@@ -331,11 +327,11 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   ui_add_widget_child(parent, widget);
 
   widget->hash      = parent->hash ^ string8_hash(string);
-  widget->spacing_left  = ui_stack_top(spacing_left);
-  widget->spacing_right = ui_stack_top(spacing_right);
-  widget->padding_x = ui_stack_top(padding_x);
-  widget->padding_y = ui_stack_top(padding_y);
-  widget->alignment_kind    = ui_stack_top(alignment_kind);
+  widget->spacing_left  = ui_stack_spacing_left_top();
+  widget->spacing_right = ui_stack_spacing_right_top();
+  widget->padding_x = ui_stack_padding_x_top();
+  widget->padding_y = ui_stack_padding_y_top();
+  widget->alignment_kind    = ui_stack_alignment_kind_top();
   widget->string            = string8_copy(ui_context.frame_arena, string);
   widget->string_clean      = ui_clean_string(ui_context.frame_arena, string);
   widget->string_dimensions = r_text_dimensions(widget->string_clean, ui_context.text_pixel_height);
@@ -344,7 +340,7 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   widget->flags             = flags;
 
   f32 size_x = 0;
-  switch (ui_stack_top(width_kind))
+  switch (ui_stack_width_kind_top())
   {
     case UI_Width_Kind_Fill:
     {
@@ -352,12 +348,12 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
     } break;
     case UI_Width_Kind_Fixed:
     {
-      size_x = ui_stack_top(size_x); 
+      size_x = ui_stack_size_x_top(); 
     } break;
     default: emit_fatal(S("UI: Unhandled width_kind")); break;
   }
   f32 size_y = 0;
-  switch (ui_stack_top(height_kind))
+  switch (ui_stack_height_kind_top())
   {
     case UI_Height_Kind_Fill:
     {
@@ -365,7 +361,7 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
     } break;      
     case UI_Height_Kind_Fixed:
     {
-      size_y = ui_stack_top(size_y); 
+      size_y = ui_stack_size_y_top(); 
     } break;
     default: emit_fatal(S("UI: Unhandled width_kind")); break;
   }
@@ -376,7 +372,7 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   }
   else
   {
-    widget->bounds.top_left = ui_stack_top(top_left);
+    widget->bounds.top_left = ui_stack_top_left_top();
   }
 
   if (HasFlags(flags, UI_Node_Flags_Bounds_Wrap_Around_Text))
@@ -415,7 +411,7 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   widget->clip  = ui_clamp_rect(widget->bounds, clip);
   
 
-  UI_Node_Cache* cached_widget = ui_get_cached_node(widget->hash);
+  UI_Node_Cache* cached_widget = ui_get_cached_node(widget->hash, widget->string);
 
   // Input
   if (ui_is_mouse_in_node(widget))
@@ -608,7 +604,7 @@ ui_clamp_rect(Rectf32 parent, Rectf32 child)
 function b32
 ui_is_mouse_in_node(UI_Node* node)
 {
-  UI_Node_Cache* cached_widget = ui_get_cached_node(node->hash);
+  UI_Node_Cache* cached_widget = ui_get_cached_node(node->hash, node->string);
 
   Rectf32 bounds = node->bounds;
   bounds.top_left = vec2f32_add(node->bounds.top_left, cached_widget->accumulated_drag_offset);
@@ -620,7 +616,7 @@ ui_is_mouse_in_node(UI_Node* node)
 }
 
 function UI_Node_Cache*
-ui_get_cached_node(u64 hash)
+ui_get_cached_node(u64 hash, String8 widget_name)
 {
   for (u32 i = 0; i < ui_cached_nodes_count; i += 1)
   {
@@ -634,6 +630,8 @@ ui_get_cached_node(u64 hash)
   {
     emit_fatal(S("UI: Too many widgets"));
   }
+  
+  printf(S_FMT" || Caching new node for %llu\n", S_ARG(widget_name), hash);
 
   UI_Node_Cache* cached_widget = NULL;
 
@@ -690,7 +688,7 @@ ui_update_tree_nodes(UI_Node* widget_root)
     return;
   }
 
-  UI_Node_Cache* cached_widget = ui_get_cached_node(widget_root->hash);
+  UI_Node_Cache* cached_widget = ui_get_cached_node(widget_root->hash, widget_root->string);
   cached_widget->accumulated_drag_offset = vec2f32_add(widget_root->local_drag_offset, cached_widget->accumulated_drag_offset);
 
   // Bounds
@@ -770,7 +768,7 @@ ui_print_tree_impl(UI_Node *node, u32 depth)
     printf("|-- ");
   }
 
-  UI_Node_Cache *cache = ui_get_cached_node(node->hash);
+  UI_Node_Cache *cache = ui_get_cached_node(node->hash, node->string);
   printf("Widget hash: %llu, Text: " S_FMT "\n", node->hash, S_ARG(node->string));
 
   // Children
