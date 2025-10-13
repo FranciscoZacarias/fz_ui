@@ -202,7 +202,7 @@ function String8        ui_clean_string(Arena* arena, String8 string);
 function void           ui_debug_draw_node(UI_Node* widget, f32 depth);
 function Rectf32        ui_clamp_rect(Rectf32 parent, Rectf32 child);
 function b32            ui_is_mouse_in_node(UI_Node* node);
-function UI_Node_Cache* ui_get_cached_node(u64 hash, String8 widget_name);
+function UI_Node_Cache* ui_get_cached_node(u64 hash);
 
 // Widget tree
 function void ui_add_widget_child(UI_Node *parent, UI_Node *child);

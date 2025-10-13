@@ -173,8 +173,9 @@ ui_window_begin(String8 text)
   UI_Signal window_signal = (UI_Signal){0};
   {
     ui_node_color_scheme(ui_context.color_scheme.window)
-    ui_width_kind( UI_Width_Kind_Fixed)
+    ui_width_kind(UI_Width_Kind_Fixed)
     ui_height_kind(UI_Height_Kind_Fixed)
+    ui_padding_x(4.0f) ui_padding_y(4.0f)
     {
       UI_Node_Flags window_flags = 0;
       String8 window_text = Sf(ui_context.frame_arena, ""S_FMT"##_window_", S_ARG(text));
@@ -323,21 +324,21 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
     parent->clip            = parent->bounds;
     parent->depth           = 1.0f + F32_EPSILON;
   }
-  UI_Node* widget = push_array(ui_context.frame_arena, UI_Node, 1);
-  ui_add_widget_child(parent, widget);
+  UI_Node* node = push_array(ui_context.frame_arena, UI_Node, 1);
+  ui_add_widget_child(parent, node);
 
-  widget->hash      = parent->hash ^ string8_hash(string);
-  widget->spacing_left  = ui_stack_spacing_left_top();
-  widget->spacing_right = ui_stack_spacing_right_top();
-  widget->padding_x = ui_stack_padding_x_top();
-  widget->padding_y = ui_stack_padding_y_top();
-  widget->alignment_kind    = ui_stack_alignment_kind_top();
-  widget->string            = string8_copy(ui_context.frame_arena, string);
-  widget->string_clean      = ui_clean_string(ui_context.frame_arena, string);
-  widget->string_dimensions = r_text_dimensions(widget->string_clean, ui_context.text_pixel_height);
-  widget->string_top_left   = vec2f32(0,0);
-  widget->local_drag_offset = vec2f32(0,0);
-  widget->flags             = flags;
+  node->hash              = parent->hash ^ string8_hash(string);
+  node->spacing_left      = ui_stack_spacing_left_top();
+  node->spacing_right     = ui_stack_spacing_right_top();
+  node->padding_x         = ui_stack_padding_x_top();
+  node->padding_y         = ui_stack_padding_y_top();
+  node->alignment_kind    = ui_stack_alignment_kind_top();
+  node->string            = string8_copy(ui_context.frame_arena, string);
+  node->string_clean      = ui_clean_string(ui_context.frame_arena, string);
+  node->string_dimensions = r_text_dimensions(node->string_clean, ui_context.text_pixel_height);
+  node->string_top_left   = vec2f32(0,0);
+  node->local_drag_offset = vec2f32(0,0);
+  node->flags             = flags;
 
   f32 size_x = 0;
   switch (ui_stack_width_kind_top())
@@ -358,7 +359,7 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
     case UI_Height_Kind_Fill:
     {
       size_y = parent->bounds.size.y;
-    } break;      
+    } break;
     case UI_Height_Kind_Fixed:
     {
       size_y = ui_stack_size_y_top(); 
@@ -366,24 +367,16 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
     default: emit_fatal(S("UI: Unhandled width_kind")); break;
   }
 
-  if (ui_stack_is_at_bottom(top_left))
-  {
-    widget->bounds.top_left = vec2f32_add(parent->clip.top_left, parent->cursor);
-  }
-  else
-  {
-    widget->bounds.top_left = ui_stack_top_left_top();
-  }
-
+  node->bounds.top_left = ui_stack_top_left_top();
   if (HasFlags(flags, UI_Node_Flags_Bounds_Wrap_Around_Text))
   {
-    widget->bounds.size = vec2f32_add(widget->string_dimensions, vec2f32(1,1));
+    node->bounds.size = vec2f32_add(node->string_dimensions, vec2f32(1,1));
   }
   else
   {
-    widget->bounds.size = vec2f32(size_x, size_y);
+    node->bounds.size = vec2f32(size_x, size_y);
   }
-  widget->bounds = ui_clamp_rect(parent->clip, widget->bounds);
+  node->bounds = ui_clamp_rect(parent->clip, node->bounds);
 
   // Update parent clip based on this widget
   if (parent != ui_context.root)
@@ -392,39 +385,38 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
     {
       case UI_Alignment_Kind_X:
       {
-        widget->bounds.top_left.x += widget->spacing_left;
-        parent->cursor.x          += widget->bounds.size.x + parent->padding_x + widget->spacing_right;
+        node->bounds.top_left.x += node->spacing_left;
+        parent->cursor.x          += node->bounds.size.x + parent->padding_x + node->spacing_right;
       } break;
 
       case UI_Alignment_Kind_Y:
       {
-        widget->bounds.top_left.y += widget->spacing_top;
-        parent->cursor.y          += widget->bounds.size.y + parent->padding_y + widget->spacing_bottom;
+        node->bounds.top_left.y += node->spacing_top;
+        parent->cursor.y          += node->bounds.size.y + parent->padding_y + node->spacing_bottom;
       } break;
     }
   }
-  widget->depth     = (parent) ? parent->depth - F32_EPSILON : 1.0f;
+  node->depth = (parent) ? parent->depth - F32_EPSILON : 1.0f;
 
   Rectf32 clip;
-  clip.top_left = vec2f32(widget->bounds.top_left.x + widget->padding_x, widget->bounds.top_left.y + widget->padding_y);
-  clip.size     = vec2f32(widget->bounds.size.x - (widget->padding_x * 2), widget->bounds.size.y - (widget->padding_y * 2));
-  widget->clip  = ui_clamp_rect(widget->bounds, clip);
-  
+  clip.top_left = vec2f32(node->bounds.top_left.x + node->padding_x, node->bounds.top_left.y + node->padding_y);
+  clip.size     = vec2f32(node->bounds.size.x - (node->padding_x * 2), node->bounds.size.y - (node->padding_y * 2));
+  node->clip  = ui_clamp_rect(node->bounds, clip);
 
-  UI_Node_Cache* cached_widget = ui_get_cached_node(widget->hash, widget->string);
+  UI_Node_Cache* cached_widget = ui_get_cached_node(node->hash);
 
   // Input
-  if (ui_is_mouse_in_node(widget))
+  if (ui_is_mouse_in_node(node))
   {
-    if (widget->depth < ui_context.hash_hot_depth)
+    if (node->depth < ui_context.hash_hot_depth)
     {
-      ui_context.hash_hot       = widget->hash;
-      ui_context.hash_hot_depth = widget->depth;
+      ui_context.hash_hot       = node->hash;
+      ui_context.hash_hot_depth = node->depth;
 
       if (input_is_button_clicked(&g_input, Mouse_Button_Left))
       {
-        ui_context.hash_active       = widget->hash;
-        ui_context.hash_active_depth = widget->depth;
+        ui_context.hash_active       = node->hash;
+        ui_context.hash_active_depth = node->depth;
       }
     }
   }
@@ -436,25 +428,25 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
 
   // Style
   // NOTE(fz): We use colors from the stack if they were explicitly added by the user. Otherwise we just take them from the color scheme
-  widget->node_color_scheme     = ui_stack_node_color_scheme_top();
-  Color border_color            = widget->node_color_scheme.border_color;
-  Color background_color        = widget->node_color_scheme.background_color;
-  Color background_hover_color  = widget->node_color_scheme.background_hover_color;
-  Color background_active_color = widget->node_color_scheme.background_active_color;
-  Color text_color              = widget->node_color_scheme.text_color;
-  Color text_hover_color        = widget->node_color_scheme.text_hover_color;
-  Color text_active_color       = widget->node_color_scheme.text_active_color;
+  node->node_color_scheme     = ui_stack_node_color_scheme_top();
+  Color border_color            = node->node_color_scheme.border_color;
+  Color background_color        = node->node_color_scheme.background_color;
+  Color background_hover_color  = node->node_color_scheme.background_hover_color;
+  Color background_active_color = node->node_color_scheme.background_active_color;
+  Color text_color              = node->node_color_scheme.text_color;
+  Color text_hover_color        = node->node_color_scheme.text_hover_color;
+  Color text_active_color       = node->node_color_scheme.text_active_color;
 
-  widget->target_background_color = color_lerp(background_color, background_hover_color, cached_widget->hover_t);
-  widget->target_background_color = color_lerp(widget->target_background_color, background_active_color, cached_widget->active_t);
+  node->target_background_color = color_lerp(background_color, background_hover_color, cached_widget->hover_t);
+  node->target_background_color = color_lerp(node->target_background_color, background_active_color, cached_widget->active_t);
 
-  widget->target_text_color = color_lerp(text_color, text_hover_color, cached_widget->hover_t);
-  widget->target_text_color = color_lerp(widget->target_text_color, text_active_color, cached_widget->active_t);
+  node->target_text_color = color_lerp(text_color, text_hover_color, cached_widget->hover_t);
+  node->target_text_color = color_lerp(node->target_text_color, text_active_color, cached_widget->active_t);
 
   // Hover
-  if (HasFlags(widget->flags, UI_Node_Flags_Hoverable))
+  if (HasFlags(node->flags, UI_Node_Flags_Hoverable))
   {
-    if (ui_is_mouse_in_node(widget))
+    if (ui_is_mouse_in_node(node))
     {
       cached_widget->hover_t = Clamp(cached_widget->hover_t + g_delta_time * ui_context.animation_speed, 0, 1);
     }
@@ -465,9 +457,9 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   }
 
   // Active
-  if (HasFlags(widget->flags, UI_Node_Flags_Mouse_Clickable))
+  if (HasFlags(node->flags, UI_Node_Flags_Mouse_Clickable))
   {
-    if (ui_context.hash_active == widget->hash)
+    if (ui_context.hash_active == node->hash)
     {
       cached_widget->active_t = Clamp(cached_widget->active_t + g_delta_time * ui_context.animation_speed, 0, 1);
     }
@@ -478,15 +470,15 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   }
   
   // Dragging
-  if (ui_context.hash_active == widget->hash)
+  if (ui_context.hash_active == node->hash)
   {
-    if (HasFlags(widget->flags, UI_Node_Flags_Draggable))
+    if (HasFlags(node->flags, UI_Node_Flags_Draggable))
     {
-      widget->local_drag_offset = g_input.mouse_current.delta;
+      node->local_drag_offset = g_input.mouse_current.delta;
     }
   }
 
-  return widget;
+  return node;
 }
 
 function void
@@ -604,7 +596,7 @@ ui_clamp_rect(Rectf32 parent, Rectf32 child)
 function b32
 ui_is_mouse_in_node(UI_Node* node)
 {
-  UI_Node_Cache* cached_widget = ui_get_cached_node(node->hash, node->string);
+  UI_Node_Cache* cached_widget = ui_get_cached_node(node->hash);
 
   Rectf32 bounds = node->bounds;
   bounds.top_left = vec2f32_add(node->bounds.top_left, cached_widget->accumulated_drag_offset);
@@ -616,7 +608,7 @@ ui_is_mouse_in_node(UI_Node* node)
 }
 
 function UI_Node_Cache*
-ui_get_cached_node(u64 hash, String8 widget_name)
+ui_get_cached_node(u64 hash)
 {
   for (u32 i = 0; i < ui_cached_nodes_count; i += 1)
   {
@@ -630,12 +622,8 @@ ui_get_cached_node(u64 hash, String8 widget_name)
   {
     emit_fatal(S("UI: Too many widgets"));
   }
-  
-  printf(S_FMT" || Caching new node for %llu\n", S_ARG(widget_name), hash);
 
-  UI_Node_Cache* cached_widget = NULL;
-
-  cached_widget = &ui_cached_nodes[ui_cached_nodes_count];
+  UI_Node_Cache* cached_widget = &ui_cached_nodes[ui_cached_nodes_count];
 
   cached_widget->hash = hash;
   cached_widget->hash = hash;
@@ -688,7 +676,7 @@ ui_update_tree_nodes(UI_Node* widget_root)
     return;
   }
 
-  UI_Node_Cache* cached_widget = ui_get_cached_node(widget_root->hash, widget_root->string);
+  UI_Node_Cache* cached_widget = ui_get_cached_node(widget_root->hash);
   cached_widget->accumulated_drag_offset = vec2f32_add(widget_root->local_drag_offset, cached_widget->accumulated_drag_offset);
 
   // Bounds
@@ -768,7 +756,7 @@ ui_print_tree_impl(UI_Node *node, u32 depth)
     printf("|-- ");
   }
 
-  UI_Node_Cache *cache = ui_get_cached_node(node->hash, node->string);
+  UI_Node_Cache *cache = ui_get_cached_node(node->hash);
   printf("Widget hash: %llu, Text: " S_FMT "\n", node->hash, S_ARG(node->string));
 
   // Children

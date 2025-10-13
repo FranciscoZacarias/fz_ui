@@ -52,7 +52,7 @@ function b32  ui_stack_padding_y_is_at_bottom() { return ui_stack_is_at_bottom(p
 function void ui_stack_padding_y_assert_top_at(u32 at) { ui_stack_assert_top_at(padding_y, at); }
 #define ui_padding_y(val) DeferLoop(ui_stack_padding_y_push(val), ui_stack_padding_y_pop())
 
-/* Left spacing (not clipped) */
+/* Left spacing */
 function void ui_stack_spacing_left_init(f32 bot_val) { ui_stack_init(spacing_left, bot_val); }
 function void ui_stack_spacing_left_push(f32 val) { ui_stack_push(spacing_left, val); }
 function f32 ui_stack_spacing_left_pop() { return ui_stack_pop(spacing_left); }
@@ -61,7 +61,7 @@ function b32  ui_stack_spacing_left_is_at_bottom() { return ui_stack_is_at_botto
 function void ui_stack_spacing_left_assert_top_at(u32 at) { ui_stack_assert_top_at(spacing_left, at); }
 #define ui_spacing_left(val) DeferLoop(ui_stack_spacing_left_push(val), ui_stack_spacing_left_pop())
 
-/* Right spacing (not clipped) */
+/* Right spacing */
 function void ui_stack_spacing_right_init(f32 bot_val) { ui_stack_init(spacing_right, bot_val); }
 function void ui_stack_spacing_right_push(f32 val) { ui_stack_push(spacing_right, val); }
 function f32 ui_stack_spacing_right_pop() { return ui_stack_pop(spacing_right); }
@@ -70,7 +70,7 @@ function b32  ui_stack_spacing_right_is_at_bottom() { return ui_stack_is_at_bott
 function void ui_stack_spacing_right_assert_top_at(u32 at) { ui_stack_assert_top_at(spacing_right, at); }
 #define ui_spacing_right(val) DeferLoop(ui_stack_spacing_right_push(val), ui_stack_spacing_right_pop())
 
-/* Top spacing (not clipped) */
+/* Top spacing */
 function void ui_stack_spacing_top_init(f32 bot_val) { ui_stack_init(spacing_top, bot_val); }
 function void ui_stack_spacing_top_push(f32 val) { ui_stack_push(spacing_top, val); }
 function f32 ui_stack_spacing_top_pop() { return ui_stack_pop(spacing_top); }
@@ -79,7 +79,7 @@ function b32  ui_stack_spacing_top_is_at_bottom() { return ui_stack_is_at_bottom
 function void ui_stack_spacing_top_assert_top_at(u32 at) { ui_stack_assert_top_at(spacing_top, at); }
 #define ui_spacing_top(val) DeferLoop(ui_stack_spacing_top_push(val), ui_stack_spacing_top_pop())
 
-/* Bottom spacing (not clipped) */
+/* Bottom spacing */
 function void ui_stack_spacing_bottom_init(f32 bot_val) { ui_stack_init(spacing_bottom, bot_val); }
 function void ui_stack_spacing_bottom_push(f32 val) { ui_stack_push(spacing_bottom, val); }
 function f32 ui_stack_spacing_bottom_pop() { return ui_stack_pop(spacing_bottom); }
