@@ -3,7 +3,7 @@
 
 /*
 
-@Hephaestus generated code 2025-October-13 12:41:50
+@Hephaestus generated code 2025-October-13 15:48:59
 
 */
 
@@ -14,9 +14,6 @@ enum
   UI_Node_Flags_Display_Text = (1 << 1), /* TODO(fz): Add documentation */
   UI_Node_Flags_Draggable = (1 << 2), /* TODO(fz): Add documentation */
   UI_Node_Flags_Hoverable = (1 << 3), /* TODO(fz): Add documentation */
-  UI_Node_Flags_Center_Text_Horizontally = (1 << 4), /* TODO(fz): Add documentation */
-  UI_Node_Flags_Center_Text_Vertically = (1 << 5), /* TODO(fz): Add documentation */
-  UI_Node_Flags_Bounds_Wrap_Around_Text = (1 << 6), /* TODO(fz): Add documentation */
 };
 
 typedef u32 UI_Signal_Flags;
@@ -86,4 +83,4 @@ enum
   ui_stack_assert_top_at(node_color_scheme,0); \
 
 
-#endif
+#endif // UI_HEPHAESTUS_H

@@ -505,37 +505,36 @@ r_draw_text_impl(Vec2f32 top_left, f32 pixel_height, Color color, String8 text, 
     Vec2f32 uv_min = glyph->uv_min;
     Vec2f32 uv_max = glyph->uv_max;
 
-if (clamp)
-{
-  if (gx1 <= top_left.x || gx0 >= clamp_bottom_right.x ||
-      gy1 <= top_left.y || gy0 >= clamp_bottom_right.y)
-  {
-    cursor.x += glyph->advance * pixel_scale;
-    continue;
-  }
+    if (clamp)
+    {
+      if (gx1 <= top_left.x || gx0 >= clamp_bottom_right.x ||
+          gy1 <= top_left.y || gy0 >= clamp_bottom_right.y)
+      {
+        cursor.x += glyph->advance * pixel_scale;
+        continue;
+      }
 
-  f32 cx0 = Max(gx0, top_left.x);
-  f32 cy0 = Max(gy0, top_left.y);
-  f32 cx1 = Min(gx1, clamp_bottom_right.x);
-  f32 cy1 = Min(gy1, clamp_bottom_right.y);
+      f32 cx0 = Max(gx0, top_left.x);
+      f32 cy0 = Max(gy0, top_left.y);
+      f32 cx1 = Min(gx1, clamp_bottom_right.x);
+      f32 cy1 = Min(gy1, clamp_bottom_right.y);
 
-  f32 du = (uv_max.x - uv_min.x) / (gx1 - gx0);
+      f32 du = (uv_max.x - uv_min.x) / (gx1 - gx0);
 
-  // Y UV scale (flip because screen Y is top-down, UV Y is bottom-up)
-  f32 dv = (uv_max.y - uv_min.y) / (gy1 - gy0);
+      // Y UV scale (flip because screen Y is top-down, UV Y is bottom-up)
+      f32 dv = (uv_max.y - uv_min.y) / (gy1 - gy0);
 
-  // X stays the same
-  uv_min.x += (cx0 - gx0) * du;
-  uv_max.x -= (gx1 - cx1) * du;
+      // X stays the same
+      uv_min.x += (cx0 - gx0) * du;
+      uv_max.x -= (gx1 - cx1) * du;
 
-  // Y needs to flip: uv origin is bottom-left
-  uv_max.y -= (cy0 - gy0) * dv; // top of glyph clipped
-  uv_min.y += (gy1 - cy1) * dv; // bottom of glyph clipped
+      // Y needs to flip: uv origin is bottom-left
+      uv_max.y -= (cy0 - gy0) * dv; // top of glyph clipped
+      uv_min.y += (gy1 - cy1) * dv; // bottom of glyph clipped
 
-  gx0 = cx0; gy0 = cy0;
-  gx1 = cx1; gy1 = cy1;
-}
-
+      gx0 = cx0; gy0 = cy0;
+      gx1 = cx1; gy1 = cy1;
+    }
 
     Vec2f32 cpos  = vec2f32(gx0, gy0);
     Vec2f32 csize = vec2f32(gx1 - gx0, gy1 - gy0);
@@ -544,7 +543,6 @@ if (clamp)
     cursor.x += glyph->advance * pixel_scale;
   }
 }
-
 
 function void
 r_draw_text(Vec2f32 top_left, f32 pixel_height, Color color, String8 text, f32 depth)

@@ -90,6 +90,7 @@ function void ui_init()
     ui_context.debug.show_clip    = false;
     ui_context.debug.show_cursor  = true;
     ui_context.debug.print_widget_tree = false;
+    ui_context.debug.show_text_borders = true;
 
     Vec2s32 window_size = g_os_window.dimensions;
 
@@ -224,13 +225,43 @@ ui_window_begin(String8 text)
   ui_spacing_left(4.0f) ui_spacing_right(4.0f)
   ui_height_kind(UI_Height_Kind_Fixed)
   {
-    UI_Node_Flags title_bar_flags = UI_Node_Flags_Mouse_Clickable|
-                                    UI_Node_Flags_Hoverable|
-                                    UI_Node_Flags_Draggable|
-                                    UI_Node_Flags_Display_Text|
-                                    UI_Node_Flags_Center_Text_Vertically;
+    UI_Node_Flags title_bar_flags = UI_Node_Flags_Mouse_Clickable |
+                                    UI_Node_Flags_Hoverable       |
+                                    UI_Node_Flags_Draggable       |
+                                    UI_Node_Flags_Display_Text;
     String8 window_title_bar_text = Sf(ui_context.frame_arena, ""S_FMT"##_title_bar_", S_ARG(text));
     title_bar_signal.node = ui_node_from_string(window_title_bar_text, title_bar_flags);
+  }
+}
+
+function void
+ui_update_tree_nodes(UI_Node* widget_root)
+{
+  if (!widget_root)
+  {
+    return;
+  }
+
+  UI_Node_Cache* cached_widget = ui_get_cached_node(widget_root->hash);
+  cached_widget->accumulated_drag_offset = vec2f32_add(widget_root->local_drag_offset, cached_widget->accumulated_drag_offset);
+
+  // Bounds
+  widget_root->bounds.top_left = vec2f32_add(widget_root->bounds.top_left, cached_widget->accumulated_drag_offset);
+  widget_root->clip.top_left   = vec2f32_add(widget_root->clip.top_left, cached_widget->accumulated_drag_offset);
+
+  // String
+  if (HasFlags(widget_root->flags, UI_Node_Flags_Display_Text))
+  {
+    widget_root->string_top_left = vec2f32_add(widget_root->clip.top_left, widget_root->cursor);
+
+    // Advance cursor
+    // TODO(fz): After we cache string dimensions, we can move this up to node_from_string
+    widget_root->cursor.y += widget_root->string_dimensions.y + widget_root->padding_y;
+  }
+
+  for (UI_Node* child = widget_root->first; child; child = child->next)
+  {
+    ui_update_tree_nodes(child);
   }
 }
 
@@ -247,89 +278,6 @@ ui_window_end()
   if (ui_context.debug.print_widget_tree)
   {
     ui_print_tree_impl(node, 0);
-  }
-}
-
-function void
-ui_layout_box_begin(UI_Alignment_Kind alignment, String8 text, f32 size)
-{
-  ui_stack_alignment_kind_push(alignment);
-  if (alignment == UI_Alignment_Kind_X)
-  {
-    ui_stack_height_kind_push(UI_Height_Kind_Fixed);
-    ui_stack_width_kind_push(UI_Width_Kind_Fill);
-    ui_stack_size_y_push(size);
-  }
-  else if (alignment == UI_Alignment_Kind_Y)
-  {
-    ui_stack_height_kind_push(UI_Height_Kind_Fill);
-    ui_stack_width_kind_push(UI_Width_Kind_Fixed);
-    ui_stack_size_x_push(size);
-  }
-
-  UI_Signal layout_box = (UI_Signal){0};
-  ui_node_color_scheme(ui_context.color_scheme.window)
-  {
-    UI_Node_Flags layout_box_flags = 0;
-    layout_box.node = ui_node_from_string(text, layout_box_flags);
-    ui_stack_parent_push(layout_box.node);
-  }
-}
-
-function void
-ui_layout_box_end()
-{
-  ui_stack_width_kind_pop();
-  ui_stack_height_kind_pop();
-
-  UI_Alignment_Kind alignment = ui_stack_alignment_kind_pop();
-  if (alignment == UI_Alignment_Kind_X)
-  {
-    ui_stack_size_y_pop();
-  }
-  else if (alignment == UI_Alignment_Kind_Y)
-  {
-    ui_stack_size_x_pop();
-  }
-  ui_stack_parent_pop();
-}
-
-function UI_Signal
-ui_button(String8 text)
-{
-  UI_Signal button_signal = (UI_Signal){0};
-  // TODO(fz): We can cache the y size of the font and set it as the default.
-  ui_node_color_scheme(ui_context.color_scheme.button)
-  ui_size_y(20.0f)
-  ui_size_x(80.0f)
-  ui_padding_x(1.0f) ui_padding_y(1.0f)
-  ui_alignment_kind(UI_Alignment_Kind_X)
-  ui_height_kind(   UI_Height_Kind_Fixed)
-  ui_width_kind(    UI_Width_Kind_Fixed)
-  {
-    UI_Node_Flags button_flags = UI_Node_Flags_Mouse_Clickable|
-                                 UI_Node_Flags_Hoverable|
-                                 UI_Node_Flags_Display_Text|
-                                 UI_Node_Flags_Center_Text_Horizontally|
-                                 UI_Node_Flags_Center_Text_Vertically;
-    button_signal.node = ui_node_from_string(text, button_flags);
-    ui_fill_signals_from_node(&button_signal);
-  }
-  
-  return button_signal;
-}
-
-function void
-ui_label(String8 text)
-{
-  // TODO(fz): We can cache the y size of the font and set it as the default.
-  ui_node_color_scheme(ui_context.color_scheme.window)
-  ui_alignment_kind(UI_Alignment_Kind_X)
-  ui_padding_x(1.0f) ui_padding_y(1.0f)
-  {
-    UI_Node_Flags label_flags = UI_Node_Flags_Display_Text|
-                                UI_Node_Flags_Bounds_Wrap_Around_Text;
-    ui_node_from_string(text, label_flags);
   }
 }
 
@@ -355,16 +303,13 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
     parent->bounds.top_left = ui_stack_top_left_top();
     parent->bounds.size     = vec2f32(ui_stack_size_x_top(), ui_stack_size_y_top());
     parent->clip            = parent->bounds;
-    parent->depth           = 1.0f + F32_EPSILON;
+    parent->depth           = 1.0f;
   }
+
   UI_Node* node = push_array(ui_context.frame_arena, UI_Node, 1);
   ui_add_widget_child(parent, node);
 
   node->hash              = parent->hash ^ string8_hash(string);
-  node->spacing_left      = ui_stack_spacing_left_top();
-  node->spacing_right     = ui_stack_spacing_right_top();
-  node->padding_x         = ui_stack_padding_x_top();
-  node->padding_y         = ui_stack_padding_y_top();
   node->alignment_kind    = ui_stack_alignment_kind_top();
   node->string            = string8_copy(ui_context.frame_arena, string);
   node->string_clean      = ui_clean_string(ui_context.frame_arena, string);
@@ -372,133 +317,89 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   node->string_top_left   = vec2f32(0,0);
   node->local_drag_offset = vec2f32(0,0);
   node->flags             = flags;
-
-  f32 size_x = 0;
-  switch (ui_stack_width_kind_top())
-  {
-    case UI_Width_Kind_Fill:
-    {
-      size_x = parent->bounds.size.x;
-    } break;
-    case UI_Width_Kind_Fixed:
-    {
-      size_x = ui_stack_size_x_top(); 
-    } break;
-    default: emit_fatal(S("UI: Unhandled width_kind")); break;
-  }
-  f32 size_y = 0;
-  switch (ui_stack_height_kind_top())
-  {
-    case UI_Height_Kind_Fill:
-    {
-      size_y = parent->bounds.size.y;
-    } break;
-    case UI_Height_Kind_Fixed:
-    {
-      size_y = ui_stack_size_y_top(); 
-    } break;
-    default: emit_fatal(S("UI: Unhandled width_kind")); break;
-  }
+  node->depth             = (parent) ? (parent->depth - F32_EPSILON) : 1.0f;
 
   node->bounds.top_left = ui_stack_top_left_top();
-  if (HasFlags(flags, UI_Node_Flags_Bounds_Wrap_Around_Text))
-  {
-    node->bounds.size = vec2f32_add(node->string_dimensions, vec2f32(1,1));
-  }
-  else
-  {
-    node->bounds.size = vec2f32(size_x, size_y);
-  }
+  f32 size_x = ui_stack_size_x_top(); 
+  f32 size_y = ui_stack_size_y_top(); 
+  node->bounds.size = vec2f32(size_x, size_y);
   node->bounds = ui_clamp_rect(parent->clip, node->bounds);
 
-  // Update parent clip based on this widget
-  if (parent != ui_context.root)
+  switch (node->alignment_kind)
   {
-    switch (parent->alignment_kind)
+    case UI_Alignment_Kind_X:
     {
-      case UI_Alignment_Kind_X:
-      {
-        node->bounds.top_left.x += node->spacing_left;
-        parent->cursor.x        += node->bounds.size.x + parent->padding_x + node->spacing_right;
-      } break;
-
-      case UI_Alignment_Kind_Y:
-      {
-        node->bounds.top_left.y += node->spacing_top;
-        parent->cursor.y          += node->bounds.size.y + parent->padding_y + node->spacing_bottom;
-      } break;
-    }
+      parent->cursor.y += node->bounds.size.y;
+    } break;
+    case UI_Alignment_Kind_Y:
+    {
+      parent->cursor.x += node->bounds.size.x;    
+    } break;
+    case UI_Alignment_Kind_Floating:
+    {
+      // If it's floating, we just leave it where the cursor is.
+    } break;
+    default:
+    {
+      emit_fatal(S("Unhandled UI_Alignment kind"));
+    } break;
   }
-  node->depth = (parent) ? parent->depth - F32_EPSILON : 1.0f;
 
   Rectf32 clip;
   clip.top_left = vec2f32(node->bounds.top_left.x + node->padding_x, node->bounds.top_left.y + node->padding_y);
   clip.size     = vec2f32(node->bounds.size.x - (node->padding_x * 2), node->bounds.size.y - (node->padding_y * 2));
-  node->clip  = ui_clamp_rect(node->bounds, clip);
+  node->clip    = ui_clamp_rect(node->bounds, clip);
 
   UI_Node_Cache* cached_widget = ui_get_cached_node(node->hash);
 
-  // Input
-  if (ui_is_mouse_in_node(node))
+  // Interaction
+  // -----------
   {
-    if (node->depth < ui_context.hash_hot_depth)
-    {
-      ui_context.hash_hot       = node->hash;
-      ui_context.hash_hot_depth = node->depth;
-
-      if (input_is_button_clicked(&g_input, Mouse_Button_Left))
-      {
-        ui_context.hash_active       = node->hash;
-        ui_context.hash_active_depth = node->depth;
-      }
-    }
-  }
-  if (input_is_button_up(&g_input, Mouse_Button_Left) && input_was_button_down(&g_input, Mouse_Button_Left))
-  {
-    ui_context.hash_active = 0;
-    ui_context.hash_active_depth = 1.0f;
-  }
-
-  // Style
-  // NOTE(fz): We use colors from the stack if they were explicitly added by the user. Otherwise we just take them from the color scheme
-  node->node_color_scheme     = ui_stack_node_color_scheme_top();
-  Color border_color            = node->node_color_scheme.border_color;
-  Color background_color        = node->node_color_scheme.background_color;
-  Color background_hover_color  = node->node_color_scheme.background_hover_color;
-  Color background_active_color = node->node_color_scheme.background_active_color;
-  Color text_color              = node->node_color_scheme.text_color;
-  Color text_hover_color        = node->node_color_scheme.text_hover_color;
-  Color text_active_color       = node->node_color_scheme.text_active_color;
-
-  node->target_background_color = color_lerp(background_color, background_hover_color, cached_widget->hover_t);
-  node->target_background_color = color_lerp(node->target_background_color, background_active_color, cached_widget->active_t);
-
-  node->target_text_color = color_lerp(text_color, text_hover_color, cached_widget->hover_t);
-  node->target_text_color = color_lerp(node->target_text_color, text_active_color, cached_widget->active_t);
-
-  // Hover
-  if (HasFlags(node->flags, UI_Node_Flags_Hoverable))
-  {
+    // Input
     if (ui_is_mouse_in_node(node))
     {
-      cached_widget->hover_t = Clamp(cached_widget->hover_t + g_delta_time * ui_context.animation_speed, 0, 1);
-    }
-    else
-    {
-      cached_widget->hover_t = Clamp(cached_widget->hover_t - g_delta_time * ui_context.animation_speed, 0, 1);
-    }
-  }
+      if (node->depth < ui_context.hash_hot_depth)
+      {
+        ui_context.hash_hot       = node->hash;
+        ui_context.hash_hot_depth = node->depth;
 
-  // Active
-  if (HasFlags(node->flags, UI_Node_Flags_Mouse_Clickable))
-  {
-    if (ui_context.hash_active == node->hash)
-    {
-      cached_widget->active_t = Clamp(cached_widget->active_t + g_delta_time * ui_context.animation_speed, 0, 1);
+        if (input_is_button_clicked(&g_input, Mouse_Button_Left))
+        {
+          ui_context.hash_active       = node->hash;
+          ui_context.hash_active_depth = node->depth;
+        }
+      }
     }
-    else
+    if (input_is_button_up(&g_input, Mouse_Button_Left) && input_was_button_down(&g_input, Mouse_Button_Left))
     {
-      cached_widget->active_t = Clamp(cached_widget->active_t - g_delta_time * ui_context.animation_speed, 0, 1);
+      ui_context.hash_active = 0;
+      ui_context.hash_active_depth = 1.0f;
+    }
+
+    // Hover
+    if (HasFlags(node->flags, UI_Node_Flags_Hoverable))
+    {
+      if (ui_is_mouse_in_node(node))
+      {
+        cached_widget->hover_t = Clamp(cached_widget->hover_t + g_delta_time * ui_context.animation_speed, 0, 1);
+      }
+      else
+      {
+        cached_widget->hover_t = Clamp(cached_widget->hover_t - g_delta_time * ui_context.animation_speed, 0, 1);
+      }
+    }
+
+    // Active
+    if (HasFlags(node->flags, UI_Node_Flags_Mouse_Clickable))
+    {
+      if (ui_context.hash_active == node->hash)
+      {
+        cached_widget->active_t = Clamp(cached_widget->active_t + g_delta_time * ui_context.animation_speed, 0, 1);
+      }
+      else
+      {
+        cached_widget->active_t = Clamp(cached_widget->active_t - g_delta_time * ui_context.animation_speed, 0, 1);
+      }
     }
   }
   
@@ -509,6 +410,24 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
     {
       node->local_drag_offset = g_input.mouse_current.delta;
     }
+  }
+
+  // Style
+  // -----
+  {
+    node->node_color_scheme     = ui_stack_node_color_scheme_top();
+    Color border_color            = node->node_color_scheme.border_color;
+    Color background_color        = node->node_color_scheme.background_color;
+    Color background_hover_color  = node->node_color_scheme.background_hover_color;
+    Color background_active_color = node->node_color_scheme.background_active_color;
+    Color text_color              = node->node_color_scheme.text_color;
+    Color text_hover_color        = node->node_color_scheme.text_hover_color;
+    Color text_active_color       = node->node_color_scheme.text_active_color;
+
+    node->target_background_color = color_lerp(background_color, background_hover_color, cached_widget->hover_t);
+    node->target_background_color = color_lerp(node->target_background_color, background_active_color, cached_widget->active_t);
+    node->target_text_color = color_lerp(text_color, text_hover_color, cached_widget->hover_t);
+    node->target_text_color = color_lerp(node->target_text_color, text_active_color, cached_widget->active_t);
   }
 
   return node;
@@ -531,44 +450,6 @@ ui_fill_signals_from_node(UI_Signal* signal)
   }
 }
 
-function b32  ui_find_first_drag_offset(UI_Node* widget_root, Vec2f32* out_offset)
-{
-  b32 result = false;
-  if (HasFlags(widget_root->flags, UI_Node_Flags_Draggable) && ui_context.hash_active == widget_root->hash)
-  {
-    *out_offset = widget_root->local_drag_offset;
-    result = true;
-  }
-  else
-  {
-    for (UI_Node* child = widget_root->first; child; child = child->next)
-    {
-      if (HasFlags(child->flags, UI_Node_Flags_Draggable) && ui_context.hash_active == child->hash)
-      {
-        *out_offset = child->local_drag_offset;
-        result = true;
-        break;
-      }
-      if (ui_find_first_drag_offset(child, out_offset))
-      {
-        result = true;
-        break;
-      }
-    }
-  }
-
-  return result;
-}
-
-function void ui_apply_drag_offset(UI_Node* widget_root, Vec2f32 offset)
-{
-  widget_root->local_drag_offset = offset;
-  for (UI_Node* child = widget_root->first; child; child = child->next)
-  {
-    ui_apply_drag_offset(child, offset);
-  }
-}
-
 // Helper
 function String8
 ui_clean_string(Arena* arena, String8 string)
@@ -586,16 +467,15 @@ ui_debug_draw_node(UI_Node* node, f32 depth)
   if (ui_context.debug.show_bounds) r_draw_box(node->bounds.top_left, node->bounds.size, YELLOW(1), depth - F32_EPSILON);
   if (ui_context.debug.show_clip)
   {
-    Color color = PURPLE(1);
-    if (node->alignment_kind == UI_Alignment_Kind_X)
-    {
-      color = BLUE(1);
-    }
-    else if (node->alignment_kind == UI_Alignment_Kind_Y)
-    {
-      color = RED(1);
-    }
+    Color color = RED(1);
     r_draw_box(node->clip.top_left, node->clip.size, color, depth - (F32_EPSILON*2));
+  }
+  if (ui_context.debug.show_text_borders)
+  {
+    if (HasFlags(node->flags, UI_Node_Flags_Display_Text))
+    {
+      r_draw_box(node->string_top_left, node->string_dimensions, PURPLE(1), 0);
+    }
   }
 }
 
@@ -701,72 +581,42 @@ ui_add_widget_child(UI_Node *parent, UI_Node *child)
   }
 }
 
-function void
-ui_update_tree_nodes(UI_Node* widget_root)
+function b32
+ui_find_first_drag_offset(UI_Node* widget_root, Vec2f32* out_offset)
 {
-  if (!widget_root)
+  b32 result = false;
+  if (HasFlags(widget_root->flags, UI_Node_Flags_Draggable) && ui_context.hash_active == widget_root->hash)
   {
-    return;
+    *out_offset = widget_root->local_drag_offset;
+    result = true;
   }
-
-  UI_Node_Cache* cached_widget = ui_get_cached_node(widget_root->hash);
-  cached_widget->accumulated_drag_offset = vec2f32_add(widget_root->local_drag_offset, cached_widget->accumulated_drag_offset);
-
-  // Bounds
-  widget_root->bounds.top_left = vec2f32_add(widget_root->bounds.top_left, cached_widget->accumulated_drag_offset);
-  widget_root->clip.top_left   = vec2f32_add(widget_root->clip.top_left, cached_widget->accumulated_drag_offset);
-
-  // String
-  if (HasFlags(widget_root->flags, UI_Node_Flags_Display_Text))
+  else
   {
-    widget_root->string_top_left = vec2f32_add(widget_root->clip.top_left, widget_root->cursor);
-
-    if (HasFlags(widget_root->flags, UI_Node_Flags_Center_Text_Horizontally))
+    for (UI_Node* child = widget_root->first; child; child = child->next)
     {
-      f32 offset_x = (widget_root->clip.size.x - widget_root->string_dimensions.x) * 0.5f;
-      widget_root->string_top_left.x = widget_root->clip.top_left.x + offset_x;
-    }
-
-    if (HasFlags(widget_root->flags, UI_Node_Flags_Center_Text_Vertically))
-    {
-      f32 offset_y = (widget_root->clip.size.y - widget_root->string_dimensions.y) * 0.5f;
-      widget_root->string_top_left.y = widget_root->clip.top_left.y + offset_y;
+      if (HasFlags(child->flags, UI_Node_Flags_Draggable) && ui_context.hash_active == child->hash)
+      {
+        *out_offset = child->local_drag_offset;
+        result = true;
+        break;
+      }
+      if (ui_find_first_drag_offset(child, out_offset))
+      {
+        result = true;
+        break;
+      }
     }
   }
+  return result;
+}
 
-  // Advance cursor
-  // TODO(fz): After we cache string dimensions, we can move this up to node_from_string
-  switch (widget_root->alignment_kind)
-  {
-    case UI_Alignment_Kind_X:
-    {
-      f32 advance_x = HasFlags(widget_root->flags, UI_Node_Flags_Center_Text_Horizontally)
-                    ? widget_root->clip.size.x
-                    : widget_root->string_dimensions.x;
-
-      widget_root->cursor.x += advance_x + widget_root->padding_x;
-      widget_root->cursor.y += widget_root->padding_y;
-    } break;
-
-    case UI_Alignment_Kind_Y:
-    {
-      f32 advance_y = HasFlags(widget_root->flags, UI_Node_Flags_Center_Text_Vertically)
-                    ? widget_root->clip.size.y
-                    : widget_root->string_dimensions.y;
-
-      widget_root->cursor.x += widget_root->padding_x;
-      widget_root->cursor.y += advance_y + widget_root->padding_y;
-    } break;
-
-    default:
-    {
-      emit_fatal(S("UI: Unhandled UI_Alignment"));
-    } break;
-  }
-
+function void
+ui_apply_drag_offset(UI_Node* widget_root, Vec2f32 offset)
+{
+  widget_root->local_drag_offset = offset;
   for (UI_Node* child = widget_root->first; child; child = child->next)
   {
-    ui_update_tree_nodes(child);
+    ui_apply_drag_offset(child, offset);
   }
 }
 

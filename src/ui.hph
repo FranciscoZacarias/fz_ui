@@ -20,29 +20,17 @@ Stack_Table
 {
   { Parent                  parent                     UI_Node*               &ui_node_nil_sentinel             32  1                     `Pointer to the current UI node`      } 
   { Top_Left                top_left                   Vec2f32               `vec2f32(0.0f, 0.0f)`              32  0                     `Top-left corner position`            } 
-  // TODO(fz): Test
   { Size_X                  size_x                     f32                    g_os_window.dimensions.x          32  0                     `Default X size equals window width`  } 
-  // TODO(fz): Test
   { Size_Y                  size_y                     f32                    g_os_window.dimensions.y          32  0                     `Default Y size equals window height` } 
-  // TODO(fz): Test
   { Padding_X               padding_x                  f32                    0.0f                              32  0                     `Horizontal padding`                  } 
-  // TODO(fz): Test
   { Padding_Y               padding_y                  f32                    0.0f                              32  0                     `Vertical padding`                    } 
-  // TODO(fz): Test
   { Spacing_Left            spacing_left               f32                    0.0f                              32  0                     `Left spacing`                        } 
-  // TODO(fz): Test
   { Spacing_Right           spacing_right              f32                    0.0f                              32  0                     `Right spacing`                       } 
-  // TODO(fz): Test
   { Spacing_Top             spacing_top                f32                    0.0f                              32  0                     `Top spacing`                         } 
-  // TODO(fz): Test
   { Spacing_Bottom          spacing_bottom             f32                    0.0f                              32  0                     `Bottom spacing`                      } 
-  // TODO(fz): Test
   { Alignment_Kind          alignment_kind             UI_Alignment_Kind      UI_Alignment_Kind_Y               32  0                     `Default alignment along Y`           } 
-  // TODO(fz): Test
   { Width_Kind              width_kind                 UI_Width_Kind          UI_Width_Kind_Fill                32  0                     `Width filling strategy`              } 
-  // TODO(fz): Test
   { Height_Kind             height_kind                UI_Height_Kind         UI_Height_Kind_Fill               32  0                     `Height filling strategy`             } 
-  // TODO(fz): Test
   { Node_Color_Scheme       node_color_scheme          UI_Node_Color_Scheme   ui_context.color_scheme.window    32  0                     `Node color scheme override`          } 
 }
 
@@ -67,9 +55,6 @@ UI_Node_Flags_Table
   { Display_Text              `TODO(fz): Add documentation` }
   { Draggable                 `TODO(fz): Add documentation` }
   { Hoverable                 `TODO(fz): Add documentation` }
-  { Center_Text_Horizontally  `TODO(fz): Add documentation` }
-  { Center_Text_Vertically    `TODO(fz): Add documentation` }
-  { Bounds_Wrap_Around_Text   `TODO(fz): Add documentation` }
 }
 
 @generate @h_file
@@ -127,5 +112,6 @@ UI_Signal_Flags_Table
 // NOTE(fz): Keep as last generator
 @generate @h_file
 {
-  `\n#endif`
+  `\n#endif `
+  `// UI_HEPHAESTUS_H`
 }
