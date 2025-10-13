@@ -39,6 +39,40 @@ function void ui_init()
     },
   };
 
+  ui_color_scheme_high_contrast = (UI_Color_Scheme)
+  {
+    .title_bar = (UI_Node_Color_Scheme)
+    {
+      .border_color            = color(0.85f, 0.85f, 0.85f, 1.0f),
+      .background_color        = color(0.10f, 0.10f, 0.10f, 1.0f),
+      .background_hover_color  = color(0.18f, 0.18f, 0.18f, 1.0f),
+      .background_active_color = color(0.25f, 0.25f, 0.25f, 1.0f),
+      .text_color        = color(0.90f, 0.90f, 0.90f, 1.0f),
+      .text_hover_color  = color(1.00f, 0.90f, 0.20f, 1.0f),
+      .text_active_color = color(1.00f, 0.80f, 0.00f, 1.0f),
+    },
+    .window = (UI_Node_Color_Scheme)
+    {
+      .border_color            = color(0.20f, 0.20f, 0.20f, 1.0f),
+      .background_color        = color(0.30f, 0.30f, 0.30f, 1.0f),
+      .background_hover_color  = color(0.35f, 0.35f, 0.35f, 1.0f),
+      .background_active_color = color(0.40f, 0.40f, 0.40f, 1.0f),
+      .text_color        = color(0.95f, 0.95f, 0.85f, 1.0f),
+      .text_hover_color  = color(1.00f, 0.90f, 0.20f, 1.0f),
+      .text_active_color = color(1.00f, 0.80f, 0.00f, 1.0f),
+    },
+    .button = (UI_Node_Color_Scheme)
+    {
+      .border_color            = color(0.15f, 0.15f, 0.15f, 1.0f),
+      .background_color        = color(0.85f, 0.65f, 0.00f, 1.0f),
+      .background_hover_color  = color(1.00f, 0.75f, 0.00f, 1.0f),
+      .background_active_color = color(0.90f, 0.50f, 0.00f, 1.0f),
+      .text_color        = color(0.05f, 0.05f, 0.05f, 1.0f),
+      .text_hover_color  = color(0.00f, 0.00f, 0.00f, 1.0f),
+      .text_active_color = color(0.00f, 0.00f, 0.00f, 1.0f),
+    },
+  };
+
   MemoryZeroStruct(&ui_context);
   {
     ui_context.arena           = arena_alloc();
@@ -50,11 +84,11 @@ function void ui_init()
     ui_context.hash_hot_depth    = 1.0f;
 
     ui_context.text_pixel_height = 16;
-    ui_context.color_scheme      = ui_color_scheme_dark;
+    ui_context.color_scheme      = ui_color_scheme_high_contrast;
 
     ui_context.debug.show_bounds  = true;
     ui_context.debug.show_clip    = false;
-    ui_context.debug.show_cursor  = false;
+    ui_context.debug.show_cursor  = true;
     ui_context.debug.print_widget_tree = false;
 
     Vec2s32 window_size = g_os_window.dimensions;
@@ -175,7 +209,6 @@ ui_window_begin(String8 text)
     ui_node_color_scheme(ui_context.color_scheme.window)
     ui_width_kind(UI_Width_Kind_Fixed)
     ui_height_kind(UI_Height_Kind_Fixed)
-    ui_padding_x(4.0f) ui_padding_y(4.0f)
     {
       UI_Node_Flags window_flags = 0;
       String8 window_text = Sf(ui_context.frame_arena, ""S_FMT"##_window_", S_ARG(text));
@@ -386,7 +419,7 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
       case UI_Alignment_Kind_X:
       {
         node->bounds.top_left.x += node->spacing_left;
-        parent->cursor.x          += node->bounds.size.x + parent->padding_x + node->spacing_right;
+        parent->cursor.x        += node->bounds.size.x + parent->padding_x + node->spacing_right;
       } break;
 
       case UI_Alignment_Kind_Y:

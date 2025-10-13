@@ -39,59 +39,10 @@ entry_point(Command_Line* command_line)
 
     ui_begin();
 
-#if 0
-    ui_stack_defer(top_left, vec2f32(2,2))
-    ui_window(S("fz_ui config"))
-    {
-      ui_row(S("font size"), 20)
-      {
-        ui_stack_defer(size_y, 20)
-        ui_stack_defer(size_x, 20)
-        ui_stack_defer(spacing_right, 5)
-        if (ui_clicked(ui_button(S("-"))))
-        {
-          ui_context.text_pixel_height -= 1;
-        }
-        ui_stack_defer(size_y, 20)
-        ui_stack_defer(size_x, 20)
-        if (ui_clicked(ui_button(S("+"))))
-        {
-          ui_context.text_pixel_height += 1;
-        }
-        ui_label(S("UI Font size"));
-      }
-      if (ui_clicked(ui_button(S("ui debug"))))
-      {
-        ui_context.debug.show_bounds = !ui_context.debug.show_bounds;
-        ui_context.debug.show_clip   = !ui_context.debug.show_clip;
-        ui_context.debug.show_cursor = !ui_context.debug.show_cursor;
-      }
-    }
-#endif
-
-    ui_top_left(vec2f32(250,200))
+    ui_top_left(vec2f32(200,200))
     ui_size_x(300) ui_size_y(300)
     ui_window(S("Test Window"))
     {
-      ui_padding_x(4.0f) ui_padding_y(4.0f)
-      ui_row(S("Horizontal buttons"), 30)
-      {
-      #if 0
-        for (u32 i = 0; i < 2; i += 1)
-        {
-          ui_spacing_right(10)
-          ui_button(Sf(frame_arena, "Same Name!##%d", i));
-        }
-      #endif
-      }
-      #if 0
-      ui_padding_x(4.0f) ui_padding_y(4.0f)
-      ui_column(S("Vertical buttons"), 90)
-      {
-        ui_button(S("Button C"));
-        ui_button(S("Button D"));
-      }
-      #endif
     }
     ui_end();
     

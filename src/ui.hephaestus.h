@@ -3,7 +3,7 @@
 
 /*
 
-@Hephaestus generated code 2025-October-12 19:47:39
+@Hephaestus generated code 2025-October-13 12:41:50
 
 */
 
@@ -34,7 +34,7 @@ enum
 // Initializes all stack structures
 #define UI_Init_Stacks(ctx) \
   ctx.parent_stack.top_index = 0; ctx.parent_stack.bottom_val = &ui_node_nil_sentinel; \
-  ctx.top_left_stack.top_index = 0; ctx.top_left_stack.bottom_val = vec2f32(5.0f, 5.0f); \
+  ctx.top_left_stack.top_index = 0; ctx.top_left_stack.bottom_val = vec2f32(0.0f, 0.0f); \
   ctx.size_x_stack.top_index = 0; ctx.size_x_stack.bottom_val = g_os_window.dimensions.x; \
   ctx.size_y_stack.top_index = 0; ctx.size_y_stack.bottom_val = g_os_window.dimensions.y; \
   ctx.padding_x_stack.top_index = 0; ctx.padding_x_stack.bottom_val = 0.0f; \

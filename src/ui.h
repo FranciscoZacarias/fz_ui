@@ -37,6 +37,7 @@ struct UI_Color_Scheme
 };
 
 global UI_Color_Scheme ui_color_scheme_dark;
+global UI_Color_Scheme ui_color_scheme_high_contrast;
 
 typedef enum
 {
