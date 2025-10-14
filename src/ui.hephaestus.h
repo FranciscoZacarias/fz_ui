@@ -3,9 +3,32 @@
 
 /*
 
-@Hephaestus generated code 2025-October-14 16:26:51
+@Hephaestus generated code 2025-October-14 18:08:00
 
 */
+
+typedef u32 UI_Node_Flags;
+enum
+{
+  UI_Node_Flags_Mouse_Clickable = (1 << 0), /* TODO(fz): Add documentation */
+  UI_Node_Flags_Draggable = (1 << 1), /* TODO(fz): Add documentation */
+  UI_Node_Flags_Hoverable = (1 << 2), /* TODO(fz): Add documentation */
+  UI_Node_Flags_Display_Text = (1 << 3), /* TODO(fz): Add documentation */
+  UI_Node_Flags_Clip_Policy_Strict = (1 << 4), /* TODO(fz): Add documentation */
+  UI_Node_Flags_Clip_Policy_Free = (1 << 5), /* TODO(fz): Add documentation */
+};
+
+typedef u32 UI_Signal_Flags;
+enum
+{
+  UI_Signal_Flags_Left_Down = (1 << 0), /* TODO(fz): Add documentation */
+  UI_Signal_Flags_Middle_Down = (1 << 1), /* TODO(fz): Add documentation */
+  UI_Signal_Flags_Right_Down = (1 << 2), /* TODO(fz): Add documentation */
+  UI_Signal_Flags_Left_Clicked = (1 << 3), /* TODO(fz): Add documentation */
+  UI_Signal_Flags_Middle_Clicked = (1 << 4), /* TODO(fz): Add documentation */
+  UI_Signal_Flags_Right_Clicked = (1 << 5), /* TODO(fz): Add documentation */
+  UI_Signal_Flags_Mouse_Hovered = (1 << 6), /* TODO(fz): Add documentation */
+};
 
 typedef enum
 {
@@ -35,15 +58,6 @@ typedef enum
 const char* ui_height_kind_table_string[] = { "UI_Height_Kind_None", "UI_Height_Kind_Fill", "UI_Height_Kind_Fixed", };
 #define ui_height_kind_not_handled(arena, kind) emit_fatal(Sf(arena, "Unhandled UI_Height_Kind kind: %s", ui_height_kind_table_string[kind]));
 
-typedef enum
-{
-  UI_Clip_Policy_Kind_None = 0,
-  UI_Clip_Policy_Kind_Free, /* TODO(Fz): Debug HPH. */ 
-  UI_Clip_Policy_Kind_Strict, /* TODO(Fz): Debug HPH. */ 
-} UI_Clip_Policy_Kind;
-const char* ui_clip_policy_kind_table_string[] = { "UI_Clip_Policy_Kind_None", "UI_Clip_Policy_Kind_Free",  "UI_Clip_Policy_Kind_Strict",  };
-#define ui_clip_policy_kind_not_handled(arena, kind) emit_fatal(Sf(arena, "Unhandled UI_Clip_Policy_Kind kind: %s", ui_clip_policy_kind_table_string[kind]));
-
 // Initializes all stack structures
 #define UI_Init_Stacks(ctx) \
   ctx.parent_stack.top_index = 0; ctx.parent_stack.bottom_val = &ui_node_nil_sentinel; \
@@ -53,7 +67,6 @@ const char* ui_clip_policy_kind_table_string[] = { "UI_Clip_Policy_Kind_None", "
   ctx.alignment_kind_stack.top_index = 0; ctx.alignment_kind_stack.bottom_val = UI_Alignment_Kind_Y; \
   ctx.width_kind_stack.top_index = 0; ctx.width_kind_stack.bottom_val = UI_Width_Kind_Fill; \
   ctx.height_kind_stack.top_index = 0; ctx.height_kind_stack.bottom_val = UI_Height_Kind_Fill; \
-  ctx.clip_policy_stack.top_index = 0; ctx.clip_policy_stack.bottom_val = UI_Clip_Policy_Kind_Strict; \
   ctx.node_color_scheme_stack.top_index = 0; ctx.node_color_scheme_stack.bottom_val = ui_context.color_scheme.window; \
 
 // Creates struct with all UI stacks
@@ -67,7 +80,6 @@ const char* ui_clip_policy_kind_table_string[] = { "UI_Clip_Policy_Kind_None", "
     struct UI_Alignment_Kind_stack { UI_Alignment_Kind data[32]; u32 top_index; UI_Alignment_Kind bottom_val; } alignment_kind_stack; \
     struct UI_Width_Kind_stack { UI_Width_Kind data[32]; u32 top_index; UI_Width_Kind bottom_val; } width_kind_stack; \
     struct UI_Height_Kind_stack { UI_Height_Kind data[32]; u32 top_index; UI_Height_Kind bottom_val; } height_kind_stack; \
-    struct UI_Clip_Policy_stack { UI_Clip_Policy_Kind data[32]; u32 top_index; UI_Clip_Policy_Kind bottom_val; } clip_policy_stack; \
     struct UI_Node_Color_Scheme_stack { UI_Node_Color_Scheme data[32]; u32 top_index; UI_Node_Color_Scheme bottom_val; } node_color_scheme_stack; \
   }
 
@@ -80,29 +92,7 @@ const char* ui_clip_policy_kind_table_string[] = { "UI_Clip_Policy_Kind_None", "
   ui_stack_assert_top_at(alignment_kind,0); \
   ui_stack_assert_top_at(width_kind,0); \
   ui_stack_assert_top_at(height_kind,0); \
-  ui_stack_assert_top_at(clip_policy,0); \
   ui_stack_assert_top_at(node_color_scheme,0); \
-
-typedef u32 UI_Node_Flags;
-enum
-{
-  UI_Node_Flags_Mouse_Clickable = (1 << 0), /* TODO(fz): Add documentation */
-  UI_Node_Flags_Draggable = (1 << 1), /* TODO(fz): Add documentation */
-  UI_Node_Flags_Hoverable = (1 << 2), /* TODO(fz): Add documentation */
-  UI_Node_Flags_Display_Text = (1 << 3), /* TODO(fz): Add documentation */
-};
-
-typedef u32 UI_Signal_Flags;
-enum
-{
-  UI_Signal_Flags_Left_Down = (1 << 0), /* TODO(fz): Add documentation */
-  UI_Signal_Flags_Middle_Down = (1 << 1), /* TODO(fz): Add documentation */
-  UI_Signal_Flags_Right_Down = (1 << 2), /* TODO(fz): Add documentation */
-  UI_Signal_Flags_Left_Clicked = (1 << 3), /* TODO(fz): Add documentation */
-  UI_Signal_Flags_Middle_Clicked = (1 << 4), /* TODO(fz): Add documentation */
-  UI_Signal_Flags_Right_Clicked = (1 << 5), /* TODO(fz): Add documentation */
-  UI_Signal_Flags_Mouse_Hovered = (1 << 6), /* TODO(fz): Add documentation */
-};
 
 
 #endif // UI_HEPHAESTUS_H

@@ -14,6 +14,47 @@
   `/*\n\n@Hephaestus generated code $(@time_now)\n\n*/\n\n`
 }
 
+@table
+UI_Node_Flags_Table
+  (name documentation)
+{
+  { Mouse_Clickable           `TODO(fz): Add documentation` }
+  { Draggable                 `TODO(fz): Add documentation` }
+  { Hoverable                 `TODO(fz): Add documentation` }
+
+  { Display_Text              `TODO(fz): Add documentation` }
+
+  { Clip_Policy_Strict        `TODO(fz): Add documentation` }
+  { Clip_Policy_Free          `TODO(fz): Add documentation` }
+}
+@generate @h_file
+{
+  `typedef u32 UI_Node_Flags;\n`
+  `enum\n{\n`
+  @foreach(UI_Node_Flags_Table) `  UI_Node_Flags_$(name) = (1 << $(@index)), /* $(documentation) */\n`
+  `};\n\n`
+}
+
+@table
+UI_Signal_Flags_Table
+  (name documentation)
+{
+  { Left_Down      `TODO(fz): Add documentation` }
+  { Middle_Down    `TODO(fz): Add documentation` }
+  { Right_Down     `TODO(fz): Add documentation` }
+  { Left_Clicked   `TODO(fz): Add documentation` }
+  { Middle_Clicked `TODO(fz): Add documentation` }
+  { Right_Clicked  `TODO(fz): Add documentation` }
+  { Mouse_Hovered  `TODO(fz): Add documentation` }
+}
+@generate @h_file
+{
+  `typedef u32 UI_Signal_Flags;\n`
+  `enum\n{\n`
+  @foreach(UI_Signal_Flags_Table) `  UI_Signal_Flags_$(name) = (1 << $(@index)), /* $(documentation) */\n`
+  `};\n\n`
+}
+
 @table UI_Alignment_Kind_Table (kind documentation)
 {
   { X        `TODO(fz): Add documentation` }
@@ -63,22 +104,6 @@
   `#define ui_height_kind_not_handled(arena, kind) emit_fatal(Sf(arena, "Unhandled UI_Height_Kind kind: %s", ui_height_kind_table_string[kind]));\n\n`
 }
 
-@table UI_Clip_Policy_Kind_Table (kind, documentation)
-{
-  { Free   `TODO(fz): Documentation` }
-  { Strict `TODO(fz): Documentation` }
-}
-@generate @h_file
-{
-  `typedef enum\n{\n  UI_Clip_Policy_Kind_None = 0,\n`
-  @foreach(UI_Clip_Policy_Kind_Table) `  UI_Clip_Policy_Kind_$(kind), /* $(documentation)TODO(Fz): Debug HPH. */ \n`
-  `} UI_Clip_Policy_Kind;\n`
-  `const char* ui_clip_policy_kind_table_string[] = { "UI_Clip_Policy_Kind_None",`
-  @foreach(UI_Clip_Policy_Kind_Table) ` "UI_Clip_Policy_Kind_$(kind)", `
-  ` };\n`
-  `#define ui_clip_policy_kind_not_handled(arena, kind) emit_fatal(Sf(arena, "Unhandled UI_Clip_Policy_Kind kind: %s", ui_clip_policy_kind_table_string[kind]));\n\n`
-}
-
 @table // Defines stacks for different types
 Stack_Table
   (name_upper               name_lower                 type                   default_value                     max debug_bottom_expected)
@@ -94,8 +119,6 @@ Stack_Table
   { Width_Kind              width_kind                 UI_Width_Kind          UI_Width_Kind_Fill                32  0 }
   // TODO(fz): Test
   { Height_Kind             height_kind                UI_Height_Kind         UI_Height_Kind_Fill               32  0 }
-  // TODO(fz): Test
-  { Clip_Policy             clip_policy                UI_Clip_Policy_Kind    UI_Clip_Policy_Kind_Strict        32  0 }
   { Node_Color_Scheme       node_color_scheme          UI_Node_Color_Scheme   ui_context.color_scheme.window    32  0 }
 }
 @generate @h_file
@@ -130,44 +153,6 @@ function $(type) ui_stack_$(name_lower)_top() { return ui_stack_top($(name_lower
 function b32  ui_stack_$(name_lower)_is_at_bottom() { return ui_stack_is_at_bottom($(name_lower)); }
 function void ui_stack_$(name_lower)_assert_top_at(u32 at) { ui_stack_assert_top_at($(name_lower), at); }
 #define ui_$(name_lower)(val) DeferLoop(ui_stack_$(name_lower)_push(val), ui_stack_$(name_lower)_pop())\n\n`
-}
-
-@table
-UI_Node_Flags_Table
-  (name documentation)
-{
-  { Mouse_Clickable           `TODO(fz): Add documentation` }
-  { Draggable                 `TODO(fz): Add documentation` }
-  { Hoverable                 `TODO(fz): Add documentation` }
-
-  { Display_Text              `TODO(fz): Add documentation` }
-}
-@generate @h_file
-{
-  `typedef u32 UI_Node_Flags;\n`
-  `enum\n{\n`
-  @foreach(UI_Node_Flags_Table) `  UI_Node_Flags_$(name) = (1 << $(@index)), /* $(documentation) */\n`
-  `};\n\n`
-}
-
-@table
-UI_Signal_Flags_Table
-  (name documentation)
-{
-  { Left_Down      `TODO(fz): Add documentation` }
-  { Middle_Down    `TODO(fz): Add documentation` }
-  { Right_Down     `TODO(fz): Add documentation` }
-  { Left_Clicked   `TODO(fz): Add documentation` }
-  { Middle_Clicked `TODO(fz): Add documentation` }
-  { Right_Clicked  `TODO(fz): Add documentation` }
-  { Mouse_Hovered  `TODO(fz): Add documentation` }
-}
-@generate @h_file
-{
-  `typedef u32 UI_Signal_Flags;\n`
-  `enum\n{\n`
-  @foreach(UI_Signal_Flags_Table) `  UI_Signal_Flags_$(name) = (1 << $(@index)), /* $(documentation) */\n`
-  `};\n\n`
 }
 
 // NOTE(fz): Keep as last generator

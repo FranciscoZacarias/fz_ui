@@ -54,14 +54,6 @@ function b32  ui_stack_height_kind_is_at_bottom() { return ui_stack_is_at_bottom
 function void ui_stack_height_kind_assert_top_at(u32 at) { ui_stack_assert_top_at(height_kind, at); }
 #define ui_height_kind(val) DeferLoop(ui_stack_height_kind_push(val), ui_stack_height_kind_pop())
 
-function void ui_stack_clip_policy_init(UI_Clip_Policy_Kind bot_val) { ui_stack_init(clip_policy, bot_val); }
-function void ui_stack_clip_policy_push(UI_Clip_Policy_Kind val) { ui_stack_push(clip_policy, val); }
-function UI_Clip_Policy_Kind ui_stack_clip_policy_pop() { return ui_stack_pop(clip_policy); }
-function UI_Clip_Policy_Kind ui_stack_clip_policy_top() { return ui_stack_top(clip_policy); }
-function b32  ui_stack_clip_policy_is_at_bottom() { return ui_stack_is_at_bottom(clip_policy); }
-function void ui_stack_clip_policy_assert_top_at(u32 at) { ui_stack_assert_top_at(clip_policy, at); }
-#define ui_clip_policy(val) DeferLoop(ui_stack_clip_policy_push(val), ui_stack_clip_policy_pop())
-
 function void ui_stack_node_color_scheme_init(UI_Node_Color_Scheme bot_val) { ui_stack_init(node_color_scheme, bot_val); }
 function void ui_stack_node_color_scheme_push(UI_Node_Color_Scheme val) { ui_stack_push(node_color_scheme, val); }
 function UI_Node_Color_Scheme ui_stack_node_color_scheme_pop() { return ui_stack_pop(node_color_scheme); }

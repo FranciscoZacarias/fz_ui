@@ -108,9 +108,8 @@ function void ui_begin()
 
     String8 root_name = S("##__root__");
     UI_Node* root_widget = NULL;
-    ui_clip_policy(UI_Clip_Policy_Kind_Strict)
     {
-      UI_Node_Flags root_flags = 0;
+      UI_Node_Flags root_flags = UI_Node_Flags_Clip_Policy_Strict;
       root_widget = ui_node_from_string(root_name, root_flags);
       ui_context.root = root_widget;
       ui_context.root->depth = 1.0f;
@@ -242,71 +241,90 @@ ui_update_tree_nodes(UI_Node* node)
     return;
   }
 
-  UI_Node_Cache* cached_widget = ui_get_cached_node(node->hash);
-  cached_widget->accumulated_drag_offset = vec2f32_add(node->local_drag_offset, cached_widget->accumulated_drag_offset);
-
-  // Bounds
-  node->bounds.top_left = vec2f32_add(node->bounds.top_left, cached_widget->accumulated_drag_offset);
-  node->clip.top_left   = vec2f32_add(node->clip.top_left,   cached_widget->accumulated_drag_offset);
-
-  // Interaction
-  // -----------
+  if (node != ui_context.root)
   {
-    // Hover
-    if (HasFlags(node->flags, UI_Node_Flags_Hoverable))
+    UI_Node_Cache* cached_widget = ui_get_cached_node(node->hash);
+    cached_widget->accumulated_drag_offset = vec2f32_add(node->local_drag_offset, cached_widget->accumulated_drag_offset);
+
+    // Bounds
+    if (HasFlags(node->parent->flags, UI_Node_Flags_Clip_Policy_Strict))
     {
-      if (ui_context.hash_hot == node->hash)
+      Rectf32 parent_bounds = node->parent->bounds;
+      Rectf32 node_bounds   = node->bounds;
+      node_bounds.top_left  = vec2f32_add(node->bounds.top_left, cached_widget->accumulated_drag_offset);
+
+      Rectf32 parent_clip   = node->parent->clip;
+      Rectf32 node_clip     = node->clip;
+      node_clip.top_left    = vec2f32_add(node->clip.top_left,   cached_widget->accumulated_drag_offset);
+
+      node->bounds = ui_clamp_rect(parent_bounds, node_bounds);
+      node->clip   = ui_clamp_rect(parent_clip, node_clip);
+    }
+    else
+    {
+      node->bounds.top_left = vec2f32_add(node->bounds.top_left, cached_widget->accumulated_drag_offset);
+      node->clip.top_left   = vec2f32_add(node->clip.top_left,   cached_widget->accumulated_drag_offset);
+    }
+
+    // Interaction
+    // -----------
+    {
+      // Hover
+      if (HasFlags(node->flags, UI_Node_Flags_Hoverable))
       {
-        cached_widget->hover_t = Clamp(cached_widget->hover_t + g_delta_time * ui_context.animation_speed, 0, 1);
+        if (ui_context.hash_hot == node->hash)
+        {
+          cached_widget->hover_t = Clamp(cached_widget->hover_t + g_delta_time * ui_context.animation_speed, 0, 1);
+        }
+        else
+        {
+          cached_widget->hover_t = Clamp(cached_widget->hover_t - g_delta_time * ui_context.animation_speed, 0, 1);
+        }
       }
-      else
+
+      // Active
+      if (HasFlags(node->flags, UI_Node_Flags_Mouse_Clickable))
       {
-        cached_widget->hover_t = Clamp(cached_widget->hover_t - g_delta_time * ui_context.animation_speed, 0, 1);
+        if (ui_context.hash_active == node->hash)
+        {
+          cached_widget->active_t = Clamp(cached_widget->active_t + g_delta_time * ui_context.animation_speed, 0, 1);
+        }
+        else
+        {
+          cached_widget->active_t = Clamp(cached_widget->active_t - g_delta_time * ui_context.animation_speed, 0, 1);
+        }
       }
     }
 
-    // Active
-    if (HasFlags(node->flags, UI_Node_Flags_Mouse_Clickable))
+    // Style
+    // -----
+  #if 1
     {
-      if (ui_context.hash_active == node->hash)
-      {
-        cached_widget->active_t = Clamp(cached_widget->active_t + g_delta_time * ui_context.animation_speed, 0, 1);
-      }
-      else
-      {
-        cached_widget->active_t = Clamp(cached_widget->active_t - g_delta_time * ui_context.animation_speed, 0, 1);
-      }
+      Color border_color            = node->node_color_scheme.border_color;
+      Color background_color        = node->node_color_scheme.background_color;
+      Color background_hover_color  = node->node_color_scheme.background_hover_color;
+      Color background_active_color = node->node_color_scheme.background_active_color;
+      Color text_color              = node->node_color_scheme.text_color;
+      Color text_hover_color        = node->node_color_scheme.text_hover_color;
+      Color text_active_color       = node->node_color_scheme.text_active_color;
+
+      node->target_background_color = color_lerp(background_color, background_hover_color, cached_widget->hover_t);
+      node->target_background_color = color_lerp(node->target_background_color, background_active_color, cached_widget->active_t);
+      node->target_text_color = color_lerp(text_color, text_hover_color, cached_widget->hover_t);
+      node->target_text_color = color_lerp(node->target_text_color, text_active_color, cached_widget->active_t);
     }
-  }
+  #endif
 
-  // Style
-  // -----
-#if 1
-  {
-    Color border_color            = node->node_color_scheme.border_color;
-    Color background_color        = node->node_color_scheme.background_color;
-    Color background_hover_color  = node->node_color_scheme.background_hover_color;
-    Color background_active_color = node->node_color_scheme.background_active_color;
-    Color text_color              = node->node_color_scheme.text_color;
-    Color text_hover_color        = node->node_color_scheme.text_hover_color;
-    Color text_active_color       = node->node_color_scheme.text_active_color;
-
-    node->target_background_color = color_lerp(background_color, background_hover_color, cached_widget->hover_t);
-    node->target_background_color = color_lerp(node->target_background_color, background_active_color, cached_widget->active_t);
-    node->target_text_color = color_lerp(text_color, text_hover_color, cached_widget->hover_t);
-    node->target_text_color = color_lerp(node->target_text_color, text_active_color, cached_widget->active_t);
-  }
-#endif
-
-  // String
-  if (HasFlags(node->flags, UI_Node_Flags_Display_Text))
-  {
-    node->string_top_left = vec2f32_add(node->clip.top_left, node->cursor);
-    switch (node->alignment_kind)
+    // String
+    if (HasFlags(node->flags, UI_Node_Flags_Display_Text))
     {
-      case UI_Alignment_Kind_X: { node->cursor.x += node->string_dimensions.x; } break;
-      case UI_Alignment_Kind_Y: { node->cursor.y += node->string_dimensions.y; } break;
-      default: { ui_alignment_kind_not_handled(ui_context.arena, node->alignment_kind); } break;
+      node->string_top_left = vec2f32_add(node->clip.top_left, node->cursor);
+      switch (node->alignment_kind)
+      {
+        case UI_Alignment_Kind_X: { node->cursor.x += node->string_dimensions.x; } break;
+        case UI_Alignment_Kind_Y: { node->cursor.y += node->string_dimensions.y; } break;
+        default: { ui_alignment_kind_not_handled(ui_context.arena, node->alignment_kind); } break;
+      }
     }
   }
 
