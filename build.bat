@@ -7,14 +7,15 @@ set cl_default_flags=/Isrc /nologo /FC /Zi
 set external_include=/I"..\src\fz_std"
 set build_dir=build
 
-REM Parse args
+REM Args
 set arg=%1
-
-if "%arg%"==""    goto build_all
-if "%arg%"=="hph" goto build_hephaestus
-if "%arg%"=="ui"  goto build_ui
+if "%arg%"==""       set arg=ui
+if /I "%arg%"=="all" goto build_all
+if /I "%arg%"=="hph" goto build_hephaestus
+if /I "%arg%"=="ui"  goto build_ui
 goto end
 
+REM Targets
 :build_all
 call "%~f0" hph
 call "%~f0" ui

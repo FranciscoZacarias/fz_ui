@@ -39,28 +39,6 @@ struct UI_Color_Scheme
 global UI_Color_Scheme ui_color_scheme_dark;
 global UI_Color_Scheme ui_color_scheme_high_contrast;
 
-typedef enum
-{
-  UI_Alignment_Kind_None = 0,
-  UI_Alignment_Kind_X,
-  UI_Alignment_Kind_Y,
-  UI_Alignment_Kind_Floating,
-} UI_Alignment_Kind;
-
-typedef enum
-{
-  UI_Width_Kind_None = 0,
-  UI_Width_Kind_Fill,
-  UI_Width_Kind_Fixed
-} UI_Width_Kind;
-
-typedef enum
-{
-  UI_Height_Kind_None = 0,
-  UI_Height_Kind_Fill,
-  UI_Height_Kind_Fixed
-} UI_Height_Kind;
-
 typedef struct UI_Node UI_Node;
 struct UI_Node
 {
@@ -77,13 +55,8 @@ struct UI_Node
   Rectf32 bounds;  /* Container rectangle drawing bounds - Absolute values */
   Rectf32 clip;    /* Clipping rectangle for children - Absolute values */
   Vec2f32 cursor;  /* Next position to draw - Relative to node->clip */
-  f32 padding_x;
-  f32 padding_y;
-  f32 spacing_left;
-  f32 spacing_right;
-  f32 spacing_top;
-  f32 spacing_bottom;
   UI_Alignment_Kind alignment_kind;
+  UI_Clip_Policy_Kind clip_policy_kind; /* Behaviour of child nodes */
   f32 depth; /* Keeps track of that's in front. Smaller number means closer to the camera. 1 is root */
   UI_Node_Flags flags;
   Vec2f32 local_drag_offset; /* How much it was offseted this frame */
@@ -160,6 +133,8 @@ struct UI_Context
   } debug;
 };
 
+global u32 debug_color_index = 0;
+
 // Used as a bottom value for UI_Node stack, since bottom value is a pointer.
 read_only global UI_Node ui_node_nil_sentinel =
 {
@@ -194,15 +169,15 @@ function void      ui_apply_drag_offset(UI_Node* widget_root, Vec2f32 offset);
 
 // Helper
 function void           ui_render_widget(UI_Node* widget_root);
-function String8        ui_clean_string(Arena* arena, String8 string);
 function void           ui_debug_draw_node(UI_Node* widget, f32 depth);
+function String8        ui_clean_string(Arena* arena, String8 string);
 function Rectf32        ui_clamp_rect(Rectf32 parent, Rectf32 child);
 function b32            ui_is_mouse_in_node(UI_Node* node);
 function UI_Node_Cache* ui_get_cached_node(u64 hash);
 
 // Widget tree
 function void ui_add_widget_child(UI_Node *parent, UI_Node *child);
-function void ui_update_tree_nodes(UI_Node* widget_root);
+function void ui_update_tree_nodes(UI_Node* node);
 #define  ui_print_tree(root) ui_print_tree_impl(root, 0)
 function void ui_print_tree_impl(UI_Node* node, u32 depth);
 
