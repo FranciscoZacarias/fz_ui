@@ -23,9 +23,6 @@ UI_Node_Flags_Table
   { Hoverable                 `TODO(fz): Add documentation` }
 
   { Display_Text              `TODO(fz): Add documentation` }
-
-  { Clip_Policy_Strict        `TODO(fz): Add documentation` }
-  { Clip_Policy_Free          `TODO(fz): Add documentation` }
 }
 @generate @h_file
 {

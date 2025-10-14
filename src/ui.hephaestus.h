@@ -3,7 +3,7 @@
 
 /*
 
-@Hephaestus generated code 2025-October-14 18:08:00
+@Hephaestus generated code 2025-October-14 20:40:47
 
 */
 
@@ -14,8 +14,6 @@ enum
   UI_Node_Flags_Draggable = (1 << 1), /* TODO(fz): Add documentation */
   UI_Node_Flags_Hoverable = (1 << 2), /* TODO(fz): Add documentation */
   UI_Node_Flags_Display_Text = (1 << 3), /* TODO(fz): Add documentation */
-  UI_Node_Flags_Clip_Policy_Strict = (1 << 4), /* TODO(fz): Add documentation */
-  UI_Node_Flags_Clip_Policy_Free = (1 << 5), /* TODO(fz): Add documentation */
 };
 
 typedef u32 UI_Signal_Flags;

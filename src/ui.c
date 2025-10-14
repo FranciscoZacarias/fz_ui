@@ -109,7 +109,7 @@ function void ui_begin()
     String8 root_name = S("##__root__");
     UI_Node* root_widget = NULL;
     {
-      UI_Node_Flags root_flags = UI_Node_Flags_Clip_Policy_Strict;
+      UI_Node_Flags root_flags = 0;
       root_widget = ui_node_from_string(root_name, root_flags);
       ui_context.root = root_widget;
       ui_context.root->depth = 1.0f;
@@ -158,7 +158,9 @@ function void ui_end()
   r_draw_text(vec2f32(600, 110), 32, BLACK(1), Sf(ui_context.frame_arena, "hash_hot: %llu", ui_context.hash_hot), 0);
   r_draw_text(vec2f32(600, 140), 32, BLACK(1), Sf(ui_context.frame_arena, "hash_hot_depth: %.10f", ui_context.hash_hot_depth), 0);
   r_draw_text(vec2f32(600, 170), 32, BLACK(1), Sf(ui_context.frame_arena, "mouse delta: %.2f,%.2f", g_input.mouse_current.delta.x, g_input.mouse_current.delta.y), 0);
-  r_draw_text(vec2f32(600, 200), 32, BLACK(1), Sf(ui_context.frame_arena, "Frame: %d", g_frame_counter), 0);
+  r_draw_text(vec2f32(600, 200), 32, BLACK(1), Sf(ui_context.frame_arena, "mouse: %.2f,%.2f", g_input.mouse_current.screen_space.x, g_input.mouse_current.screen_space.y), 0);
+  r_draw_text(vec2f32(600, 230), 32, BLACK(1), Sf(ui_context.frame_arena, "Frame: %d", g_frame_counter), 0);
+
 
   if (input_is_key_clicked(&g_input, Keyboard_Key_K))
   {
@@ -247,24 +249,8 @@ ui_update_tree_nodes(UI_Node* node)
     cached_widget->accumulated_drag_offset = vec2f32_add(node->local_drag_offset, cached_widget->accumulated_drag_offset);
 
     // Bounds
-    if (HasFlags(node->parent->flags, UI_Node_Flags_Clip_Policy_Strict))
-    {
-      Rectf32 parent_bounds = node->parent->bounds;
-      Rectf32 node_bounds   = node->bounds;
-      node_bounds.top_left  = vec2f32_add(node->bounds.top_left, cached_widget->accumulated_drag_offset);
-
-      Rectf32 parent_clip   = node->parent->clip;
-      Rectf32 node_clip     = node->clip;
-      node_clip.top_left    = vec2f32_add(node->clip.top_left,   cached_widget->accumulated_drag_offset);
-
-      node->bounds = ui_clamp_rect(parent_bounds, node_bounds);
-      node->clip   = ui_clamp_rect(parent_clip, node_clip);
-    }
-    else
-    {
-      node->bounds.top_left = vec2f32_add(node->bounds.top_left, cached_widget->accumulated_drag_offset);
-      node->clip.top_left   = vec2f32_add(node->clip.top_left,   cached_widget->accumulated_drag_offset);
-    }
+    node->bounds.top_left = vec2f32_add(node->bounds.top_left, cached_widget->accumulated_drag_offset);
+    node->clip.top_left   = vec2f32_add(node->clip.top_left,   cached_widget->accumulated_drag_offset);
 
     // Interaction
     // -----------
@@ -298,7 +284,6 @@ ui_update_tree_nodes(UI_Node* node)
 
     // Style
     // -----
-  #if 1
     {
       Color border_color            = node->node_color_scheme.border_color;
       Color background_color        = node->node_color_scheme.background_color;
@@ -313,7 +298,6 @@ ui_update_tree_nodes(UI_Node* node)
       node->target_text_color = color_lerp(text_color, text_hover_color, cached_widget->hover_t);
       node->target_text_color = color_lerp(node->target_text_color, text_active_color, cached_widget->active_t);
     }
-  #endif
 
     // String
     if (HasFlags(node->flags, UI_Node_Flags_Display_Text))
@@ -703,7 +687,7 @@ ui_print_tree_impl(UI_Node *node, u32 depth)
   }
 
   UI_Node_Cache *cache = ui_get_cached_node(node->hash);
-  printf("Widget hash: %llu, Text: " S_FMT "\n", node->hash, S_ARG(node->string));
+  printf("Widget hash: %llu, Text: " S_FMT ", Top left: %.2f, %.2f\n", node->hash, S_ARG(node->string), node->bounds.top_left.x, node->bounds.top_left.y);
 
   // Children
   for (UI_Node *child = node->first; child; child = child->next)
