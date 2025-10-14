@@ -249,6 +249,55 @@ ui_update_tree_nodes(UI_Node* node)
   node->bounds.top_left = vec2f32_add(node->bounds.top_left, cached_widget->accumulated_drag_offset);
   node->clip.top_left   = vec2f32_add(node->clip.top_left,   cached_widget->accumulated_drag_offset);
 
+  // Interaction
+  // -----------
+  {
+    // Hover
+    if (HasFlags(node->flags, UI_Node_Flags_Hoverable))
+    {
+      if (ui_context.hash_hot == node->hash)
+      {
+        cached_widget->hover_t = Clamp(cached_widget->hover_t + g_delta_time * ui_context.animation_speed, 0, 1);
+      }
+      else
+      {
+        cached_widget->hover_t = Clamp(cached_widget->hover_t - g_delta_time * ui_context.animation_speed, 0, 1);
+      }
+    }
+
+    // Active
+    if (HasFlags(node->flags, UI_Node_Flags_Mouse_Clickable))
+    {
+      if (ui_context.hash_active == node->hash)
+      {
+        cached_widget->active_t = Clamp(cached_widget->active_t + g_delta_time * ui_context.animation_speed, 0, 1);
+      }
+      else
+      {
+        cached_widget->active_t = Clamp(cached_widget->active_t - g_delta_time * ui_context.animation_speed, 0, 1);
+      }
+    }
+  }
+
+  // Style
+  // -----
+#if 1
+  {
+    Color border_color            = node->node_color_scheme.border_color;
+    Color background_color        = node->node_color_scheme.background_color;
+    Color background_hover_color  = node->node_color_scheme.background_hover_color;
+    Color background_active_color = node->node_color_scheme.background_active_color;
+    Color text_color              = node->node_color_scheme.text_color;
+    Color text_hover_color        = node->node_color_scheme.text_hover_color;
+    Color text_active_color       = node->node_color_scheme.text_active_color;
+
+    node->target_background_color = color_lerp(background_color, background_hover_color, cached_widget->hover_t);
+    node->target_background_color = color_lerp(node->target_background_color, background_active_color, cached_widget->active_t);
+    node->target_text_color = color_lerp(text_color, text_hover_color, cached_widget->hover_t);
+    node->target_text_color = color_lerp(node->target_text_color, text_active_color, cached_widget->active_t);
+  }
+#endif
+
   // String
   if (HasFlags(node->flags, UI_Node_Flags_Display_Text))
   {
@@ -317,7 +366,8 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   node->hash              = parent->hash ^ string8_hash(string);
   node->local_drag_offset = vec2f32(0,0);
   node->flags             = flags;
-  node->depth             = (parent) ? (parent->depth - F32_EPSILON) : 1.0f;
+  node->depth             = (node != ui_context.root) ? (parent->depth - F32_EPSILON) : 1.0f;
+  node->node_color_scheme = ui_stack_node_color_scheme_top();
 
   // Bounds & Clip
   // -------------
@@ -369,7 +419,6 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   // Interaction
   // -----------
   {
-#if 0
     // Input
     if (ui_is_mouse_in_node(node))
     {
@@ -390,32 +439,6 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
       ui_context.hash_active_depth = 1.0f;
     }
 
-    // Hover
-    if (HasFlags(node->flags, UI_Node_Flags_Hoverable))
-    {
-      if (ui_is_mouse_in_node(node))
-      {
-        cached_widget->hover_t = Clamp(cached_widget->hover_t + g_delta_time * ui_context.animation_speed, 0, 1);
-      }
-      else
-      {
-        cached_widget->hover_t = Clamp(cached_widget->hover_t - g_delta_time * ui_context.animation_speed, 0, 1);
-      }
-    }
-
-    // Active
-    if (HasFlags(node->flags, UI_Node_Flags_Mouse_Clickable))
-    {
-      if (ui_context.hash_active == node->hash)
-      {
-        cached_widget->active_t = Clamp(cached_widget->active_t + g_delta_time * ui_context.animation_speed, 0, 1);
-      }
-      else
-      {
-        cached_widget->active_t = Clamp(cached_widget->active_t - g_delta_time * ui_context.animation_speed, 0, 1);
-      }
-    }
-
     // Dragging
     if (ui_context.hash_active == node->hash)
     {
@@ -424,25 +447,6 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
         node->local_drag_offset = g_input.mouse_current.delta;
       }
     }
-#endif
-  }
-
-  // Style
-  // -----
-  {
-    node->node_color_scheme     = ui_stack_node_color_scheme_top();
-    Color border_color            = node->node_color_scheme.border_color;
-    Color background_color        = node->node_color_scheme.background_color;
-    Color background_hover_color  = node->node_color_scheme.background_hover_color;
-    Color background_active_color = node->node_color_scheme.background_active_color;
-    Color text_color              = node->node_color_scheme.text_color;
-    Color text_hover_color        = node->node_color_scheme.text_hover_color;
-    Color text_active_color       = node->node_color_scheme.text_active_color;
-
-    node->target_background_color = color_lerp(background_color, background_hover_color, cached_widget->hover_t);
-    node->target_background_color = color_lerp(node->target_background_color, background_active_color, cached_widget->active_t);
-    node->target_text_color = color_lerp(text_color, text_hover_color, cached_widget->hover_t);
-    node->target_text_color = color_lerp(node->target_text_color, text_active_color, cached_widget->active_t);
   }
 
   return node;
