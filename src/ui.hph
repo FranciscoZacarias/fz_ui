@@ -11,18 +11,20 @@
 @generate @h_file
 {
   `#ifndef UI_HEPHAESTUS_H\n#define UI_HEPHAESTUS_H\n\n`
-  `/*\n\n@Hephaestus generated code $(@time_now)\n\n*/\n\n`
+  `/*\n@Hephaestus generated code\n*/\n\n`
 }
 
 @table
 UI_Node_Flags_Table
   (name documentation)
 {
-  { Mouse_Clickable           `TODO(fz): Add documentation` }
-  { Draggable                 `TODO(fz): Add documentation` }
-  { Hoverable                 `TODO(fz): Add documentation` }
+  { Mouse_Clickable           `Makes this node emit a signal when clicked` }
+  { Draggable                 `Makes this node emit a signal when dragged` }
+  { Hoverable                 `Makes this node emit a signal when hovered` }
 
-  { Display_Text              `TODO(fz): Add documentation` }
+  { Text_Display              `The UI_Node will display the text on the cursor's position and skip the cursor relative to UI_Alignment_Kind` }
+  { Text_Center_X             `If text is displayed, centers the text horizontally in the node` }
+  { Text_Center_Y             `If text is displayed, centers the text vertically in the node` }
 }
 @generate @h_file
 {
@@ -54,9 +56,9 @@ UI_Signal_Flags_Table
 
 @table UI_Alignment_Kind_Table (kind documentation)
 {
-  { X        `TODO(fz): Add documentation` }
-  { Y        `TODO(fz): Add documentation` }
-  { Floating `TODO(fz): Add documentation` }
+  { X        `After a node is placed, the cursor is moved horizontally by the width of the node` }
+  { Y        `After a node is placed, the cursor is moved vertically by the height of the node` }
+  { Floating `Next nodes will be placed on top of the current node` }
 }
 @generate @h_file
 {
@@ -71,8 +73,8 @@ UI_Signal_Flags_Table
 
 @table UI_Width_Kind_Table (kind documentation)
 {
-  { Fill  `TODO(fz): Add documentation` }
-  { Fixed `TODO(fz): Add documentation` }
+  { Fill  `Will fill the available width of the node` }
+  { Fixed `Width is determined by the top value on Size_Fixed_X stack` }
 }
 @generate @h_file
 {
@@ -87,8 +89,8 @@ UI_Signal_Flags_Table
 
 @table UI_Height_Kind_Table (kind documentation)
 {
-  { Fill  `TODO(fz): Add documentation` }
-  { Fixed `TODO(fz): Add documentation` }
+  { Fill  `Will fill the available height of the node` }
+  { Fixed `Height is determined by the top value on Size_Fixed_Y stack` }
 }
 @generate @h_file
 {
@@ -106,16 +108,18 @@ Stack_Table
   (name_upper               name_lower                 type                   default_value                     max debug_bottom_expected)
 {
   { Parent                  parent                     UI_Node*               &ui_node_nil_sentinel             32  1 }
+  
   { Top_Left                top_left                   Vec2f32               `vec2f32(0.0f, 0.0f)`              32  0 }
-  // TODO(fz): Test
-  { Size_X                  size_x                     f32                    g_os_window.dimensions.x          32  0 }
-  // TODO(fz): Test
-  { Size_Y                  size_y                     f32                    g_os_window.dimensions.y          32  0 }
+  
+  { Size_Fixed_X            size_fixed_x               f32                    g_os_window.dimensions.x          32  0 }
+  { Size_Fixed_Y            size_fixed_y               f32                    g_os_window.dimensions.y          32  0 }
+
   { Alignment_Kind          alignment_kind             UI_Alignment_Kind      UI_Alignment_Kind_Y               32  0 }
   // TODO(fz): Test
   { Width_Kind              width_kind                 UI_Width_Kind          UI_Width_Kind_Fill                32  0 }
   // TODO(fz): Test
   { Height_Kind             height_kind                UI_Height_Kind         UI_Height_Kind_Fill               32  0 }
+  
   { Node_Color_Scheme       node_color_scheme          UI_Node_Color_Scheme   ui_context.color_scheme.window    32  0 }
 }
 @generate @h_file

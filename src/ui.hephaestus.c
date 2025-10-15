@@ -14,21 +14,21 @@ function b32  ui_stack_top_left_is_at_bottom() { return ui_stack_is_at_bottom(to
 function void ui_stack_top_left_assert_top_at(u32 at) { ui_stack_assert_top_at(top_left, at); }
 #define ui_top_left(val) DeferLoop(ui_stack_top_left_push(val), ui_stack_top_left_pop())
 
-function void ui_stack_size_x_init(f32 bot_val) { ui_stack_init(size_x, bot_val); }
-function void ui_stack_size_x_push(f32 val) { ui_stack_push(size_x, val); }
-function f32 ui_stack_size_x_pop() { return ui_stack_pop(size_x); }
-function f32 ui_stack_size_x_top() { return ui_stack_top(size_x); }
-function b32  ui_stack_size_x_is_at_bottom() { return ui_stack_is_at_bottom(size_x); }
-function void ui_stack_size_x_assert_top_at(u32 at) { ui_stack_assert_top_at(size_x, at); }
-#define ui_size_x(val) DeferLoop(ui_stack_size_x_push(val), ui_stack_size_x_pop())
+function void ui_stack_size_fixed_x_init(f32 bot_val) { ui_stack_init(size_fixed_x, bot_val); }
+function void ui_stack_size_fixed_x_push(f32 val) { ui_stack_push(size_fixed_x, val); }
+function f32 ui_stack_size_fixed_x_pop() { return ui_stack_pop(size_fixed_x); }
+function f32 ui_stack_size_fixed_x_top() { return ui_stack_top(size_fixed_x); }
+function b32  ui_stack_size_fixed_x_is_at_bottom() { return ui_stack_is_at_bottom(size_fixed_x); }
+function void ui_stack_size_fixed_x_assert_top_at(u32 at) { ui_stack_assert_top_at(size_fixed_x, at); }
+#define ui_size_fixed_x(val) DeferLoop(ui_stack_size_fixed_x_push(val), ui_stack_size_fixed_x_pop())
 
-function void ui_stack_size_y_init(f32 bot_val) { ui_stack_init(size_y, bot_val); }
-function void ui_stack_size_y_push(f32 val) { ui_stack_push(size_y, val); }
-function f32 ui_stack_size_y_pop() { return ui_stack_pop(size_y); }
-function f32 ui_stack_size_y_top() { return ui_stack_top(size_y); }
-function b32  ui_stack_size_y_is_at_bottom() { return ui_stack_is_at_bottom(size_y); }
-function void ui_stack_size_y_assert_top_at(u32 at) { ui_stack_assert_top_at(size_y, at); }
-#define ui_size_y(val) DeferLoop(ui_stack_size_y_push(val), ui_stack_size_y_pop())
+function void ui_stack_size_fixed_y_init(f32 bot_val) { ui_stack_init(size_fixed_y, bot_val); }
+function void ui_stack_size_fixed_y_push(f32 val) { ui_stack_push(size_fixed_y, val); }
+function f32 ui_stack_size_fixed_y_pop() { return ui_stack_pop(size_fixed_y); }
+function f32 ui_stack_size_fixed_y_top() { return ui_stack_top(size_fixed_y); }
+function b32  ui_stack_size_fixed_y_is_at_bottom() { return ui_stack_is_at_bottom(size_fixed_y); }
+function void ui_stack_size_fixed_y_assert_top_at(u32 at) { ui_stack_assert_top_at(size_fixed_y, at); }
+#define ui_size_fixed_y(val) DeferLoop(ui_stack_size_fixed_y_push(val), ui_stack_size_fixed_y_pop())
 
 function void ui_stack_alignment_kind_init(UI_Alignment_Kind bot_val) { ui_stack_init(alignment_kind, bot_val); }
 function void ui_stack_alignment_kind_push(UI_Alignment_Kind val) { ui_stack_push(alignment_kind, val); }

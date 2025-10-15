@@ -89,7 +89,7 @@ function void ui_init()
     ui_context.debug.show_bounds  = true;
     ui_context.debug.show_clip    = false;
     ui_context.debug.show_cursor  = true;
-    ui_context.debug.print_widget_tree = false;
+    ui_context.debug.print_node_tree   = false;
     ui_context.debug.show_text_borders = true;
 
     Vec2s32 window_size = g_os_window.dimensions;
@@ -102,16 +102,16 @@ function void ui_begin()
 {
   ui_context.is_working = true;
 
-  // Window widget
+  // Window Node
   {
     ui_context.root = push_array(ui_context.frame_arena, UI_Node, 1);
 
     String8 root_name = S("##__root__");
-    UI_Node* root_widget = NULL;
+    UI_Node* root_node = NULL;
     {
       UI_Node_Flags root_flags = 0;
-      root_widget = ui_node_from_string(root_name, root_flags);
-      ui_context.root = root_widget;
+      root_node = ui_node_from_string(root_name, root_flags);
+      ui_context.root = root_node;
       ui_context.root->depth = 1.0f;
       ui_stack_parent_push(ui_context.root);
     }
@@ -151,7 +151,7 @@ function void ui_end()
   }
 #endif
 
-  ui_render_widget(ui_context.root);
+  ui_render_ui_tree(ui_context.root);
 
   r_draw_text(vec2f32(600, 50),  32, BLACK(1), Sf(ui_context.frame_arena, "hash_active: %llu", ui_context.hash_active), 0);
   r_draw_text(vec2f32(600, 80),  32, BLACK(1), Sf(ui_context.frame_arena, "hash_active_depth: %.10f", ui_context.hash_active_depth), 0);
@@ -185,23 +185,24 @@ function void ui_end()
 }
 
 function void
-ui_render_widget(UI_Node* widget_root)
+ui_render_ui_tree(UI_Node* node)
 {
-  if (ui_context.root != widget_root)
+  if (ui_context.root != node)
   {
-    r_draw_quad(widget_root->bounds.top_left, widget_root->bounds.size, 0, widget_root->target_background_color, widget_root->depth);
-    if (HasFlags(widget_root->flags, UI_Node_Flags_Display_Text))
+    r_draw_quad(node->bounds.top_left, node->bounds.size, 0, node->target_background_color, node->depth);
+    if (HasFlags(node->flags, UI_Node_Flags_Text_Display))
     {
-      f32 clamp_width  = (widget_root->clip.top_left.x + widget_root->clip.size.x) - widget_root->string_top_left.x;
-      f32 clamp_height = (widget_root->clip.top_left.y + widget_root->clip.size.y) - widget_root->string_top_left.y;
-      r_draw_text_clamped(widget_root->string_top_left, ui_context.text_pixel_height, widget_root->target_text_color, widget_root->string_clean, widget_root->depth - F32_EPSILON, clamp_width, clamp_height);
+      node->string_top_left = vec2f32_add(node->clip.top_left, node->string_top_left); // Converts node->string_top_left from relative to absolute
+      f32 clamp_width  = (node->clip.top_left.x + node->clip.size.x) - node->string_top_left.x;
+      f32 clamp_height = (node->clip.top_left.y + node->clip.size.y) - node->string_top_left.y;
+      r_draw_text_clamped(node->string_top_left, ui_context.text_pixel_height, node->target_text_color, node->string_clean, node->depth - F32_EPSILON, clamp_width, clamp_height);
     }
-    ui_debug_draw_node(widget_root, widget_root->depth);
+    ui_debug_draw_node(node, node->depth);
   }
 
-  for (UI_Node *child = widget_root->first; child; child = child->next)
+  for (UI_Node *child = node->first; child; child = child->next)
   {
-    ui_render_widget(child);
+    ui_render_ui_tree(child);
   }
 }
 
@@ -224,12 +225,13 @@ ui_window_begin(String8 text)
   UI_Signal title_bar_signal = (UI_Signal){0};
   ui_node_color_scheme(ui_context.color_scheme.title_bar)
   ui_alignment_kind(UI_Alignment_Kind_X)
-  ui_size_y(20.0f)
+  ui_size_fixed_y(20.0f)
   {
     UI_Node_Flags title_bar_flags = UI_Node_Flags_Mouse_Clickable |
                                     UI_Node_Flags_Hoverable       |
                                     UI_Node_Flags_Draggable       |
-                                    UI_Node_Flags_Display_Text;
+                                    UI_Node_Flags_Text_Display    |
+                                    UI_Node_Flags_Text_Center_X   | UI_Node_Flags_Text_Center_Y;
     String8 window_title_bar_text = Sf(ui_context.frame_arena, ""S_FMT"##_title_bar_", S_ARG(text));
     title_bar_signal.node = ui_node_from_string(window_title_bar_text, title_bar_flags);
   }
@@ -245,12 +247,12 @@ ui_update_tree_nodes(UI_Node* node)
 
   if (node != ui_context.root)
   {
-    UI_Node_Cache* cached_widget = ui_get_cached_node(node->hash);
-    cached_widget->accumulated_drag_offset = vec2f32_add(node->local_drag_offset, cached_widget->accumulated_drag_offset);
+    UI_Node_Cache* cached_node = ui_get_cached_node(node->hash);
+    cached_node->accumulated_drag_offset = vec2f32_add(node->local_drag_offset, cached_node->accumulated_drag_offset);
 
     // Bounds
-    node->bounds.top_left = vec2f32_add(node->bounds.top_left, cached_widget->accumulated_drag_offset);
-    node->clip.top_left   = vec2f32_add(node->clip.top_left,   cached_widget->accumulated_drag_offset);
+    node->bounds.top_left = vec2f32_add(node->bounds.top_left, cached_node->accumulated_drag_offset);
+    node->clip.top_left   = vec2f32_add(node->clip.top_left,   cached_node->accumulated_drag_offset);
 
     // Interaction
     // -----------
@@ -260,11 +262,11 @@ ui_update_tree_nodes(UI_Node* node)
       {
         if (ui_context.hash_hot == node->hash)
         {
-          cached_widget->hover_t = Clamp(cached_widget->hover_t + g_delta_time * ui_context.animation_speed, 0, 1);
+          cached_node->hover_t = Clamp(cached_node->hover_t + g_delta_time * ui_context.animation_speed, 0, 1);
         }
         else
         {
-          cached_widget->hover_t = Clamp(cached_widget->hover_t - g_delta_time * ui_context.animation_speed, 0, 1);
+          cached_node->hover_t = Clamp(cached_node->hover_t - g_delta_time * ui_context.animation_speed, 0, 1);
         }
       }
 
@@ -273,11 +275,11 @@ ui_update_tree_nodes(UI_Node* node)
       {
         if (ui_context.hash_active == node->hash)
         {
-          cached_widget->active_t = Clamp(cached_widget->active_t + g_delta_time * ui_context.animation_speed, 0, 1);
+          cached_node->active_t = Clamp(cached_node->active_t + g_delta_time * ui_context.animation_speed, 0, 1);
         }
         else
         {
-          cached_widget->active_t = Clamp(cached_widget->active_t - g_delta_time * ui_context.animation_speed, 0, 1);
+          cached_node->active_t = Clamp(cached_node->active_t - g_delta_time * ui_context.animation_speed, 0, 1);
         }
       }
     }
@@ -293,16 +295,16 @@ ui_update_tree_nodes(UI_Node* node)
       Color text_hover_color        = node->node_color_scheme.text_hover_color;
       Color text_active_color       = node->node_color_scheme.text_active_color;
 
-      node->target_background_color = color_lerp(background_color, background_hover_color, cached_widget->hover_t);
-      node->target_background_color = color_lerp(node->target_background_color, background_active_color, cached_widget->active_t);
-      node->target_text_color = color_lerp(text_color, text_hover_color, cached_widget->hover_t);
-      node->target_text_color = color_lerp(node->target_text_color, text_active_color, cached_widget->active_t);
+      node->target_background_color = color_lerp(background_color, background_hover_color, cached_node->hover_t);
+      node->target_background_color = color_lerp(node->target_background_color, background_active_color, cached_node->active_t);
+      node->target_text_color = color_lerp(text_color, text_hover_color, cached_node->hover_t);
+      node->target_text_color = color_lerp(node->target_text_color, text_active_color, cached_node->active_t);
     }
 
     // String
-    if (HasFlags(node->flags, UI_Node_Flags_Display_Text))
+    if (HasFlags(node->flags, UI_Node_Flags_Text_Display))
     {
-      node->string_top_left = vec2f32_add(node->clip.top_left, node->cursor);
+      node->cursor = vec2f32_add(node->cursor, node->string_top_left);
       switch (node->alignment_kind)
       {
         case UI_Alignment_Kind_X: { node->cursor.x += node->string_dimensions.x; } break;
@@ -328,7 +330,7 @@ ui_window_end()
     ui_apply_drag_offset(node, offset);
   }
   ui_update_tree_nodes(node);
-  if (ui_context.debug.print_widget_tree)
+  if (ui_context.debug.print_node_tree)
   {
     ui_print_tree_impl(node, 0);
   }
@@ -347,23 +349,23 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
     emit_fatal(S("UI: Not within ui_begin and ui_end"));
   }
 
-  UI_Node* node = push_array(ui_context.frame_arena, UI_Node, 1);
   UI_Node* parent = ui_stack_parent_top();
+  UI_Node* node = push_array(ui_context.frame_arena, UI_Node, 1);
 
   if (parent == &ui_node_nil_sentinel)
   {
     // If we're the ui_context.root (screen)
     // We simulate a parent with the same values as screen just so it goes through this iteration
     parent = push_array(ui_context.frame_arena, UI_Node, 1);
-    parent->bounds.top_left = ui_stack_top_left_top();
-    parent->bounds.size     = vec2f32(ui_stack_size_x_top(), ui_stack_size_y_top());
+    parent->bounds.top_left = vec2f32(0,0);
+    parent->bounds.size     = vec2f32(g_os_window.dimensions.x, g_os_window.dimensions.y);
     parent->clip            = parent->bounds;
     parent->depth           = 1.0f;
     ui_context.root         = node;
   }
 
-  ui_add_widget_child(parent, node);
-  UI_Node_Cache* cached_widget = ui_get_cached_node(node->hash);
+  UI_Node_Cache* cached_node = ui_get_cached_node(node->hash);
+  ui_add_node_child(parent, node);
 
   node->hash              = parent->hash ^ string8_hash(string);
   node->local_drag_offset = vec2f32(0,0);
@@ -374,8 +376,8 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   // Bounds & Clip
   // -------------
   node->bounds.top_left = ui_stack_top_left_top();
-  f32 size_x = ui_stack_size_x_top(); 
-  f32 size_y = ui_stack_size_y_top(); 
+  f32 size_x = ui_stack_size_fixed_x_top(); 
+  f32 size_y = ui_stack_size_fixed_y_top(); 
   node->bounds.size = vec2f32(size_x, size_y);
   node->bounds = ui_clamp_rect(parent->clip, node->bounds);
 
@@ -417,6 +419,18 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   node->string_clean      = ui_clean_string(ui_context.frame_arena, string);
   node->string_dimensions = r_text_dimensions(node->string_clean, ui_context.text_pixel_height);
   node->string_top_left   = vec2f32(0,0);
+  if (HasFlags(node->flags, UI_Node_Flags_Text_Center_Y))
+  {
+    f32 center_y = node->clip.size.y * 0.5f;
+    f32 string_half_h = node->string_dimensions.y * 0.5f;
+    node->string_top_left.y = center_y - string_half_h;
+  }
+  if (HasFlags(node->flags, UI_Node_Flags_Text_Center_X))
+  {
+    f32 center_x = node->clip.size.x * 0.5f;
+    f32 string_half_w = node->string_dimensions.x * 0.5f;
+    node->string_top_left.x = center_x - string_half_w;
+  }
 
   // Interaction
   // -----------
@@ -519,7 +533,7 @@ ui_debug_draw_node(UI_Node* node, f32 depth)
 
   if (ui_context.debug.show_text_borders)
   {
-    if (HasFlags(node->flags, UI_Node_Flags_Display_Text))
+    if (HasFlags(node->flags, UI_Node_Flags_Text_Display))
     {
       r_draw_box(node->string_top_left, node->string_dimensions, color, 0);
     }
@@ -556,10 +570,10 @@ ui_clamp_rect(Rectf32 parent, Rectf32 child)
 function b32
 ui_is_mouse_in_node(UI_Node* node)
 {
-  UI_Node_Cache* cached_widget = ui_get_cached_node(node->hash);
+  UI_Node_Cache* cached_node = ui_get_cached_node(node->hash);
 
   Rectf32 bounds = node->bounds;
-  bounds.top_left = vec2f32_add(node->bounds.top_left, cached_widget->accumulated_drag_offset);
+  bounds.top_left = vec2f32_add(node->bounds.top_left, cached_node->accumulated_drag_offset);
 
   Vec2f32 mouse = g_input.mouse_current.screen_space;
   b32 result = (mouse.x >= bounds.top_left.x && mouse.x <= bounds.top_left.x + bounds.size.x &&
@@ -580,25 +594,25 @@ ui_get_cached_node(u64 hash)
 
   if (ui_cached_nodes_count >= UI_MAX_CACHED_NODES)
   {
-    emit_fatal(S("UI: Too many widgets"));
+    emit_fatal(S("UI: Too many UI_Nodes"));
   }
 
-  UI_Node_Cache* cached_widget = &ui_cached_nodes[ui_cached_nodes_count];
+  UI_Node_Cache* cached_node = &ui_cached_nodes[ui_cached_nodes_count];
 
-  cached_widget->hash = hash;
-  cached_widget->hash = hash;
-  cached_widget->accumulated_drag_offset = vec2f32(0,0);
-  cached_widget->hover_t = 0;
-  cached_widget->active_t = 0;
+  cached_node->hash = hash;
+  cached_node->hash = hash;
+  cached_node->accumulated_drag_offset = vec2f32(0,0);
+  cached_node->hover_t = 0;
+  cached_node->active_t = 0;
 
   ui_cached_nodes_count += 1;
 
-  return cached_widget;
+  return cached_node;
 }
 
-// Widget tree
+// Node tree
 function void
-ui_add_widget_child(UI_Node *parent, UI_Node *child)
+ui_add_node_child(UI_Node *parent, UI_Node *child)
 {
   if (parent == &ui_node_nil_sentinel)
   {
@@ -629,17 +643,17 @@ ui_add_widget_child(UI_Node *parent, UI_Node *child)
 }
 
 function b32
-ui_find_first_drag_offset(UI_Node* widget_root, Vec2f32* out_offset)
+ui_find_first_drag_offset(UI_Node* node, Vec2f32* out_offset)
 {
   b32 result = false;
-  if (HasFlags(widget_root->flags, UI_Node_Flags_Draggable) && ui_context.hash_active == widget_root->hash)
+  if (HasFlags(node->flags, UI_Node_Flags_Draggable) && ui_context.hash_active == node->hash)
   {
-    *out_offset = widget_root->local_drag_offset;
+    *out_offset = node->local_drag_offset;
     result = true;
   }
   else
   {
-    for (UI_Node* child = widget_root->first; child; child = child->next)
+    for (UI_Node* child = node->first; child; child = child->next)
     {
       if (HasFlags(child->flags, UI_Node_Flags_Draggable) && ui_context.hash_active == child->hash)
       {
@@ -658,10 +672,10 @@ ui_find_first_drag_offset(UI_Node* widget_root, Vec2f32* out_offset)
 }
 
 function void
-ui_apply_drag_offset(UI_Node* widget_root, Vec2f32 offset)
+ui_apply_drag_offset(UI_Node* node, Vec2f32 offset)
 {
-  widget_root->local_drag_offset = offset;
-  for (UI_Node* child = widget_root->first; child; child = child->next)
+  node->local_drag_offset = offset;
+  for (UI_Node* child = node->first; child; child = child->next)
   {
     ui_apply_drag_offset(child, offset);
   }
@@ -687,7 +701,7 @@ ui_print_tree_impl(UI_Node *node, u32 depth)
   }
 
   UI_Node_Cache *cache = ui_get_cached_node(node->hash);
-  printf("Widget hash: %llu, Text: " S_FMT ", Top left: %.2f, %.2f\n", node->hash, S_ARG(node->string), node->bounds.top_left.x, node->bounds.top_left.y);
+  printf("Node hash: %llu, Text: " S_FMT ", Top left: %.2f, %.2f\n", node->hash, S_ARG(node->string), node->bounds.top_left.x, node->bounds.top_left.y);
 
   // Children
   for (UI_Node *child = node->first; child; child = child->next)

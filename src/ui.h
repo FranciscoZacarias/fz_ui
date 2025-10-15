@@ -42,14 +42,14 @@ global UI_Color_Scheme ui_color_scheme_high_contrast;
 typedef struct UI_Node UI_Node;
 struct UI_Node
 {
-  u64 hash;
-
   // Node tree
   UI_Node* first; /* First child */
   UI_Node* last;  /* Last child */
   UI_Node* next;  /* Next child, after current node */
   UI_Node* previous; /* Previous child, before current node */
   UI_Node* parent;   /* Parent of current node */
+
+  u64 hash;
 
   // Node Settings
   Rectf32 bounds;  /* Container rectangle drawing bounds - Absolute values */
@@ -68,8 +68,8 @@ struct UI_Node
   // String stuff
   String8 string;
   String8 string_clean;
-  Vec2f32 string_top_left;
-  Vec2f32 string_dimensions;
+  Vec2f32 string_top_left; /* Relative to cursor */
+  Vec2f32 string_dimensions; 
   f32 text_pixel_height;
 };
 
@@ -127,7 +127,7 @@ struct UI_Context
     b32 show_bounds : 1;
     b32 show_clip   : 1;
     b32 show_cursor : 1;
-    b32 print_widget_tree: 1;
+    b32 print_node_tree: 1;
     b32 show_text_borders: 1;
   } debug;
 };
@@ -137,7 +137,6 @@ global u32 debug_color_index = 0;
 // Used as a bottom value for UI_Node stack, since bottom value is a pointer.
 read_only global UI_Node ui_node_nil_sentinel =
 {
-  .hash     = 0,
   .first    = &ui_node_nil_sentinel,
   .last     = &ui_node_nil_sentinel,
   .next     = &ui_node_nil_sentinel,
@@ -160,14 +159,13 @@ function void ui_window_end();
 
 // Builder code
 // -------------------
-
 function UI_Node*  ui_node_from_string(String8 string, UI_Node_Flags flags);
 function void      ui_fill_signals_from_node(UI_Signal* signal); /* Signal in argument must contain the node already attached to it */
 function b32       ui_find_first_drag_offset(UI_Node* widget_root, Vec2f32* out_offset);
 function void      ui_apply_drag_offset(UI_Node* widget_root, Vec2f32 offset);
 
 // Helper
-function void           ui_render_widget(UI_Node* widget_root);
+function void           ui_render_ui_tree(UI_Node* widget_root);
 function void           ui_debug_draw_node(UI_Node* widget, f32 depth);
 function String8        ui_clean_string(Arena* arena, String8 string);
 function Rectf32        ui_clamp_rect(Rectf32 parent, Rectf32 child);
@@ -175,7 +173,7 @@ function b32            ui_is_mouse_in_node(UI_Node* node);
 function UI_Node_Cache* ui_get_cached_node(u64 hash);
 
 // Widget tree
-function void ui_add_widget_child(UI_Node *parent, UI_Node *child);
+function void ui_add_node_child(UI_Node *parent, UI_Node *child);
 function void ui_update_tree_nodes(UI_Node* node);
 #define  ui_print_tree(root) ui_print_tree_impl(root, 0)
 function void ui_print_tree_impl(UI_Node* node, u32 depth);
