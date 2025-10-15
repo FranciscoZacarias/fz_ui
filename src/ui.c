@@ -87,9 +87,9 @@ function void ui_init()
     ui_context.color_scheme      = ui_color_scheme_high_contrast;
 
     ui_context.debug.show_bounds  = true;
-    ui_context.debug.show_clip    = false;
+    ui_context.debug.show_clip    = true;
     ui_context.debug.show_cursor  = true;
-    ui_context.debug.print_node_tree   = true;
+    ui_context.debug.print_node_tree   = false;
     ui_context.debug.show_text_borders = true;
 
     Vec2s32 window_size = g_os_window.dimensions;
@@ -306,17 +306,21 @@ ui_window_begin(String8 text)
   }
 
   UI_Signal title_bar_signal = (UI_Signal){0};
-  ui_node_color_scheme(ui_context.color_scheme.title_bar)
-  ui_alignment_kind(UI_Alignment_Kind_X)
-  ui_size_fixed_y(30.0f)
   {
-    UI_Node_Flags title_bar_flags = UI_Node_Flags_Mouse_Clickable |
-                                    UI_Node_Flags_Hoverable       |
-                                    UI_Node_Flags_Draggable       |
-                                    UI_Node_Flags_Text_Display    |
-                                    UI_Node_Flags_Text_Center_Y;
-    String8 window_title_bar_text = Sf(ui_context.frame_arena, ""S_FMT"##_title_bar_", S_ARG(text));
-    title_bar_signal.node = ui_node_from_string(window_title_bar_text, title_bar_flags);
+    ui_node_color_scheme(ui_context.color_scheme.title_bar)
+    ui_alignment_kind(UI_Alignment_Kind_X)
+    ui_padding_fixed(4)
+    ui_size_kind(UI_Size_Kind_Relative)
+    ui_size_relative_x(1) ui_size_relative_y(0.1)
+    {
+      UI_Node_Flags title_bar_flags = UI_Node_Flags_Mouse_Clickable |
+                                      UI_Node_Flags_Hoverable       |
+                                      UI_Node_Flags_Draggable       |
+                                      UI_Node_Flags_Text_Display    |
+                                      UI_Node_Flags_Text_Center_Y;
+      String8 window_title_bar_text = Sf(ui_context.frame_arena, ""S_FMT"##_title_bar_", S_ARG(text));
+      title_bar_signal.node = ui_node_from_string(window_title_bar_text, title_bar_flags);
+    }
   }
 }
 
@@ -413,9 +417,31 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
 
   // Bounds & Clip
   // -------------
-  f32 size_x = ui_stack_size_fixed_x_top(); 
-  f32 size_y = ui_stack_size_fixed_y_top(); 
-  node->bounds.size     = vec2f32(size_x, size_y);
+  
+  f32 size_x = 0;
+  f32 size_y = 0;
+
+  UI_Size_Kind size_kind = ui_stack_size_kind_top();
+  switch (size_kind)
+  {
+    case UI_Size_Kind_Fixed:
+    {
+      size_x = ui_stack_size_fixed_x_top(); 
+      size_y = ui_stack_size_fixed_y_top(); 
+    } break;
+    case UI_Size_Kind_Relative:
+    {
+      size_x = (parent->bounds.size.x * ui_stack_size_relative_x_top());
+      size_y = (parent->bounds.size.y * ui_stack_size_relative_y_top() * (0.05 * Clamp(ui_context.text_pixel_height, 14, 100)));
+    } break;
+    default:
+    {
+      ui_size_kind_not_handled(ui_context.arena, size_kind);
+    } break;
+  }
+
+  node->bounds.size = vec2f32(size_x, size_y);
+  
   // If this is a node that we are placing on top of the root, we receive the stack top_left value.
   // If not, we just inherit the parent's top_left
   Vec2f32 top_left = (parent != ui_context.root) ? parent->bounds.top_left : ui_stack_top_left_top();
@@ -425,7 +451,26 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   Rectf32 clip;
   clip.top_left = vec2f32(node->bounds.top_left.x, node->bounds.top_left.y);
   clip.size     = vec2f32(node->bounds.size.x, node->bounds.size.y);
-  node->clip    = ui_clamp_rect(node->bounds, clip);
+  {
+    f32 padding_global = ui_stack_padding_fixed_top();
+
+    f32 padding_left   = ui_stack_padding_fixed_left_top();
+    f32 padding_right  = ui_stack_padding_fixed_right_top();
+    f32 padding_top    = ui_stack_padding_fixed_top_top();
+    f32 padding_bottom = ui_stack_padding_fixed_bot_top();
+
+    f32 total_left   = padding_global + padding_left;
+    f32 total_right  = padding_global + padding_right;
+    f32 total_top    = padding_global + padding_top;
+    f32 total_bottom = padding_global + padding_bottom;
+
+    clip.top_left.x += total_left;
+    clip.size.x     -= (total_left + total_right);
+
+    clip.top_left.y += total_top;
+    clip.size.y     -= (total_top + total_bottom);
+  }
+  node->clip = ui_clamp_rect(node->bounds, clip);
 
   // Update Parent
   // -------------
@@ -553,12 +598,12 @@ ui_debug_draw_node(UI_Node* node, f32 depth)
 
   if (ui_context.debug.show_cursor)
   {
-    r_draw_point(vec2f32_add(node->clip.top_left, node->cursor), color, depth - (F32_EPSILON*3));
+    r_draw_point(vec2f32_add(node->clip.top_left, node->cursor), color, depth - (F32_EPSILON*2));
   }
 
   if (ui_context.debug.show_bounds)
   {
-    r_draw_box(node->bounds.top_left, node->bounds.size, color, depth - F32_EPSILON);
+    r_draw_box(node->bounds.top_left, node->bounds.size, color, depth - (F32_EPSILON*2));
   }
 
   if (ui_context.debug.show_clip)

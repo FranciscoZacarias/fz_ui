@@ -43,6 +43,7 @@ entry_point(Command_Line* command_line)
     ui_size_fixed_x(300) ui_size_fixed_y(300)
     ui_window(S("Test Window"))
     {
+      ui_padding_fixed(5)
       ui_row(S("Test Row"), 100)
       {
         ui_column(S("Test Column1"), 50)
@@ -66,6 +67,9 @@ entry_point(Command_Line* command_line)
         ui_column(S("Test Column3"), 50)
         {
         }
+      }
+      ui_row(S("Test Row3"), 100)
+      {
       }
     }
     ui_end();

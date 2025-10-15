@@ -10,9 +10,7 @@
 // Header file
 // -----------
 
-@table
-UI_Node_Flags_Table
-  (name documentation)
+@table UI_Node_Flags_Table (name documentation)
 {
   { Mouse_Clickable           `Makes this node emit a signal when clicked` }
   { Draggable                 `Makes this node emit a signal when dragged` }
@@ -23,9 +21,7 @@ UI_Node_Flags_Table
   { Text_Center_Y             `If text is displayed, centers the text vertically in the node`                                                }
 }
 
-@table
-UI_Signal_Flags_Table
-  (name documentation)
+@table UI_Signal_Flags_Table (name documentation)
 {
   { Left_Down      `Emits signal if LMB is down` }
   { Middle_Down    `Emits signal if MMB is down` }
@@ -36,6 +32,12 @@ UI_Signal_Flags_Table
   { Right_Clicked  `Emits signal if RMB is clicked` }
 
   { Mouse_Hovered  `Emits signal if cursor is hovering` }
+}
+
+@table UI_Size_Kind_Table (kind documentation)
+{
+  { Relative `Sets the side of the node to be done relative to parent (0.0 to 1.0)` }
+  { Fixed `Sets the side of the node to be fixed (within parent's clip space)` }
 }
 
 @table UI_Alignment_Kind_Table (kind documentation)
@@ -65,6 +67,16 @@ UI_Signal_Flags_Table
 }
 @generate @h_file
 {
+  `typedef enum\n{\n  UI_Size_Kind_None = 0,\n`
+  @foreach(UI_Size_Kind_Table) `  UI_Size_Kind_$(kind), /* $(documentation) */ \n`
+  `} UI_Size_Kind;\n`
+  `const char* ui_size_kind_table_string[] = { "UI_Size_Kind_None",`
+  @foreach(UI_Size_Kind_Table) ` "UI_Size_Kind_$(kind)",`
+  ` };\n`
+  `#define ui_size_kind_not_handled(arena, kind) emit_fatal(Sf(arena, "Unhandled UI_Size_Kind kind: %s", ui_size_kind_table_string[kind]));\n\n`
+}
+@generate @h_file
+{
   `typedef enum\n{\n  UI_Alignment_Kind_None = 0,\n`
   @foreach(UI_Alignment_Kind_Table) `  UI_Alignment_Kind_$(kind), /* $(documentation) */ \n`
   `} UI_Alignment_Kind;\n`
@@ -91,8 +103,19 @@ Stack_Table
   
   { Top_Left                top_left                   Vec2f32               `vec2f32(0.0f, 0.0f)`              32  0 }
   
+  { Size_Kind               size_kind                  UI_Size_Kind          `UI_Size_Kind_Fixed`            32  0 }
+
   { Size_Fixed_X            size_fixed_x               f32                    g_os_window.dimensions.x          32  0 }
   { Size_Fixed_Y            size_fixed_y               f32                    g_os_window.dimensions.y          32  0 }
+
+  { Size_Relative_X         size_relative_x            f32                    1                                 32  0 }
+  { Size_Relative_Y         size_relative_y            f32                    1                                 32  0 }
+
+  { Padding_Fixed           padding_fixed              f32                    0                                 32  0 }
+  { Padding_Fixed_Top       padding_fixed_top          f32                    0                                 32  0 }
+  { Padding_Fixed_Bot       padding_fixed_bot          f32                    0                                 32  0 }
+  { Padding_Fixed_Left      padding_fixed_left         f32                    0                                 32  0 }
+  { Padding_Fixed_Right     padding_fixed_right        f32                    0                                 32  0 }
 
   { Alignment_Kind          alignment_kind             UI_Alignment_Kind      UI_Alignment_Kind_Y               32  0 }
   
