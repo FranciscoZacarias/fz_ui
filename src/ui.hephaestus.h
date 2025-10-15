@@ -61,7 +61,8 @@ const char* ui_alignment_kind_table_string[] = { "UI_Alignment_Kind_None", "UI_A
   ctx.padding_fixed_bot_stack.top_index = 0; ctx.padding_fixed_bot_stack.bottom_val = 0; \
   ctx.padding_fixed_left_stack.top_index = 0; ctx.padding_fixed_left_stack.bottom_val = 0; \
   ctx.padding_fixed_right_stack.top_index = 0; ctx.padding_fixed_right_stack.bottom_val = 0; \
-  ctx.alignment_kind_stack.top_index = 0; ctx.alignment_kind_stack.bottom_val = UI_Alignment_Kind_Y; \
+  ctx.child_layout_kind_stack.top_index = 0; ctx.child_layout_kind_stack.bottom_val = UI_Alignment_Kind_Y; \
+  ctx.resizable_stack.top_index = 0; ctx.resizable_stack.bottom_val = false; \
   ctx.node_color_scheme_stack.top_index = 0; ctx.node_color_scheme_stack.bottom_val = ui_context.color_scheme.window; \
 
 // Creates struct with all UI stacks
@@ -80,7 +81,8 @@ const char* ui_alignment_kind_table_string[] = { "UI_Alignment_Kind_None", "UI_A
     struct UI_Padding_Fixed_Bot_stack { f32 data[32]; u32 top_index; f32 bottom_val; } padding_fixed_bot_stack; \
     struct UI_Padding_Fixed_Left_stack { f32 data[32]; u32 top_index; f32 bottom_val; } padding_fixed_left_stack; \
     struct UI_Padding_Fixed_Right_stack { f32 data[32]; u32 top_index; f32 bottom_val; } padding_fixed_right_stack; \
-    struct UI_Alignment_Kind_stack { UI_Alignment_Kind data[32]; u32 top_index; UI_Alignment_Kind bottom_val; } alignment_kind_stack; \
+    struct UI_Child_Layout_Kind_stack { UI_Alignment_Kind data[32]; u32 top_index; UI_Alignment_Kind bottom_val; } child_layout_kind_stack; \
+    struct UI_Resizable_stack { b32 data[32]; u32 top_index; b32 bottom_val; } resizable_stack; \
     struct UI_Node_Color_Scheme_stack { UI_Node_Color_Scheme data[32]; u32 top_index; UI_Node_Color_Scheme bottom_val; } node_color_scheme_stack; \
   }
 
@@ -98,6 +100,7 @@ const char* ui_alignment_kind_table_string[] = { "UI_Alignment_Kind_None", "UI_A
   ui_stack_assert_top_at(padding_fixed_bot,0); \
   ui_stack_assert_top_at(padding_fixed_left,0); \
   ui_stack_assert_top_at(padding_fixed_right,0); \
-  ui_stack_assert_top_at(alignment_kind,0); \
+  ui_stack_assert_top_at(child_layout_kind,0); \
+  ui_stack_assert_top_at(resizable,0); \
   ui_stack_assert_top_at(node_color_scheme,0); \
 

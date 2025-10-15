@@ -58,12 +58,21 @@ entry_point(Command_Line* command_line)
       }
       ui_row(S("Test Row2"), 100)
       {
+        ui_size_kind(UI_Size_Kind_Relative)
+        ui_size_relative_x(0.3333)
+        ui_size_relative_y(1)
         ui_column(S("Test Column1"), 50)
         {
         }
+        ui_size_kind(UI_Size_Kind_Relative)
+        ui_size_relative_x(0.3333)
+        ui_size_relative_y(1)
         ui_column(S("Test Column2"), 50)
         {
         }
+        ui_size_kind(UI_Size_Kind_Relative)
+        ui_size_relative_x(0.3333)
+        ui_size_relative_y(1)
         ui_column(S("Test Column3"), 50)
         {
         }

@@ -103,7 +103,7 @@ Stack_Table
   
   { Top_Left                top_left                   Vec2f32               `vec2f32(0.0f, 0.0f)`              32  0 }
   
-  { Size_Kind               size_kind                  UI_Size_Kind          `UI_Size_Kind_Fixed`            32  0 }
+  { Size_Kind               size_kind                  UI_Size_Kind          `UI_Size_Kind_Fixed`               32  0 }
 
   { Size_Fixed_X            size_fixed_x               f32                    g_os_window.dimensions.x          32  0 }
   { Size_Fixed_Y            size_fixed_y               f32                    g_os_window.dimensions.y          32  0 }
@@ -116,8 +116,9 @@ Stack_Table
   { Padding_Fixed_Bot       padding_fixed_bot          f32                    0                                 32  0 }
   { Padding_Fixed_Left      padding_fixed_left         f32                    0                                 32  0 }
   { Padding_Fixed_Right     padding_fixed_right        f32                    0                                 32  0 }
-
-  { Alignment_Kind          alignment_kind             UI_Alignment_Kind      UI_Alignment_Kind_Y               32  0 }
+  
+  { Child_Layout_Kind       child_layout_kind          UI_Alignment_Kind      UI_Alignment_Kind_Y               32  0 }
+  { Resizable               resizable                  b32                    false                             32  0 }
   
   { Node_Color_Scheme       node_color_scheme          UI_Node_Color_Scheme   ui_context.color_scheme.window    32  0 }
 }

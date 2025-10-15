@@ -55,8 +55,11 @@ struct UI_Node
   Rectf32 bounds;  /* Container rectangle drawing bounds - Absolute values */
   Rectf32 clip;    /* Clipping rectangle for children - Absolute values */
   Vec2f32 cursor;  /* Next position to draw - Relative to node->clip */
+
   UI_Size_Kind size_kind; /* If this node's size is set relative to parent or with a fixed size */
   UI_Alignment_Kind alignment_kind; /* Where the cursor will shift to */
+  b32 resizable; /* Is this node resizable */
+
   f32 depth; /* Keeps track of that's in front. Smaller number means closer to the camera. 1 is root */
   UI_Node_Flags flags; /* Behaviour for this node */
   Vec2f32 local_drag_offset; /* How much it was offseted this frame */

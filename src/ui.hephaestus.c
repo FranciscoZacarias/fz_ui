@@ -94,13 +94,21 @@ function b32  ui_stack_padding_fixed_right_is_at_bottom() { return ui_stack_is_a
 function void ui_stack_padding_fixed_right_assert_top_at(u32 at) { ui_stack_assert_top_at(padding_fixed_right, at); }
 #define ui_padding_fixed_right(val) DeferLoop(ui_stack_padding_fixed_right_push(val), ui_stack_padding_fixed_right_pop())
 
-function void ui_stack_alignment_kind_init(UI_Alignment_Kind bot_val) { ui_stack_init(alignment_kind, bot_val); }
-function void ui_stack_alignment_kind_push(UI_Alignment_Kind val) { ui_stack_push(alignment_kind, val); }
-function UI_Alignment_Kind ui_stack_alignment_kind_pop() { return ui_stack_pop(alignment_kind); }
-function UI_Alignment_Kind ui_stack_alignment_kind_top() { return ui_stack_top(alignment_kind); }
-function b32  ui_stack_alignment_kind_is_at_bottom() { return ui_stack_is_at_bottom(alignment_kind); }
-function void ui_stack_alignment_kind_assert_top_at(u32 at) { ui_stack_assert_top_at(alignment_kind, at); }
-#define ui_alignment_kind(val) DeferLoop(ui_stack_alignment_kind_push(val), ui_stack_alignment_kind_pop())
+function void ui_stack_child_layout_kind_init(UI_Alignment_Kind bot_val) { ui_stack_init(child_layout_kind, bot_val); }
+function void ui_stack_child_layout_kind_push(UI_Alignment_Kind val) { ui_stack_push(child_layout_kind, val); }
+function UI_Alignment_Kind ui_stack_child_layout_kind_pop() { return ui_stack_pop(child_layout_kind); }
+function UI_Alignment_Kind ui_stack_child_layout_kind_top() { return ui_stack_top(child_layout_kind); }
+function b32  ui_stack_child_layout_kind_is_at_bottom() { return ui_stack_is_at_bottom(child_layout_kind); }
+function void ui_stack_child_layout_kind_assert_top_at(u32 at) { ui_stack_assert_top_at(child_layout_kind, at); }
+#define ui_child_layout_kind(val) DeferLoop(ui_stack_child_layout_kind_push(val), ui_stack_child_layout_kind_pop())
+
+function void ui_stack_resizable_init(b32 bot_val) { ui_stack_init(resizable, bot_val); }
+function void ui_stack_resizable_push(b32 val) { ui_stack_push(resizable, val); }
+function b32 ui_stack_resizable_pop() { return ui_stack_pop(resizable); }
+function b32 ui_stack_resizable_top() { return ui_stack_top(resizable); }
+function b32  ui_stack_resizable_is_at_bottom() { return ui_stack_is_at_bottom(resizable); }
+function void ui_stack_resizable_assert_top_at(u32 at) { ui_stack_assert_top_at(resizable, at); }
+#define ui_resizable(val) DeferLoop(ui_stack_resizable_push(val), ui_stack_resizable_pop())
 
 function void ui_stack_node_color_scheme_init(UI_Node_Color_Scheme bot_val) { ui_stack_init(node_color_scheme, bot_val); }
 function void ui_stack_node_color_scheme_push(UI_Node_Color_Scheme val) { ui_stack_push(node_color_scheme, val); }

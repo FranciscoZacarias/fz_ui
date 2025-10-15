@@ -296,7 +296,7 @@ ui_window_begin(String8 text)
   UI_Signal window_signal = (UI_Signal){0};
   {
     ui_node_color_scheme(ui_context.color_scheme.window)
-    ui_alignment_kind(UI_Alignment_Kind_Y)
+    ui_child_layout_kind(UI_Alignment_Kind_Y)
     {
       UI_Node_Flags window_flags = 0;
       String8 window_text = Sf(ui_context.frame_arena, ""S_FMT"##_window_", S_ARG(text));
@@ -308,7 +308,7 @@ ui_window_begin(String8 text)
   UI_Signal title_bar_signal = (UI_Signal){0};
   {
     ui_node_color_scheme(ui_context.color_scheme.title_bar)
-    ui_alignment_kind(UI_Alignment_Kind_X)
+    ui_child_layout_kind(UI_Alignment_Kind_X)
     ui_padding_fixed(4)
     ui_size_kind(UI_Size_Kind_Relative)
     ui_size_relative_x(1) ui_size_relative_y(0.1)
@@ -343,7 +343,7 @@ ui_window_end()
 function void
 ui_layout_begin(UI_Alignment_Kind alignment, f32 size, String8 text)
 {
-  ui_stack_alignment_kind_push(alignment);
+  ui_stack_child_layout_kind_push(alignment);
   if (alignment == UI_Alignment_Kind_X)
   {
     ui_stack_size_fixed_y_push(size);
@@ -365,7 +365,7 @@ ui_layout_begin(UI_Alignment_Kind alignment, f32 size, String8 text)
 function void
 ui_layout_end()
 {
-  UI_Alignment_Kind alignment = ui_stack_alignment_kind_pop();
+  UI_Alignment_Kind alignment = ui_stack_child_layout_kind_pop();
   if (alignment == UI_Alignment_Kind_X)
   {
     ui_stack_size_fixed_y_pop();
@@ -413,7 +413,8 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   node->flags             = flags;
   node->depth             = (node != ui_context.root) ? (parent->depth - F32_EPSILON) : 1.0f;
   node->node_color_scheme = ui_stack_node_color_scheme_top();
-  node->alignment_kind    = ui_stack_alignment_kind_top();
+  node->alignment_kind    = ui_stack_child_layout_kind_top();
+  node->resizable         = ui_stack_resizable_top();
 
   // Bounds & Clip
   // -------------
@@ -432,7 +433,11 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
     case UI_Size_Kind_Relative:
     {
       size_x = (parent->bounds.size.x * ui_stack_size_relative_x_top());
-      size_y = (parent->bounds.size.y * ui_stack_size_relative_y_top() * (0.05 * Clamp(ui_context.text_pixel_height, 14, 100)));
+      size_y = (parent->bounds.size.y * ui_stack_size_relative_y_top());
+      if (HasFlags(node->flags, UI_Node_Flags_Text_Display))
+      {
+        size_y *= (0.05 * Clamp(ui_context.text_pixel_height, 14, 500));
+      }
     } break;
     default:
     {
