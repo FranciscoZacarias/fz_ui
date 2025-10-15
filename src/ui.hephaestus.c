@@ -38,22 +38,6 @@ function b32  ui_stack_alignment_kind_is_at_bottom() { return ui_stack_is_at_bot
 function void ui_stack_alignment_kind_assert_top_at(u32 at) { ui_stack_assert_top_at(alignment_kind, at); }
 #define ui_alignment_kind(val) DeferLoop(ui_stack_alignment_kind_push(val), ui_stack_alignment_kind_pop())
 
-function void ui_stack_width_kind_init(UI_Width_Kind bot_val) { ui_stack_init(width_kind, bot_val); }
-function void ui_stack_width_kind_push(UI_Width_Kind val) { ui_stack_push(width_kind, val); }
-function UI_Width_Kind ui_stack_width_kind_pop() { return ui_stack_pop(width_kind); }
-function UI_Width_Kind ui_stack_width_kind_top() { return ui_stack_top(width_kind); }
-function b32  ui_stack_width_kind_is_at_bottom() { return ui_stack_is_at_bottom(width_kind); }
-function void ui_stack_width_kind_assert_top_at(u32 at) { ui_stack_assert_top_at(width_kind, at); }
-#define ui_width_kind(val) DeferLoop(ui_stack_width_kind_push(val), ui_stack_width_kind_pop())
-
-function void ui_stack_height_kind_init(UI_Height_Kind bot_val) { ui_stack_init(height_kind, bot_val); }
-function void ui_stack_height_kind_push(UI_Height_Kind val) { ui_stack_push(height_kind, val); }
-function UI_Height_Kind ui_stack_height_kind_pop() { return ui_stack_pop(height_kind); }
-function UI_Height_Kind ui_stack_height_kind_top() { return ui_stack_top(height_kind); }
-function b32  ui_stack_height_kind_is_at_bottom() { return ui_stack_is_at_bottom(height_kind); }
-function void ui_stack_height_kind_assert_top_at(u32 at) { ui_stack_assert_top_at(height_kind, at); }
-#define ui_height_kind(val) DeferLoop(ui_stack_height_kind_push(val), ui_stack_height_kind_pop())
-
 function void ui_stack_node_color_scheme_init(UI_Node_Color_Scheme bot_val) { ui_stack_init(node_color_scheme, bot_val); }
 function void ui_stack_node_color_scheme_push(UI_Node_Color_Scheme val) { ui_stack_push(node_color_scheme, val); }
 function UI_Node_Color_Scheme ui_stack_node_color_scheme_pop() { return ui_stack_pop(node_color_scheme); }

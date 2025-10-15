@@ -231,7 +231,7 @@ ui_window_begin(String8 text)
                                     UI_Node_Flags_Hoverable       |
                                     UI_Node_Flags_Draggable       |
                                     UI_Node_Flags_Text_Display    |
-                                    UI_Node_Flags_Text_Center_X   | UI_Node_Flags_Text_Center_Y;
+                                    UI_Node_Flags_Text_Center_Y;
     String8 window_title_bar_text = Sf(ui_context.frame_arena, ""S_FMT"##_title_bar_", S_ARG(text));
     title_bar_signal.node = ui_node_from_string(window_title_bar_text, title_bar_flags);
   }
