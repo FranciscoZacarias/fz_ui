@@ -89,7 +89,7 @@ function void ui_init()
     ui_context.debug.show_bounds  = true;
     ui_context.debug.show_clip    = false;
     ui_context.debug.show_cursor  = true;
-    ui_context.debug.print_node_tree   = false;
+    ui_context.debug.print_node_tree   = true;
     ui_context.debug.show_text_borders = true;
 
     Vec2s32 window_size = g_os_window.dimensions;
@@ -206,36 +206,6 @@ ui_render_ui_tree(UI_Node* node)
   }
 }
 
-// UI module api
-function void
-ui_window_begin(String8 text)
-{
-  UI_Signal window_signal = (UI_Signal){0};
-  {
-    ui_node_color_scheme(ui_context.color_scheme.window)
-    ui_alignment_kind(UI_Alignment_Kind_Y)
-    {
-      UI_Node_Flags window_flags = 0;
-      String8 window_text = Sf(ui_context.frame_arena, ""S_FMT"##_window_", S_ARG(text));
-      window_signal.node = ui_node_from_string(window_text, window_flags);
-      ui_stack_parent_push(window_signal.node);
-    }
-  }
-
-  UI_Signal title_bar_signal = (UI_Signal){0};
-  ui_node_color_scheme(ui_context.color_scheme.title_bar)
-  ui_alignment_kind(UI_Alignment_Kind_X)
-  ui_size_fixed_y(20.0f)
-  {
-    UI_Node_Flags title_bar_flags = UI_Node_Flags_Mouse_Clickable |
-                                    UI_Node_Flags_Hoverable       |
-                                    UI_Node_Flags_Draggable       |
-                                    UI_Node_Flags_Text_Display    |
-                                    UI_Node_Flags_Text_Center_Y;
-    String8 window_title_bar_text = Sf(ui_context.frame_arena, ""S_FMT"##_title_bar_", S_ARG(text));
-    title_bar_signal.node = ui_node_from_string(window_title_bar_text, title_bar_flags);
-  }
-}
 
 function void
 ui_update_tree_nodes(UI_Node* node)
@@ -321,6 +291,36 @@ ui_update_tree_nodes(UI_Node* node)
 }
 
 function void
+ui_window_begin(String8 text)
+{
+  UI_Signal window_signal = (UI_Signal){0};
+  {
+    ui_node_color_scheme(ui_context.color_scheme.window)
+    ui_alignment_kind(UI_Alignment_Kind_Y)
+    {
+      UI_Node_Flags window_flags = 0;
+      String8 window_text = Sf(ui_context.frame_arena, ""S_FMT"##_window_", S_ARG(text));
+      window_signal.node = ui_node_from_string(window_text, window_flags);
+      ui_stack_parent_push(window_signal.node);
+    }
+  }
+
+  UI_Signal title_bar_signal = (UI_Signal){0};
+  ui_node_color_scheme(ui_context.color_scheme.title_bar)
+  ui_alignment_kind(UI_Alignment_Kind_X)
+  ui_size_fixed_y(30.0f)
+  {
+    UI_Node_Flags title_bar_flags = UI_Node_Flags_Mouse_Clickable |
+                                    UI_Node_Flags_Hoverable       |
+                                    UI_Node_Flags_Draggable       |
+                                    UI_Node_Flags_Text_Display    |
+                                    UI_Node_Flags_Text_Center_Y;
+    String8 window_title_bar_text = Sf(ui_context.frame_arena, ""S_FMT"##_title_bar_", S_ARG(text));
+    title_bar_signal.node = ui_node_from_string(window_title_bar_text, title_bar_flags);
+  }
+}
+
+function void
 ui_window_end()
 {
   UI_Node* node = ui_stack_parent_pop();
@@ -334,6 +334,43 @@ ui_window_end()
   {
     ui_print_tree_impl(node, 0);
   }
+}
+
+function void
+ui_layout_begin(UI_Alignment_Kind alignment, f32 size, String8 text)
+{
+  ui_stack_alignment_kind_push(alignment);
+  if (alignment == UI_Alignment_Kind_X)
+  {
+    ui_stack_size_fixed_y_push(size);
+  }
+  else if (alignment == UI_Alignment_Kind_Y)
+  {
+    ui_stack_size_fixed_x_push(size);
+  }
+
+  UI_Signal layout_box = (UI_Signal){0};
+  ui_node_color_scheme(ui_context.color_scheme.window)
+  {
+    UI_Node_Flags layout_box_flags = 0;
+    layout_box.node = ui_node_from_string(text, layout_box_flags);
+    ui_stack_parent_push(layout_box.node);
+  }
+}
+
+function void
+ui_layout_end()
+{
+  UI_Alignment_Kind alignment = ui_stack_alignment_kind_pop();
+  if (alignment == UI_Alignment_Kind_X)
+  {
+    ui_stack_size_fixed_y_pop();
+  }
+  else if (alignment == UI_Alignment_Kind_Y)
+  {
+    ui_stack_size_fixed_x_pop();
+  }
+  ui_stack_parent_pop();
 }
 
 // Builder code
@@ -372,21 +409,23 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   node->flags             = flags;
   node->depth             = (node != ui_context.root) ? (parent->depth - F32_EPSILON) : 1.0f;
   node->node_color_scheme = ui_stack_node_color_scheme_top();
+  node->alignment_kind    = ui_stack_alignment_kind_top();
 
   // Bounds & Clip
   // -------------
-  node->bounds.top_left = ui_stack_top_left_top();
   f32 size_x = ui_stack_size_fixed_x_top(); 
   f32 size_y = ui_stack_size_fixed_y_top(); 
-  node->bounds.size = vec2f32(size_x, size_y);
+  node->bounds.size     = vec2f32(size_x, size_y);
+  // If this is a node that we are placing on top of the root, we receive the stack top_left value.
+  // If not, we just inherit the parent's top_left
+  Vec2f32 top_left = (parent != ui_context.root) ? parent->bounds.top_left : ui_stack_top_left_top();
+  node->bounds.top_left = vec2f32_add(parent->cursor, top_left);
   node->bounds = ui_clamp_rect(parent->clip, node->bounds);
 
   Rectf32 clip;
   clip.top_left = vec2f32(node->bounds.top_left.x, node->bounds.top_left.y);
   clip.size     = vec2f32(node->bounds.size.x, node->bounds.size.y);
   node->clip    = ui_clamp_rect(node->bounds, clip);
-
-  node->alignment_kind = ui_stack_alignment_kind_top();
 
   // Update Parent
   // -------------
@@ -401,10 +440,6 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
       case UI_Alignment_Kind_Y:
       {
         parent->cursor.y += node->bounds.size.y;
-      } break;
-      case UI_Alignment_Kind_Floating:
-      {
-      
       } break;
       default:
       {
@@ -701,7 +736,11 @@ ui_print_tree_impl(UI_Node *node, u32 depth)
   }
 
   UI_Node_Cache *cache = ui_get_cached_node(node->hash);
-  printf("Node hash: %llu, Text: " S_FMT ", Top left: %.2f, %.2f\n", node->hash, S_ARG(node->string), node->bounds.top_left.x, node->bounds.top_left.y);
+  printf("Node hash: %llu, Text: " S_FMT ", Top left: %.2f, %.2f, Size: %.2f, %.2f\n",
+    node->hash,
+    S_ARG(node->string),
+    node->bounds.top_left.x, node->bounds.top_left.y,
+    node->bounds.size.x, node->bounds.size.y);
 
   // Children
   for (UI_Node *child = node->first; child; child = child->next)

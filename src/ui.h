@@ -157,6 +157,11 @@ function void ui_end();
 function void ui_window_begin(String8 text);
 function void ui_window_end();
 
+#define  ui_row(text,height)   DeferLoop(ui_layout_begin(UI_Alignment_Kind_X, (height), (text)), ui_layout_end())
+#define  ui_column(text,width) DeferLoop(ui_layout_begin(UI_Alignment_Kind_Y, (width),  (text)), ui_layout_end())
+function void ui_layout_begin(UI_Alignment_Kind alignment, f32 size, String8 text);
+function void ui_layout_end();
+
 // Builder code
 // -------------------
 function UI_Node*  ui_node_from_string(String8 string, UI_Node_Flags flags);

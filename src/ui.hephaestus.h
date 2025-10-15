@@ -14,7 +14,6 @@ enum
   UI_Node_Flags_Text_Display = (1 << 3), /* The UI_Node will display the text on the cursor's position and skip the cursor relative to UI_Alignment_Kind */
   UI_Node_Flags_Text_Center_X = (1 << 4), /* If text is displayed, centers the text horizontally in the node */
   UI_Node_Flags_Text_Center_Y = (1 << 5), /* If text is displayed, centers the text vertically in the node */
-  UI_Node_Flags_Resizable = (1 << 6), /* Makes this node resizable by dragging the bottom right corner of the node */
 };
 
 typedef u32 UI_Signal_Flags;
