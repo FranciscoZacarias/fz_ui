@@ -40,20 +40,20 @@ entry_point(Command_Line* command_line)
     ui_begin();
 
     ui_top_left(vec2f32(200,200))
-    ui_size_fixed_x(300) ui_size_fixed_y(300)
+    ui_size_fixed_x(200) ui_size_fixed_y(200)
     ui_window(S("Test Window"))
     {
       ui_padding_fixed(5)
       ui_row(S("Test Row"), 100)
       {
-        if (ui_clicked(ui_button(S("Button"))))
-        {
-          printf("asd\n");
-        }
+        ui_button(S("Button 1"));
+        ui_button(S("Button 2"));
       }
-      ui_row(S("Test Row2"), 100)
+      ui_padding_fixed(5)
+      ui_column(S("Test col"), 100)
       {
-
+        ui_button(S("Button 1"));
+        ui_button(S("Button 5"));
       }
     }
     ui_end();

@@ -89,7 +89,7 @@ function void ui_init()
     ui_context.debug.show_bounds  = true;
     ui_context.debug.show_clip    = true;
     ui_context.debug.show_cursor  = true;
-    ui_context.debug.print_node_tree   = false;
+    ui_context.debug.print_node_tree   = true;
     ui_context.debug.show_text_borders = true;
 
     Vec2s32 window_size = g_os_window.dimensions;
@@ -338,6 +338,7 @@ ui_window_end()
   if (ui_context.debug.print_node_tree)
   {
     ui_print_tree_impl(node, 0);
+    printf("\n");
   }
 }
 
@@ -463,7 +464,9 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
       size_y = (parent->bounds.size.y * ui_stack_size_relative_y_top());
       if (HasFlags(node->flags, UI_Node_Flags_Text_Display))
       {
-        size_y *= (0.05f * Clamp(ui_context.text_pixel_height, 14, 500));
+        f32 text_dimension_factor = (0.08f * Clamp(ui_context.text_pixel_height, 14, 100));
+        text_dimension_factor = Clamp(text_dimension_factor, 1, 10);
+        size_y *= text_dimension_factor;
       }
     } break;
 
@@ -473,17 +476,26 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
     } break;
   }
 
-  if (HasFlags(node->flags, UI_Node_Flags_Size_Wrap_Around_Text))
+  if (HasFlags(node->flags, UI_Node_Flags_Size_Wrap_Around_Text|UI_Node_Flags_Text_Display))
   {
-    size_x = node->string_dimensions.x + 4 + size_x;
-    size_y = node->string_dimensions.y + 1 + size_y;
+    size_x = node->string_dimensions.x + size_x;
+    size_y = node->string_dimensions.y + size_y;
   }
 
   node->bounds.size = vec2f32(size_x, size_y);
   
   // If this is a node that we are placing on top of the root, we receive the stack top_left value.
   // If not, we just inherit the parent's top_left
-  Vec2f32 top_left = (parent != ui_context.root) ? parent->bounds.top_left : ui_stack_top_left_top();
+  Vec2f32 top_left = (parent != ui_context.root) ? parent->bounds.top_left : vec2f32_add(parent->cursor, ui_stack_top_left_top());
+  if (node != ui_context.root)
+  {
+    switch (parent->alignment_kind)
+    {
+      case UI_Alignment_Kind_X: { top_left.x += parent->padding_left; } break;
+      case UI_Alignment_Kind_Y: { top_left.y += parent->padding_top;  } break;
+      default: { ui_alignment_kind_not_handled(ui_context.arena, parent->alignment_kind); }
+    }
+  }
   node->bounds.top_left = vec2f32_add(parent->cursor, top_left);
   node->bounds = ui_clamp_rect(parent->clip, node->bounds);
 
@@ -492,22 +504,21 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   clip.size     = vec2f32(node->bounds.size.x, node->bounds.size.y);
   {
     f32 padding_global = ui_stack_padding_fixed_top();
-
     f32 padding_left   = ui_stack_padding_fixed_left_top();
     f32 padding_right  = ui_stack_padding_fixed_right_top();
     f32 padding_top    = ui_stack_padding_fixed_top_top();
     f32 padding_bottom = ui_stack_padding_fixed_bot_top();
 
-    f32 total_left   = padding_global + padding_left;
-    f32 total_right  = padding_global + padding_right;
-    f32 total_top    = padding_global + padding_top;
-    f32 total_bottom = padding_global + padding_bottom;
+    node->padding_left   = padding_global + padding_left;
+    node->padding_right  = padding_global + padding_right;
+    node->padding_top    = padding_global + padding_top;
+    node->padding_bottom = padding_global + padding_bottom;
 
-    clip.top_left.x += total_left;
-    clip.size.x     -= (total_left + total_right);
+    clip.top_left.x += node->padding_left;
+    clip.size.x     -= (node->padding_left + node->padding_right);
 
-    clip.top_left.y += total_top;
-    clip.size.y     -= (total_top + total_bottom);
+    clip.top_left.y += node->padding_top;
+    clip.size.y     -= (node->padding_top + node->padding_bottom);
   }
   node->clip = ui_clamp_rect(node->bounds, clip);
 
@@ -520,10 +531,12 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
       case UI_Alignment_Kind_X:
       {
         parent->cursor.x += node->bounds.size.x;
+        parent->cursor.x += parent->padding_left;
       } break;
       case UI_Alignment_Kind_Y:
       {
         parent->cursor.y += node->bounds.size.y;
+        parent->cursor.y += parent->padding_top;
       } break;
       default:
       {
@@ -816,7 +829,7 @@ ui_print_tree_impl(UI_Node *node, u32 depth)
   }
 
   UI_Node_Cache *cache = ui_get_cached_node(node->hash);
-  printf("Node hash: %llu, Text: " S_FMT ", Top left: %.2f, %.2f, Size: %.2f, %.2f\n",
+  printf("NODE(%llu): "S_FMT", Top_Left: %.2f, %.2f, Size: %.2f, %.2f\n",
     node->hash,
     S_ARG(node->string),
     node->bounds.top_left.x, node->bounds.top_left.y,

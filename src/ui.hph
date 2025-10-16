@@ -20,7 +20,7 @@
   { Text_Center_X `If text is displayed, centers the text horizontally in the node`                                              }
   { Text_Center_Y `If text is displayed, centers the text vertically in the node`                                                }
 
-  { Size_Wrap_Around_Text `Wraps the size of the node around the text with` }
+  { Size_Wrap_Around_Text     `Wraps the size of the node around the text with`                          }
 }
 
 @table UI_Signal_Flags_Table (name documentation)

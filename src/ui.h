@@ -56,6 +56,11 @@ struct UI_Node
   Rectf32 clip;    /* Clipping rectangle for children - Absolute values */
   Vec2f32 cursor;  /* Next position to draw - Relative to node->clip */
 
+  f32 padding_left;
+  f32 padding_right;
+  f32 padding_top;
+  f32 padding_bottom;
+
   UI_Size_Kind size_kind; /* If this node's size is set relative to parent or with a fixed size */
   UI_Alignment_Kind alignment_kind; /* Where the cursor will shift to */
   b32 resizable; /* Is this node resizable */
