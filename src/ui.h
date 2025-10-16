@@ -127,6 +127,8 @@ struct UI_Context
   b32 is_initialized; /* Has ui_init been called */
   b32 is_working;     /* If true, ui_begin() was last called. If false, ui_end() was last called */
 
+  f32 default_widget_height;
+
   UI_Config_Stacks;
 
   // Debug
@@ -170,6 +172,8 @@ function void ui_layout_begin(UI_Alignment_Kind alignment, f32 size, String8 tex
 function void ui_layout_end();
 
 function UI_Signal ui_button(String8 text);
+function UI_Signal ui_label(String8 text);
+function UI_Signal ui_checkbox(String8 text, b32* value);
 
 // Signal utils
 // ------------

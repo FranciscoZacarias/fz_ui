@@ -39,21 +39,34 @@ entry_point(Command_Line* command_line)
 
     ui_begin();
 
+    local_persist f32 x = 400;
+    local_persist f32 y = 400;
+    if (input_is_key_clicked(&g_input, Keyboard_Key_I)) {x+=10;y+=10;}
+    if (input_is_key_clicked(&g_input, Keyboard_Key_O)) {x-=10;y-=10;}
+
+    local_persist b32 a = false;
+
     ui_top_left(vec2f32(200,200))
-    ui_size_fixed_x(200) ui_size_fixed_y(200)
+    ui_size_fixed_x(x) ui_size_fixed_y(y)
     ui_window(S("Test Window"))
     {
       ui_padding_fixed(5)
       ui_row(S("Test Row"), 100)
       {
+        ui_label(S("Label"));
         ui_button(S("Button 1"));
         ui_button(S("Button 2"));
+        ui_checkbox(S("CB2"), &a);
       }
       ui_padding_fixed(5)
       ui_column(S("Test col"), 100)
       {
-        ui_button(S("Button 1"));
-        ui_button(S("Button 5"));
+        ui_checkbox(S("Checkbox"), &a);
+        //ui_button(S("Button 1"));
+        //ui_button(S("Button 5"));
+        //ui_button(S("Button 6"));
+        //ui_button(S("Button 7"));
+        //ui_button(S("Button 8"));
       }
     }
     ui_end();

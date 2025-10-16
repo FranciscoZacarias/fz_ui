@@ -85,6 +85,7 @@ function void ui_init()
 
     ui_context.text_pixel_height = 16;
     ui_context.color_scheme      = ui_color_scheme_high_contrast;
+    ui_context.default_widget_height = 10;
 
     ui_context.debug.show_bounds  = true;
     ui_context.debug.show_clip    = true;
@@ -202,7 +203,6 @@ ui_render_ui_tree(UI_Node* node)
     ui_render_ui_tree(child);
   }
 }
-
 
 function void
 ui_update_tree_nodes(UI_Node* node)
@@ -366,7 +366,7 @@ ui_button(String8 text)
     ui_node_color_scheme(ui_context.color_scheme.button)
     ui_child_layout_kind(UI_Alignment_Kind_X)
     ui_padding_fixed(0)
-    ui_size_fixed(20,10)
+    ui_size_fixed(20,ui_context.default_widget_height)
     {
       UI_Node_Flags button_flags = UI_Node_Flags_Mouse_Clickable |
                                    UI_Node_Flags_Hoverable       |
@@ -379,6 +379,56 @@ ui_button(String8 text)
     }
   }
   return button_signal;
+}
+
+function UI_Signal
+ui_label(String8 text)
+{
+  UI_Signal label_signal = (UI_Signal){0};
+  {
+    ui_node_color_scheme(ui_context.color_scheme.window)
+    ui_padding_fixed(0)
+    ui_size_fixed(5,5)
+    {
+      UI_Node_Flags button_flags = UI_Node_Flags_Text_Display  |
+                                   UI_Node_Flags_Text_Center_Y |
+                                   UI_Node_Flags_Text_Center_X |
+                                   UI_Node_Flags_Size_Wrap_Around_Text;
+      label_signal.node  = ui_node_from_string(text, button_flags);
+      ui_fill_signals_from_node(&label_signal);
+    }
+  }
+  return label_signal;
+}
+
+function UI_Signal
+ui_checkbox(String8 text, b32* value)
+{
+  String8 row_checkbox_text = Sf(ui_context.frame_arena, ""S_FMT"##row_checkbox_label", S_ARG(text));
+  String8 label_text        = Sf(ui_context.frame_arena, ""S_FMT"##checkbox_label", S_ARG(text));
+  Vec2f32 label_text_dimensions = r_text_dimensions(label_text, ui_context.text_pixel_height);
+
+  UI_Signal checkbox_signal = (UI_Signal){0};
+  //ui_size_fixed(label_text_dimensions.x, ui_context.default_widget_height)
+  ui_size_fixed(label_text_dimensions.x,label_text_dimensions.y)
+  ui_row(row_checkbox_text, 30)
+  {
+    // Checkbox
+    ui_node_color_scheme(ui_context.color_scheme.button)
+    ui_padding_fixed(0)
+    ui_size_fixed(10,10)
+    {
+      UI_Node_Flags button_flags = UI_Node_Flags_Mouse_Clickable |
+                                   UI_Node_Flags_Hoverable;
+      checkbox_signal.node = ui_node_from_string(text, button_flags);
+      ui_fill_signals_from_node(&checkbox_signal);
+    }
+
+    // Checkbox label
+    ui_label(label_text);
+  }
+
+  return checkbox_signal;
 }
 
 // Builder code
@@ -467,15 +517,8 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   // If this is a node that we are placing on top of the root, we receive the stack top_left value.
   // If not, we just inherit the parent's top_left
   Vec2f32 top_left = (parent != ui_context.root) ? parent->bounds.top_left : vec2f32_add(parent->cursor, ui_stack_top_left_top());
-  if (node != ui_context.root)
-  {
-    switch (parent->alignment_kind)
-    {
-      case UI_Alignment_Kind_X: { top_left.x += parent->padding_left; } break;
-      case UI_Alignment_Kind_Y: { top_left.y += parent->padding_top;  } break;
-      default: { ui_alignment_kind_not_handled(ui_context.arena, parent->alignment_kind); }
-    }
-  }
+  top_left.x += parent->padding_left;
+  top_left.y += parent->padding_top;
   node->bounds.top_left = vec2f32_add(parent->cursor, top_left);
   node->bounds = ui_clamp_rect(parent->clip, node->bounds);
 
