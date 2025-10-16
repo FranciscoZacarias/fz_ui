@@ -188,6 +188,8 @@ ui_render_ui_tree(UI_Node* node)
     r_draw_quad(node->bounds.top_left, node->bounds.size, 0, node->target_background_color, node->depth);
     if (HasFlags(node->flags, UI_Node_Flags_Text_Display))
     {
+      node->string_bounds.top_left = vec2f32_add(node->clip.top_left, node->string_bounds.top_left);
+      node->string_bounds = ui_clamp_rect(node->clip, node->string_bounds);
       f32 clamp_width  = (node->clip.top_left.x + node->clip.size.x) - node->string_bounds.top_left.x;
       f32 clamp_height = (node->clip.top_left.y + node->clip.size.y) - node->string_bounds.top_left.y;
       r_draw_text_clamped(node->string_bounds.top_left, ui_context.text_pixel_height, node->target_text_color, node->string_clean, node->depth - F32_EPSILON, clamp_width, clamp_height);
@@ -555,16 +557,9 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
         node->cursor.x = Clamp(node->cursor.x, 0, node->clip.size.x);
       }
       break;
-      default:
-      {
-        ui_alignment_kind_not_handled(ui_context.arena, node->alignment_kind);
-      }
-      break;
+      default: { ui_alignment_kind_not_handled(ui_context.arena, node->alignment_kind); } break;
     }
   }
-
-  node->string_bounds.top_left = vec2f32_add(node->clip.top_left, node->string_bounds.top_left);  
-  node->string_bounds = ui_clamp_rect(node->clip, node->string_bounds);
 
   // Interaction
   // -----------
