@@ -77,8 +77,7 @@ struct UI_Node
   // String stuff
   String8 string;
   String8 string_clean; /* String with everything after ## stripped */
-  Vec2f32 string_top_left; /* Relative to cursor */
-  Vec2f32 string_dimensions; 
+  Rectf32 string_bounds;
   f32 text_pixel_height;
 };
 
@@ -136,7 +135,6 @@ struct UI_Context
     b32 show_bounds : 1;
     b32 show_clip   : 1;
     b32 show_cursor : 1;
-    b32 print_node_tree: 1;
     b32 show_text_borders: 1;
   } debug;
 };

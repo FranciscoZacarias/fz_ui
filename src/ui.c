@@ -89,7 +89,6 @@ function void ui_init()
     ui_context.debug.show_bounds  = true;
     ui_context.debug.show_clip    = true;
     ui_context.debug.show_cursor  = true;
-    ui_context.debug.print_node_tree   = true;
     ui_context.debug.show_text_borders = true;
 
     Vec2s32 window_size = g_os_window.dimensions;
@@ -162,11 +161,7 @@ function void ui_end()
   r_draw_text(vec2f32(600, 200), 32, BLACK(1), Sf(ui_context.frame_arena, "mouse: %.2f,%.2f", g_input.mouse_current.screen_space.x, g_input.mouse_current.screen_space.y), 0);
   r_draw_text(vec2f32(600, 230), 32, BLACK(1), Sf(ui_context.frame_arena, "Frame: %d", g_frame_counter), 0);
 
-
-  if (input_is_key_clicked(&g_input, Keyboard_Key_K))
-  {
-    ui_print_tree(ui_context.root);
-  }
+  if (input_is_key_clicked(&g_input, Keyboard_Key_K)) ui_print_tree(ui_context.root);
 
   // Reset
   ui_context.hash_hot = 0;
@@ -193,10 +188,9 @@ ui_render_ui_tree(UI_Node* node)
     r_draw_quad(node->bounds.top_left, node->bounds.size, 0, node->target_background_color, node->depth);
     if (HasFlags(node->flags, UI_Node_Flags_Text_Display))
     {
-      node->string_top_left = vec2f32_add(node->clip.top_left, node->string_top_left); // Converts node->string_top_left from relative to absolute
-      f32 clamp_width  = (node->clip.top_left.x + node->clip.size.x) - node->string_top_left.x;
-      f32 clamp_height = (node->clip.top_left.y + node->clip.size.y) - node->string_top_left.y;
-      r_draw_text_clamped(node->string_top_left, ui_context.text_pixel_height, node->target_text_color, node->string_clean, node->depth - F32_EPSILON, clamp_width, clamp_height);
+      f32 clamp_width  = (node->clip.top_left.x + node->clip.size.x) - node->string_bounds.top_left.x;
+      f32 clamp_height = (node->clip.top_left.y + node->clip.size.y) - node->string_bounds.top_left.y;
+      r_draw_text_clamped(node->string_bounds.top_left, ui_context.text_pixel_height, node->target_text_color, node->string_clean, node->depth - F32_EPSILON, clamp_width, clamp_height);
     }
     ui_debug_draw_node(node, node->depth);
   }
@@ -271,18 +265,6 @@ ui_update_tree_nodes(UI_Node* node)
       node->target_text_color = color_lerp(text_color, text_hover_color, cached_node->hover_t);
       node->target_text_color = color_lerp(node->target_text_color, text_active_color, cached_node->active_t);
     }
-
-    // String
-    if (HasFlags(node->flags, UI_Node_Flags_Text_Display))
-    {
-      node->cursor = vec2f32_add(node->cursor, node->string_top_left);
-      switch (node->alignment_kind)
-      {
-        case UI_Alignment_Kind_X: { node->cursor.x += node->string_dimensions.x; } break;
-        case UI_Alignment_Kind_Y: { node->cursor.y += node->string_dimensions.y; } break;
-        default: { ui_alignment_kind_not_handled(ui_context.arena, node->alignment_kind); } break;
-      }
-    }
   }
 
   for (UI_Node* child = node->first; child; child = child->next)
@@ -335,11 +317,6 @@ ui_window_end()
     ui_apply_drag_offset(node, offset);
   }
   ui_update_tree_nodes(node);
-  if (ui_context.debug.print_node_tree)
-  {
-    ui_print_tree_impl(node, 0);
-    printf("\n");
-  }
 }
 
 function void
@@ -385,6 +362,7 @@ ui_button(String8 text)
   UI_Signal button_signal = (UI_Signal){0};
   {
     ui_node_color_scheme(ui_context.color_scheme.button)
+    ui_child_layout_kind(UI_Alignment_Kind_X)
     ui_padding_fixed(0)
     ui_size_fixed(20,10)
     {
@@ -441,8 +419,8 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   node->resizable         = ui_stack_resizable_top();
   node->string            = string8_copy(ui_context.frame_arena, string);
   node->string_clean      = ui_clean_string(ui_context.frame_arena, string);
-  node->string_dimensions = r_text_dimensions(node->string_clean, ui_context.text_pixel_height);
-  node->string_top_left   = vec2f32(0,0);
+  node->string_bounds.size = r_text_dimensions(node->string_clean, ui_context.text_pixel_height);
+  node->string_bounds.top_left   = vec2f32(0,0);
 
   // Bounds & Clip
   // -------------
@@ -478,8 +456,8 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
 
   if (HasFlags(node->flags, UI_Node_Flags_Size_Wrap_Around_Text|UI_Node_Flags_Text_Display))
   {
-    size_x = node->string_dimensions.x + size_x;
-    size_y = node->string_dimensions.y + size_y;
+    size_x = node->string_bounds.size.x + size_x;
+    size_y = node->string_bounds.size.y + size_y;
   }
 
   node->bounds.size = vec2f32(size_x, size_y);
@@ -550,15 +528,43 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   if (HasFlags(node->flags, UI_Node_Flags_Text_Center_Y))
   {
     f32 center_y = node->clip.size.y * 0.5f;
-    f32 string_half_h = node->string_dimensions.y * 0.5f;
-    node->string_top_left.y = center_y - string_half_h;
+    f32 string_half_h = node->string_bounds.size.y * 0.5f;
+    node->string_bounds.top_left.y = center_y - string_half_h;
   }
   if (HasFlags(node->flags, UI_Node_Flags_Text_Center_X))
   {
     f32 center_x = node->clip.size.x * 0.5f;
-    f32 string_half_w = node->string_dimensions.x * 0.5f;
-    node->string_top_left.x = center_x - string_half_w;
+    f32 string_half_w = node->string_bounds.size.x * 0.5f;
+    node->string_bounds.top_left.x = center_x - string_half_w;
   }
+
+  if (HasFlags(node->flags, UI_Node_Flags_Text_Display))
+  {
+    node->cursor = vec2f32_add(node->cursor, node->string_bounds.top_left);
+    switch (node->alignment_kind)
+    {
+      case UI_Alignment_Kind_X:
+      {
+        node->cursor.x = Clamp(node->cursor.x + node->string_bounds.size.x, 0, node->clip.size.x);
+        node->cursor.y = Clamp(node->cursor.y, 0, node->clip.size.y);
+      }
+      break;
+      case UI_Alignment_Kind_Y:
+      {
+        node->cursor.y = Clamp(node->cursor.y + node->string_bounds.size.y, 0, node->clip.size.y);
+        node->cursor.x = Clamp(node->cursor.x, 0, node->clip.size.x);
+      }
+      break;
+      default:
+      {
+        ui_alignment_kind_not_handled(ui_context.arena, node->alignment_kind);
+      }
+      break;
+    }
+  }
+
+  node->string_bounds.top_left = vec2f32_add(node->clip.top_left, node->string_bounds.top_left);  
+  node->string_bounds = ui_clamp_rect(node->clip, node->string_bounds);
 
   // Interaction
   // -----------
@@ -663,7 +669,7 @@ ui_debug_draw_node(UI_Node* node, f32 depth)
   {
     if (HasFlags(node->flags, UI_Node_Flags_Text_Display))
     {
-      r_draw_box(node->string_top_left, node->string_dimensions, color, 0);
+      r_draw_box(node->string_bounds.top_left, node->string_bounds.size, color, 0);
     }
   }
 }
@@ -829,11 +835,14 @@ ui_print_tree_impl(UI_Node *node, u32 depth)
   }
 
   UI_Node_Cache *cache = ui_get_cached_node(node->hash);
-  printf("NODE(%llu): "S_FMT", Top_Left: %.2f, %.2f, Size: %.2f, %.2f\n",
-    node->hash,
-    S_ARG(node->string),
+  printf("NODE("S_FMT"), Bounds: {TL: %.2f, %.2f - S: %.2f, %.2f} Clip: {TL: %.2f, %.2f - S: %.2f, %.2f} Text: {TL: %.2f, %.2f - S: %.2f, %.2f}\n",
+    S_ARG(node->string_clean),
     node->bounds.top_left.x, node->bounds.top_left.y,
-    node->bounds.size.x, node->bounds.size.y);
+    node->bounds.size.x,     node->bounds.size.y,
+    node->clip.top_left.x,   node->clip.top_left.y,
+    node->clip.size.x,       node->clip.size.y,
+    node->string_bounds.top_left.x,   node->string_bounds.top_left.y,
+    node->string_bounds.size.x, node->string_bounds.size.y);
 
   // Children
   for (UI_Node *child = node->first; child; child = child->next)
