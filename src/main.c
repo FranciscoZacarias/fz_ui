@@ -46,39 +46,14 @@ entry_point(Command_Line* command_line)
       ui_padding_fixed(5)
       ui_row(S("Test Row"), 100)
       {
-        ui_column(S("Test Column1"), 50)
+        if (ui_clicked(ui_button(S("Button"))))
         {
-        }
-        ui_column(S("Test Column2"), 50)
-        {
-        }
-        ui_column(S("Test Column3"), 50)
-        {
+          printf("asd\n");
         }
       }
       ui_row(S("Test Row2"), 100)
       {
-        ui_size_kind(UI_Size_Kind_Relative)
-        ui_size_relative_x(0.3333)
-        ui_size_relative_y(1)
-        ui_column(S("Test Column1"), 50)
-        {
-        }
-        ui_size_kind(UI_Size_Kind_Relative)
-        ui_size_relative_x(0.3333)
-        ui_size_relative_y(1)
-        ui_column(S("Test Column2"), 50)
-        {
-        }
-        ui_size_kind(UI_Size_Kind_Relative)
-        ui_size_relative_x(0.3333)
-        ui_size_relative_y(1)
-        ui_column(S("Test Column3"), 50)
-        {
-        }
-      }
-      ui_row(S("Test Row3"), 100)
-      {
+
       }
     }
     ui_end();

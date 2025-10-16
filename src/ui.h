@@ -166,12 +166,21 @@ function void ui_window_end();
 function void ui_layout_begin(UI_Alignment_Kind alignment, f32 size, String8 text);
 function void ui_layout_end();
 
+function UI_Signal ui_button(String8 text);
+
+// Signal utils
+// ------------
+#define ui_clicked(signal) HasFlags(signal.flags, UI_Signal_Flags_Left_Clicked)
+
 // Builder code
 // -------------------
 function UI_Node*  ui_node_from_string(String8 string, UI_Node_Flags flags);
 function void      ui_fill_signals_from_node(UI_Signal* signal); /* Signal in argument must contain the node already attached to it */
 function b32       ui_find_first_drag_offset(UI_Node* widget_root, Vec2f32* out_offset);
 function void      ui_apply_drag_offset(UI_Node* widget_root, Vec2f32 offset);
+
+#define ui_size_fixed(x,y) ui_size_fixed_x((x)) ui_size_fixed_y((y))
+#define ui_size_relative(x,y) ui_size_relative_x((x)) ui_size_relative_y((y))
 
 // Helper
 function void           ui_render_ui_tree(UI_Node* widget_root);

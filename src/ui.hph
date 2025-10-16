@@ -12,19 +12,21 @@
 
 @table UI_Node_Flags_Table (name documentation)
 {
-  { Mouse_Clickable           `Makes this node emit a signal when clicked` }
-  { Draggable                 `Makes this node emit a signal when dragged` }
-  { Hoverable                 `Makes this node emit a signal when hovered` }
+  { Mouse_Clickable `Makes this node emit a signal when clicked` }
+  { Draggable       `Makes this node emit a signal when dragged` }
+  { Hoverable       `Makes this node emit a signal when hovered` }
 
-  { Text_Display              `The UI_Node will display the text on the cursor's position and skip the cursor relative to UI_Alignment_Kind` }
-  { Text_Center_X             `If text is displayed, centers the text horizontally in the node`                                              }
-  { Text_Center_Y             `If text is displayed, centers the text vertically in the node`                                                }
+  { Text_Display  `The UI_Node will display the text on the cursor's position and skip the cursor relative to UI_Alignment_Kind` }
+  { Text_Center_X `If text is displayed, centers the text horizontally in the node`                                              }
+  { Text_Center_Y `If text is displayed, centers the text vertically in the node`                                                }
+
+  { Size_Wrap_Around_Text `Wraps the size of the node around the text with` }
 }
 
 @table UI_Signal_Flags_Table (name documentation)
 {
   { Left_Down      `Emits signal if LMB is down` }
-  { Middle_Down    `Emits signal if MMB is down` }
+  { Middle_Down    `Emits build signal if MMB is down` }
   { Right_Down     `Emits signal if RMB is down` }
 
   { Left_Clicked   `Emits signal if LMB is clicked` }
@@ -42,8 +44,8 @@
 
 @table UI_Alignment_Kind_Table (kind documentation)
 {
-  { X        `After a node is placed, the cursor is moved horizontally by the width of the node` }
-  { Y        `After a node is placed, the cursor is moved vertically by the height of the node` }
+  { X `After a node is placed, the cursor is moved horizontally by the width of the node` }
+  { Y `After a node is placed, the cursor is moved vertically by the height of the node` }
 }
 
 @generate @h_file
@@ -94,7 +96,6 @@
 
 // Implementation file
 // -------------------
-
 @table // Defines stacks for different types
 Stack_Table
   (name_upper               name_lower                 type                   default_value                     max debug_bottom_expected)

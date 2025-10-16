@@ -121,6 +121,7 @@ function void ui_begin()
   if (input_is_key_clicked(&g_input, Keyboard_Key_NUMPAD1))
   {
     ui_context.debug.show_bounds = !ui_context.debug.show_bounds;
+    ui_context.debug.show_text_borders = !ui_context.debug.show_text_borders;
   }
   if (input_is_key_clicked(&g_input, Keyboard_Key_NUMPAD2))
   {
@@ -377,6 +378,28 @@ ui_layout_end()
   ui_stack_parent_pop();
 }
 
+function UI_Signal
+ui_button(String8 text)
+{
+  UI_Signal button_signal = (UI_Signal){0};
+  {
+    ui_node_color_scheme(ui_context.color_scheme.button)
+    ui_padding_fixed(0)
+    ui_size_fixed(20,10)
+    {
+      UI_Node_Flags button_flags = UI_Node_Flags_Mouse_Clickable |
+                                   UI_Node_Flags_Hoverable       |
+                                   UI_Node_Flags_Text_Display    |
+                                   UI_Node_Flags_Text_Center_Y   |
+                                   UI_Node_Flags_Text_Center_X   |
+                                   UI_Node_Flags_Size_Wrap_Around_Text;
+      button_signal.node  = ui_node_from_string(text, button_flags);
+      ui_fill_signals_from_node(&button_signal);
+    }
+  }
+  return button_signal;
+}
+
 // Builder code
 function UI_Node*
 ui_node_from_string(String8 string, UI_Node_Flags flags)
@@ -415,10 +438,13 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   node->node_color_scheme = ui_stack_node_color_scheme_top();
   node->alignment_kind    = ui_stack_child_layout_kind_top();
   node->resizable         = ui_stack_resizable_top();
+  node->string            = string8_copy(ui_context.frame_arena, string);
+  node->string_clean      = ui_clean_string(ui_context.frame_arena, string);
+  node->string_dimensions = r_text_dimensions(node->string_clean, ui_context.text_pixel_height);
+  node->string_top_left   = vec2f32(0,0);
 
   // Bounds & Clip
   // -------------
-  
   f32 size_x = 0;
   f32 size_y = 0;
 
@@ -430,19 +456,27 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
       size_x = ui_stack_size_fixed_x_top(); 
       size_y = ui_stack_size_fixed_y_top(); 
     } break;
+
     case UI_Size_Kind_Relative:
     {
       size_x = (parent->bounds.size.x * ui_stack_size_relative_x_top());
       size_y = (parent->bounds.size.y * ui_stack_size_relative_y_top());
       if (HasFlags(node->flags, UI_Node_Flags_Text_Display))
       {
-        size_y *= (0.05 * Clamp(ui_context.text_pixel_height, 14, 500));
+        size_y *= (0.05f * Clamp(ui_context.text_pixel_height, 14, 500));
       }
     } break;
+
     default:
     {
       ui_size_kind_not_handled(ui_context.arena, size_kind);
     } break;
+  }
+
+  if (HasFlags(node->flags, UI_Node_Flags_Size_Wrap_Around_Text))
+  {
+    size_x = node->string_dimensions.x + 4 + size_x;
+    size_y = node->string_dimensions.y + 1 + size_y;
   }
 
   node->bounds.size = vec2f32(size_x, size_y);
@@ -500,10 +534,6 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
 
   // String
   // ------
-  node->string            = string8_copy(ui_context.frame_arena, string);
-  node->string_clean      = ui_clean_string(ui_context.frame_arena, string);
-  node->string_dimensions = r_text_dimensions(node->string_clean, ui_context.text_pixel_height);
-  node->string_top_left   = vec2f32(0,0);
   if (HasFlags(node->flags, UI_Node_Flags_Text_Center_Y))
   {
     f32 center_y = node->clip.size.y * 0.5f;

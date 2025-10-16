@@ -14,13 +14,14 @@ enum
   UI_Node_Flags_Text_Display = (1 << 3), /* The UI_Node will display the text on the cursor's position and skip the cursor relative to UI_Alignment_Kind */
   UI_Node_Flags_Text_Center_X = (1 << 4), /* If text is displayed, centers the text horizontally in the node */
   UI_Node_Flags_Text_Center_Y = (1 << 5), /* If text is displayed, centers the text vertically in the node */
+  UI_Node_Flags_Size_Wrap_Around_Text = (1 << 6), /* Wraps the size of the node around the text with */
 };
 
 typedef u32 UI_Signal_Flags;
 enum
 {
   UI_Signal_Flags_Left_Down = (1 << 0), /* Emits signal if LMB is down */
-  UI_Signal_Flags_Middle_Down = (1 << 1), /* Emits signal if MMB is down */
+  UI_Signal_Flags_Middle_Down = (1 << 1), /* Emits build signal if MMB is down */
   UI_Signal_Flags_Right_Down = (1 << 2), /* Emits signal if RMB is down */
   UI_Signal_Flags_Left_Clicked = (1 << 3), /* Emits signal if LMB is clicked */
   UI_Signal_Flags_Middle_Clicked = (1 << 4), /* Emits signal if MMB is clicked */
