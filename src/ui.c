@@ -482,7 +482,7 @@ ui_checkbox(String8 text, b32* value)
   String8 label_text        = Sf(ui_context.frame_arena, ""S_FMT"##checkbox_label", S_ARG(text));
 
   String8 label_clean_text  = ui_clean_string(scratch.arena, label_text);
-  Vec2f32 label_clean_text_dim = ui_text_dimensions(label_clean_text, ui_context.text_pixel_height);
+  Vec2f32 label_clean_text_dim = r_text_dimensions(label_clean_text, ui_context.text_pixel_height);
 
   UI_Signal checkbox_signal      = (UI_Signal){0};
   UI_Signal checkbox_text_signal = (UI_Signal){0};
@@ -492,7 +492,7 @@ ui_checkbox(String8 text, b32* value)
   f32 size_y = ui_calculate_relative_y_size_from_node(parent);
 
   ui_padding_fixed(0)
-  ui_row_fixed(row_checkbox_text, size_y + label_clean_text_dim.x, ui_context.text_pixel_height - ui_context.default_widget_height)
+  ui_row_fixed(row_checkbox_text, size_y + label_clean_text_dim.x, ui_context.text_pixel_height + ui_context.default_widget_height)
   {
     // Checkbox
     ui_node_color_scheme(ui_context.color_scheme.button)
@@ -560,7 +560,7 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   node->resizable         = ui_stack_resizable_top();
   node->string            = string8_copy(ui_context.frame_arena, string);
   node->string_clean      = ui_clean_string(ui_context.frame_arena, string);
-  node->string_bounds.size = ui_text_dimensions(node->string_clean, ui_context.text_pixel_height);
+  node->string_bounds.size = r_text_dimensions(node->string_clean, ui_context.text_pixel_height);
   node->string_bounds.top_left   = vec2f32(0,0);
 
   // Bounds & Clip
@@ -956,14 +956,6 @@ ui_get_cached_node(u64 hash)
   ui_cached_nodes_count += 1;
 
   return cached_node;
-}
-
-function Vec2f32 
-ui_text_dimensions(String8 text, f32 pixel_height)
-{
-  Vec2f32 result = r_text_dimensions(text, pixel_height);
-  result.y = Clamp(result.y, pixel_height, F32_MAX);
-  return result;
 }
 
 // Node tree

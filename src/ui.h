@@ -205,7 +205,6 @@ function f32            ui_calculate_relative_y_size_from_node(UI_Node* node);
 function Rectf32        ui_clamp_rect(Rectf32 parent, Rectf32 child);
 function b32            ui_is_mouse_in_node(UI_Node* node);
 function UI_Node_Cache* ui_get_cached_node(u64 hash);
-function Vec2f32        ui_text_dimensions(String8 text, f32 pixel_height);
 
 // Widget tree
 function void ui_add_node_child(UI_Node *parent, UI_Node *child);
