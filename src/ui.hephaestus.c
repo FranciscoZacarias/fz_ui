@@ -14,13 +14,21 @@ function b32  ui_stack_top_left_is_at_bottom() { return ui_stack_is_at_bottom(to
 function void ui_stack_top_left_assert_top_at(u32 at) { ui_stack_assert_top_at(top_left, at); }
 #define ui_top_left(val) DeferLoop(ui_stack_top_left_push(val), ui_stack_top_left_pop())
 
-function void ui_stack_size_kind_init(UI_Size_Kind bot_val) { ui_stack_init(size_kind, bot_val); }
-function void ui_stack_size_kind_push(UI_Size_Kind val) { ui_stack_push(size_kind, val); }
-function UI_Size_Kind ui_stack_size_kind_pop() { return ui_stack_pop(size_kind); }
-function UI_Size_Kind ui_stack_size_kind_top() { return ui_stack_top(size_kind); }
-function b32  ui_stack_size_kind_is_at_bottom() { return ui_stack_is_at_bottom(size_kind); }
-function void ui_stack_size_kind_assert_top_at(u32 at) { ui_stack_assert_top_at(size_kind, at); }
-#define ui_size_kind(val) DeferLoop(ui_stack_size_kind_push(val), ui_stack_size_kind_pop())
+function void ui_stack_size_kind_x_init(UI_Size_Kind bot_val) { ui_stack_init(size_kind_x, bot_val); }
+function void ui_stack_size_kind_x_push(UI_Size_Kind val) { ui_stack_push(size_kind_x, val); }
+function UI_Size_Kind ui_stack_size_kind_x_pop() { return ui_stack_pop(size_kind_x); }
+function UI_Size_Kind ui_stack_size_kind_x_top() { return ui_stack_top(size_kind_x); }
+function b32  ui_stack_size_kind_x_is_at_bottom() { return ui_stack_is_at_bottom(size_kind_x); }
+function void ui_stack_size_kind_x_assert_top_at(u32 at) { ui_stack_assert_top_at(size_kind_x, at); }
+#define ui_size_kind_x(val) DeferLoop(ui_stack_size_kind_x_push(val), ui_stack_size_kind_x_pop())
+
+function void ui_stack_size_kind_y_init(UI_Size_Kind bot_val) { ui_stack_init(size_kind_y, bot_val); }
+function void ui_stack_size_kind_y_push(UI_Size_Kind val) { ui_stack_push(size_kind_y, val); }
+function UI_Size_Kind ui_stack_size_kind_y_pop() { return ui_stack_pop(size_kind_y); }
+function UI_Size_Kind ui_stack_size_kind_y_top() { return ui_stack_top(size_kind_y); }
+function b32  ui_stack_size_kind_y_is_at_bottom() { return ui_stack_is_at_bottom(size_kind_y); }
+function void ui_stack_size_kind_y_assert_top_at(u32 at) { ui_stack_assert_top_at(size_kind_y, at); }
+#define ui_size_kind_y(val) DeferLoop(ui_stack_size_kind_y_push(val), ui_stack_size_kind_y_pop())
 
 function void ui_stack_size_fixed_x_init(f32 bot_val) { ui_stack_init(size_fixed_x, bot_val); }
 function void ui_stack_size_fixed_x_push(f32 val) { ui_stack_push(size_fixed_x, val); }
@@ -93,6 +101,14 @@ function f32 ui_stack_padding_fixed_right_top() { return ui_stack_top(padding_fi
 function b32  ui_stack_padding_fixed_right_is_at_bottom() { return ui_stack_is_at_bottom(padding_fixed_right); }
 function void ui_stack_padding_fixed_right_assert_top_at(u32 at) { ui_stack_assert_top_at(padding_fixed_right, at); }
 #define ui_padding_fixed_right(val) DeferLoop(ui_stack_padding_fixed_right_push(val), ui_stack_padding_fixed_right_pop())
+
+function void ui_stack_layout_kind_init(f32 bot_val) { ui_stack_init(layout_kind, bot_val); }
+function void ui_stack_layout_kind_push(f32 val) { ui_stack_push(layout_kind, val); }
+function f32 ui_stack_layout_kind_pop() { return ui_stack_pop(layout_kind); }
+function f32 ui_stack_layout_kind_top() { return ui_stack_top(layout_kind); }
+function b32  ui_stack_layout_kind_is_at_bottom() { return ui_stack_is_at_bottom(layout_kind); }
+function void ui_stack_layout_kind_assert_top_at(u32 at) { ui_stack_assert_top_at(layout_kind, at); }
+#define ui_layout_kind(val) DeferLoop(ui_stack_layout_kind_push(val), ui_stack_layout_kind_pop())
 
 function void ui_stack_child_layout_kind_init(UI_Alignment_Kind bot_val) { ui_stack_init(child_layout_kind, bot_val); }
 function void ui_stack_child_layout_kind_push(UI_Alignment_Kind val) { ui_stack_push(child_layout_kind, val); }

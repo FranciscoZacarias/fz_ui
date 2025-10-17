@@ -38,14 +38,24 @@
 
 @table UI_Size_Kind_Table (kind documentation)
 {
-  { Relative `Sets the side of the node to be done relative to parent (0.0 to 1.0)` }
-  { Fixed `Sets the side of the node to be fixed (within parent's clip space)` }
+  { Relative `Sets the side of the node to be done relative to parent (0.0 to 1.0)`      }
+  { Fixed    `Sets the side of the node to be fixed (within parent's clip space)`        }
+  { Copy_X   `Will set X value as the absolute value calculated in Y. Don't set size X.` }
+  { Copy_Y   `Will set Y value as the absolute value calculated in X. Don't set size Y.` }
 }
 
 @table UI_Alignment_Kind_Table (kind documentation)
 {
   { X `After a node is placed, the cursor is moved horizontally by the width of the node` }
-  { Y `After a node is placed, the cursor is moved vertically by the height of the node` }
+  { Y `After a node is placed, the cursor is moved vertically by the height of the node`  }
+}
+
+@table UI_Layout_Kind_Table (kind documentation)
+{
+  { Row          `Layout with fixed height and 100% relative width` }
+  { Row_Fixed    `Row layout with fixed width`                      }
+  { Column       `Layout with fixed width and 100% relative height` }
+  { Column_Fixed `Column layout with fixed height`                  }
 }
 
 @generate @h_file
@@ -87,6 +97,16 @@
   ` };\n`
   `#define ui_alignment_kind_not_handled(arena, kind) emit_fatal(Sf(arena, "Unhandled UI_Alignment_Kind kind: %s", ui_alignment_kind_table_string[kind]));\n\n`
 }
+@generate @h_file
+{
+  `typedef enum\n{\n  UI_Layout_Kind_None = 0,\n`
+  @foreach(UI_Layout_Kind_Table) `  UI_Layout_Kind_$(kind), /* $(documentation) */ \n`
+  `} UI_Layout_Kind;\n`
+  `const char* ui_layout_kind_table_string[] = { "UI_Layout_Kind_None",`
+  @foreach(UI_Layout_Kind_Table) ` "UI_Layout_Kind_$(kind)",`
+  ` };\n`
+  `#define ui_layout_kind_not_handled(arena, kind) emit_fatal(Sf(arena, "Unhandled UI_Layout_Kind kind: %s", ui_layout_kind_table_string[kind]));\n\n`
+}
 
 @generate @h_file
 {
@@ -104,7 +124,8 @@ Stack_Table
   
   { Top_Left                top_left                   Vec2f32               `vec2f32(0.0f, 0.0f)`              32  0 }
   
-  { Size_Kind               size_kind                  UI_Size_Kind          `UI_Size_Kind_Fixed`               32  0 }
+  { Size_Kind_X             size_kind_x                UI_Size_Kind           UI_Size_Kind_Fixed                32  0 }
+  { Size_Kind_Y             size_kind_y                UI_Size_Kind           UI_Size_Kind_Fixed                32  0 }
 
   { Size_Fixed_X            size_fixed_x               f32                    g_os_window.dimensions.x          32  0 }
   { Size_Fixed_Y            size_fixed_y               f32                    g_os_window.dimensions.y          32  0 }
@@ -117,6 +138,8 @@ Stack_Table
   { Padding_Fixed_Bot       padding_fixed_bot          f32                    0                                 32  0 }
   { Padding_Fixed_Left      padding_fixed_left         f32                    0                                 32  0 }
   { Padding_Fixed_Right     padding_fixed_right        f32                    0                                 32  0 }
+
+  { Layout_Kind             layout_kind                f32                    UI_Layout_Kind_Row                32  0 }
   
   { Child_Layout_Kind       child_layout_kind          UI_Alignment_Kind      UI_Alignment_Kind_Y               32  0 }
   { Resizable               resizable                  b32                    false                             32  0 }

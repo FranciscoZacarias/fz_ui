@@ -39,16 +39,17 @@ entry_point(Command_Line* command_line)
 
     ui_begin();
 
-    local_persist f32 x = 200;
-    local_persist f32 y = 200;
+    local_persist f32 x = 400;
+    local_persist f32 y = 400;
     if (input_is_key_clicked(&g_input, Keyboard_Key_I)) {x+=10;}
     if (input_is_key_clicked(&g_input, Keyboard_Key_O)) {x-=10;}
 
     if (input_is_key_clicked(&g_input, Keyboard_Key_K)) {y+=10;}
     if (input_is_key_clicked(&g_input, Keyboard_Key_L)) {y-=10;}
 
-
     local_persist b32 a = false;
+    local_persist b32 b = false;
+    local_persist b32 c = false;
 
     ui_top_left(vec2f32(200,200))
     ui_size_fixed_x(x) ui_size_fixed_y(y)
@@ -57,15 +58,22 @@ entry_point(Command_Line* command_line)
       ui_padding_fixed(5)
       ui_row(S("Test Row"), 100)
       {
-        ui_label(S("Label"));
+        //ui_label(S("Label"));
         ui_button(S("Button 1"));
-        ui_button(S("Button 2"));
-        ui_checkbox(S("CB2"), &a);
+        ui_checkbox(S("Checkbox a"), &a);
+        ui_checkbox(S("Checkbox b"), &b);
       }
       ui_padding_fixed(5)
       ui_row(S("Test Row 2"), 100)
       {
-        ui_checkbox(S("Checkbox"), &a);
+        ui_checkbox(S("Checkbox a"), &a);
+      }
+      ui_padding_fixed(5)
+      ui_column(S("Test column"), 200)
+      {
+        //ui_label(S("More checkboxes"));
+        //ui_checkbox(S("Checkbox b"), &b);
+        //ui_checkbox(S("Checkbox c"), &c);
       }
     }
     ui_end();

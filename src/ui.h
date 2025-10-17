@@ -73,6 +73,7 @@ struct UI_Node
   UI_Node_Color_Scheme node_color_scheme;
   Color target_background_color;
   Color target_text_color;
+  b32   checked; /* For checkboxes, if they are selected and should draw selection marker */
 
   // String stuff
   String8 string;
@@ -92,7 +93,7 @@ struct UI_Node_Cache
   f32 active_t;
 };
 
-#define UI_MAX_CACHED_NODES 16
+#define UI_MAX_CACHED_NODES 64
 global UI_Node_Cache ui_cached_nodes[UI_MAX_CACHED_NODES];
 global u32 ui_cached_nodes_count = 0;
 
@@ -162,17 +163,24 @@ function void ui_end();
 
 // UI Widgets
 // -------------------
+
+// Windows
 #define  ui_window(text) DeferLoop(ui_window_begin((text)), ui_window_end())
 function void ui_window_begin(String8 text);
 function void ui_window_end();
 
-#define  ui_row(text,height)   DeferLoop(ui_layout_begin(UI_Alignment_Kind_X, (height), (text)), ui_layout_end())
-#define  ui_column(text,width) DeferLoop(ui_layout_begin(UI_Alignment_Kind_Y, (width),  (text)), ui_layout_end())
-function void ui_layout_begin(UI_Alignment_Kind alignment, f32 size, String8 text);
+// Row/columns
+#define  ui_row(text,fixed_height)                      DeferLoop(ui_layout_begin(UI_Layout_Kind_Row,         (0),          (fixed_height),(text)), ui_layout_end())
+#define  ui_row_fixed(text,fixed_width,fixed_height)    DeferLoop(ui_layout_begin(UI_Layout_Kind_Row_Fixed,   (fixed_width),(fixed_height),(text)), ui_layout_end())
+#define  ui_column(text,fixed_width)                    DeferLoop(ui_layout_begin(UI_Layout_Kind_Column,      (fixed_width),0,             (text)), ui_layout_end())
+#define  ui_column_fixed(text,fixed_width,fixed_height) DeferLoop(ui_layout_begin(UI_Layout_Kind_Column_Fixed,(fixed_width),(fixed_height),(text)), ui_layout_end())
+function void ui_layout_begin(UI_Layout_Kind layout_kind, f32 width, f32 height, String8 text);
 function void ui_layout_end();
 
+// Widgets
 function UI_Signal ui_button(String8 text);
 function UI_Signal ui_label(String8 text);
+function UI_Signal ui_label_custom(String8 text, UI_Node_Flags custom_flags);
 function UI_Signal ui_checkbox(String8 text, b32* value);
 
 // Signal utils
@@ -193,9 +201,11 @@ function void      ui_apply_drag_offset(UI_Node* widget_root, Vec2f32 offset);
 function void           ui_render_ui_tree(UI_Node* widget_root);
 function void           ui_debug_draw_node(UI_Node* widget, f32 depth);
 function String8        ui_clean_string(Arena* arena, String8 string);
+function f32            ui_calculate_relative_y_size_from_node(UI_Node* node);
 function Rectf32        ui_clamp_rect(Rectf32 parent, Rectf32 child);
 function b32            ui_is_mouse_in_node(UI_Node* node);
 function UI_Node_Cache* ui_get_cached_node(u64 hash);
+function Vec2f32        ui_text_dimensions(String8 text, f32 pixel_height);
 
 // Widget tree
 function void ui_add_node_child(UI_Node *parent, UI_Node *child);

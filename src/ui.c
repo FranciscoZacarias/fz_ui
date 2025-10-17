@@ -146,6 +146,10 @@ function void ui_end()
 #if DEBUG
   // Ensure all the stacks are properly cleaned
   UI_Debug_Stacks_At_Bottom;
+
+  // Ensure we don't have any duplicate hashes. Either by renaming nodes with the same name, or hash collisions. (We cannot affoard collisions in this system).
+
+  // Ensure root depth is at 1 (screen)
   if (ui_context.root->depth != 1)
   {
     emit_fatal(Sf(ui_context.arena, "UI: ui_context.root->depth is expected to be 1. It was: %.10f\n", ui_context.root->depth));
@@ -187,7 +191,17 @@ ui_render_ui_tree(UI_Node* node)
 {
   if (ui_context.root != node)
   {
+    // Draw quad
     r_draw_quad(node->bounds.top_left, node->bounds.size, 0, node->target_background_color, node->depth);
+    if (node->checked)
+    {
+      Vec2f32 top_left = node->bounds.top_left;
+      Vec2f32 size     = node->bounds.size;
+      r_draw_line(top_left, vec2f32_add(top_left, size), BLACK(1), node->depth);
+      r_draw_line(vec2f32_add(top_left, vec2f32(size.x, 0)), vec2f32_add(top_left, vec2f32(0, size.y)), BLACK(1), node->depth);
+    }
+
+    // Draw text
     if (HasFlags(node->flags, UI_Node_Flags_Text_Display))
     {
       node->string_bounds.top_left = vec2f32_add(node->clip.top_left, node->string_bounds.top_left);
@@ -196,6 +210,8 @@ ui_render_ui_tree(UI_Node* node)
       f32 clamp_height = (node->clip.top_left.y + node->clip.size.y) - node->string_bounds.top_left.y;
       r_draw_text_clamped(node->string_bounds.top_left, ui_context.text_pixel_height, node->target_text_color, node->string_clean, node->depth - F32_EPSILON, clamp_width, clamp_height);
     }
+
+    // Draw UI Debug
     ui_debug_draw_node(node, node->depth);
   }
 
@@ -296,8 +312,8 @@ ui_window_begin(String8 text)
     ui_node_color_scheme(ui_context.color_scheme.title_bar)
     ui_child_layout_kind(UI_Alignment_Kind_X)
     ui_padding_fixed(2)
-    ui_size_kind(UI_Size_Kind_Relative)
-    ui_size_relative_x(1) ui_size_relative_y(0.08)
+    ui_size_kind_x(UI_Size_Kind_Relative) ui_size_relative_x(1)
+    ui_size_kind_y(UI_Size_Kind_Relative) ui_size_relative_y(0.08)
     {
       UI_Node_Flags title_bar_flags = UI_Node_Flags_Mouse_Clickable |
                                       UI_Node_Flags_Hoverable       |
@@ -323,39 +339,87 @@ ui_window_end()
 }
 
 function void
-ui_layout_begin(UI_Alignment_Kind alignment, f32 size, String8 text)
+ui_layout_begin(UI_Layout_Kind layout_kind, f32 width, f32 height, String8 text)
 {
-  ui_stack_child_layout_kind_push(alignment);
-  if (alignment == UI_Alignment_Kind_X)
+  ui_stack_layout_kind_push(layout_kind);
+  switch (layout_kind)
   {
-    ui_stack_size_fixed_y_push(size);
-  }
-  else if (alignment == UI_Alignment_Kind_Y)
-  {
-    ui_stack_size_fixed_x_push(size);
+    case UI_Layout_Kind_Row:
+    {
+      ui_stack_child_layout_kind_push(UI_Alignment_Kind_X);
+      ui_stack_size_fixed_y_push(height);
+    }
+    break;
+    case UI_Layout_Kind_Row_Fixed:
+    {
+      ui_stack_child_layout_kind_push(UI_Alignment_Kind_X);
+      ui_stack_size_fixed_x_push(width);
+      ui_stack_size_fixed_y_push(height);
+    }
+    break;
+    case UI_Layout_Kind_Column:
+    {
+      ui_stack_child_layout_kind_push(UI_Alignment_Kind_Y);
+      ui_stack_size_fixed_x_push(width);
+    }
+    break;
+    case UI_Layout_Kind_Column_Fixed:
+    {
+      ui_stack_child_layout_kind_push(UI_Alignment_Kind_Y);
+      ui_stack_size_fixed_x_push(width);
+      ui_stack_size_fixed_y_push(height);    
+    }
+    break;
+    default:
+    {
+      ui_layout_kind_not_handled(ui_context.arena, layout_kind);
+    }
+    break;
   }
 
   UI_Signal layout_box = (UI_Signal){0};
   ui_node_color_scheme(ui_context.color_scheme.window)
   {
-    UI_Node_Flags layout_box_flags = 0;
-    layout_box.node = ui_node_from_string(text, layout_box_flags);
+    Scratch scratch = scratch_begin(0,0);
+    UI_Node_Flags layout_box_flags = UI_Node_Flags_Text_Display|UI_Node_Flags_Size_Wrap_Around_Text; // These text flags are for properly resize based on text size. The layout node should just hide the text
+    String8 layout_text = Sf(scratch.arena, "##"S_FMT"_layout_node", S_ARG(text));
+    layout_box.node = ui_node_from_string(layout_text, layout_box_flags);
     ui_stack_parent_push(layout_box.node);
+    scratch_end(&scratch);
   }
 }
 
 function void
 ui_layout_end()
 {
-  UI_Alignment_Kind alignment = ui_stack_child_layout_kind_pop();
-  if (alignment == UI_Alignment_Kind_X)
+  UI_Layout_Kind layout_kind = ui_stack_layout_kind_pop();
+  switch (layout_kind)
   {
-    ui_stack_size_fixed_y_pop();
+    case UI_Layout_Kind_Row:
+    {
+      ui_stack_size_fixed_y_pop();
+    }
+    break;
+    case UI_Layout_Kind_Column:
+    {
+      ui_stack_size_fixed_x_pop();
+    }
+    break;
+    case UI_Layout_Kind_Row_Fixed:
+    case UI_Layout_Kind_Column_Fixed:
+    {
+      ui_stack_size_fixed_x_pop();
+      ui_stack_size_fixed_y_pop();
+    }
+    break;
+    default:
+    {
+      ui_layout_kind_not_handled(ui_context.arena, layout_kind);
+    }
+    break;
   }
-  else if (alignment == UI_Alignment_Kind_Y)
-  {
-    ui_stack_size_fixed_x_pop();
-  }
+
+  ui_stack_child_layout_kind_pop();
   ui_stack_parent_pop();
 }
 
@@ -385,17 +449,24 @@ ui_button(String8 text)
 function UI_Signal
 ui_label(String8 text)
 {
+  return ui_label_custom(text, 0);
+}
+
+function UI_Signal
+ui_label_custom(String8 text, UI_Node_Flags custom_flags)
+{
   UI_Signal label_signal = (UI_Signal){0};
   {
     ui_node_color_scheme(ui_context.color_scheme.window)
     ui_padding_fixed(0)
     ui_size_fixed(5, ui_context.text_pixel_height - ui_context.default_widget_height)
     {
-      UI_Node_Flags button_flags = UI_Node_Flags_Text_Display  |
-                                   UI_Node_Flags_Text_Center_Y |
-                                   UI_Node_Flags_Text_Center_X |
-                                   UI_Node_Flags_Size_Wrap_Around_Text;
-      label_signal.node  = ui_node_from_string(text, button_flags);
+      UI_Node_Flags label_flags = UI_Node_Flags_Text_Display  |
+                                  UI_Node_Flags_Text_Center_Y |
+                                  UI_Node_Flags_Text_Center_X |
+                                  UI_Node_Flags_Size_Wrap_Around_Text |
+                                  custom_flags;
+      label_signal.node  = ui_node_from_string(text, label_flags);
       ui_fill_signals_from_node(&label_signal);
     }
   }
@@ -405,30 +476,47 @@ ui_label(String8 text)
 function UI_Signal
 ui_checkbox(String8 text, b32* value)
 {
+  Scratch scratch = scratch_begin(0,0);
+
   String8 row_checkbox_text = Sf(ui_context.frame_arena, ""S_FMT"##row_checkbox_label", S_ARG(text));
   String8 label_text        = Sf(ui_context.frame_arena, ""S_FMT"##checkbox_label", S_ARG(text));
 
-  UI_Signal checkbox_signal = (UI_Signal){0};
-  
+  String8 label_clean_text  = ui_clean_string(scratch.arena, label_text);
+  Vec2f32 label_clean_text_dim = ui_text_dimensions(label_clean_text, ui_context.text_pixel_height);
+
+  UI_Signal checkbox_signal      = (UI_Signal){0};
+  UI_Signal checkbox_text_signal = (UI_Signal){0};
+
+  // NOTE(fz): Because we are using 100% of the parent's Y size for the checkbox size, we need to calculate it here to properly set the size of the row.
+  UI_Node* parent = ui_stack_parent_top();
+  f32 size_y = ui_calculate_relative_y_size_from_node(parent);
+
   ui_padding_fixed(0)
-  ui_row(row_checkbox_text, ui_context.text_pixel_height + ui_context.default_widget_height)
+  ui_row_fixed(row_checkbox_text, size_y + label_clean_text_dim.x, ui_context.text_pixel_height - ui_context.default_widget_height)
   {
     // Checkbox
-  //  ui_node_color_scheme(ui_context.color_scheme.button)
-  //  ui_padding_fixed(0)
-  //  ui_size_fixed(ui_context.default_widget_height + 10, ui_context.default_widget_height + 20)
-  //  {
-  //    UI_Node_Flags button_flags = UI_Node_Flags_Mouse_Clickable |
-  //                                 UI_Node_Flags_Hoverable;
-  //    checkbox_signal.node = ui_node_from_string(text, button_flags);
-  //    ui_fill_signals_from_node(&checkbox_signal);
-  //  }
+    ui_node_color_scheme(ui_context.color_scheme.button)
+    ui_padding_fixed(0)
+    ui_size_kind_y(UI_Size_Kind_Relative) ui_size_relative_y(1)
+    ui_size_kind_x(UI_Size_Kind_Copy_Y)
+    {
+      UI_Node_Flags button_flags = UI_Node_Flags_Mouse_Clickable |
+                                   UI_Node_Flags_Hoverable;
+      checkbox_signal.node = ui_node_from_string(text, button_flags);
+      checkbox_signal.node->checked = *value;
+      ui_fill_signals_from_node(&checkbox_signal);
+    }
 
-  //  // Checkbox label
-  //  ui_size_relative_y(1)
-  //  ui_label(label_text);
+    // Checkbox label
+    checkbox_text_signal = ui_label_custom(label_text, UI_Node_Flags_Hoverable|UI_Node_Flags_Mouse_Clickable);
   }
 
+  if (ui_clicked(checkbox_signal) || ui_clicked(checkbox_text_signal))
+  {
+    *value = !(*value);
+  }
+
+  scratch_end(&scratch);
   return checkbox_signal;
 }
 
@@ -472,7 +560,7 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   node->resizable         = ui_stack_resizable_top();
   node->string            = string8_copy(ui_context.frame_arena, string);
   node->string_clean      = ui_clean_string(ui_context.frame_arena, string);
-  node->string_bounds.size = r_text_dimensions(node->string_clean, ui_context.text_pixel_height);
+  node->string_bounds.size = ui_text_dimensions(node->string_clean, ui_context.text_pixel_height);
   node->string_bounds.top_left   = vec2f32(0,0);
 
   // Bounds & Clip
@@ -480,37 +568,97 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   f32 size_x = 0;
   f32 size_y = 0;
 
-  UI_Size_Kind size_kind = ui_stack_size_kind_top();
-  switch (size_kind)
+  // Calculate sizes
   {
-    case UI_Size_Kind_Fixed:
-    {
-      size_x = ui_stack_size_fixed_x_top(); 
-      size_y = ui_stack_size_fixed_y_top(); 
-    } break;
+    UI_Size_Kind size_kind_x = ui_stack_size_kind_x_top();
+    b32 x_copies_y = false;
+    UI_Size_Kind size_kind_y = ui_stack_size_kind_y_top();
+    b32 y_copies_x = false;
 
-    case UI_Size_Kind_Relative:
+    if (size_kind_y == UI_Size_Kind_Copy_Y)
     {
-      size_x = (parent->bounds.size.x * ui_stack_size_relative_x_top());
-      size_y = (parent->bounds.size.y * ui_stack_size_relative_y_top());
-      if (HasFlags(node->flags, UI_Node_Flags_Text_Display))
+      emit_fatal(S("You cannot set size_kind_y to copy size_y."));
+    }
+    if (size_kind_x == UI_Size_Kind_Copy_X)
+    {
+      emit_fatal(S("You cannot set size_kind_x to copy size_x."));
+    }
+    if (size_kind_x == UI_Size_Kind_Copy_Y && size_kind_y == UI_Size_Kind_Copy_X && size_kind_x == size_kind_y)
+    {
+      emit_fatal(S("You cannot set both size_x and size_y to copy each other at the same time. One must be set to either relative or fixed size."));
+    }
+
+    switch(size_kind_x)
+    {
+      case UI_Size_Kind_Relative:
       {
-        u32 font_min = 2;
-        u32 font_max = 100;
-        f32 node_scale_factor = 0.08;
-        f32 min_node_height = 20;
-
-        f32 text_dimension_factor = (node_scale_factor * Clamp(ui_context.text_pixel_height, font_min, font_max));
-        text_dimension_factor = Clamp(text_dimension_factor, 0.2, 10);
-
-        size_y = Clamp(size_y * text_dimension_factor, ui_context.text_pixel_height + ui_stack_padding_fixed_top(), (ui_context.text_pixel_height*1.5) + ui_stack_padding_fixed_top());
+        size_x = (parent->bounds.size.x * ui_stack_size_relative_x_top());
       }
-    } break;
+      break;
+      case UI_Size_Kind_Fixed:
+      {
+        size_x = ui_stack_size_fixed_x_top(); 
+      }
+      break;
+      case UI_Size_Kind_Copy_Y:
+      {
+        x_copies_y = true;
+      }
+      break;
+      default:
+      {
+        ui_size_kind_not_handled(ui_context.arena, size_kind_x);
+      } break;
+    }
 
-    default:
+    switch(size_kind_y)
     {
-      ui_size_kind_not_handled(ui_context.arena, size_kind);
-    } break;
+      case UI_Size_Kind_Relative:
+      {
+        size_y = ui_calculate_relative_y_size_from_node(parent);
+
+#if 0
+        size_y = (parent->bounds.size.y * ui_stack_size_relative_y_top());
+
+        // if size is relative, we make it relative to the text height
+        {
+          u32 font_min = 2;
+          u32 font_max = 100;
+          f32 node_scale_factor = 0.08;
+          f32 min_node_height = 20;
+
+          f32 text_dimension_factor = (node_scale_factor * Clamp(ui_context.text_pixel_height, font_min, font_max));
+          text_dimension_factor = Clamp(text_dimension_factor, 0.2, 10);
+
+          size_y = Clamp(size_y * text_dimension_factor, ui_context.text_pixel_height + ui_stack_padding_fixed_top(), (ui_context.text_pixel_height*1.5) + ui_stack_padding_fixed_top());
+        }
+#endif
+      }
+      break;
+      case UI_Size_Kind_Fixed:
+      {
+        size_y = ui_stack_size_fixed_y_top(); 
+      }
+      break;
+      case UI_Size_Kind_Copy_X:
+      {
+        y_copies_x = true;
+      }
+      break;
+      default:
+      {
+        ui_size_kind_not_handled(ui_context.arena, size_kind_y);
+      } break;
+    }
+
+    if (x_copies_y)
+    {
+      size_x = size_y;
+    }
+    else if (y_copies_x)
+    {
+      size_y = size_x;
+    }
   }
 
   if (HasFlags(node->flags, UI_Node_Flags_Size_Wrap_Around_Text|UI_Node_Flags_Text_Display))
@@ -719,6 +867,27 @@ ui_debug_draw_node(UI_Node* node, f32 depth)
   }
 }
 
+function f32
+ui_calculate_relative_y_size_from_node(UI_Node* node)
+{
+  f32 result = (node->bounds.size.y * ui_stack_size_relative_y_top());
+
+  // if size is relative, we make it relative to the text height
+  {
+    u32 font_min = 2;
+    u32 font_max = 100;
+    f32 node_scale_factor = 0.08;
+    f32 min_node_height = 20;
+
+    f32 text_dimension_factor = (node_scale_factor * Clamp(ui_context.text_pixel_height, font_min, font_max));
+    text_dimension_factor = Clamp(text_dimension_factor, 0.2, 10);
+
+    result = Clamp(result * text_dimension_factor, ui_context.text_pixel_height + ui_stack_padding_fixed_top(), (ui_context.text_pixel_height*1.5) + ui_stack_padding_fixed_top());
+  }
+
+  return result;
+}
+
 function Rectf32
 ui_clamp_rect(Rectf32 parent, Rectf32 child)
 {
@@ -787,6 +956,14 @@ ui_get_cached_node(u64 hash)
   ui_cached_nodes_count += 1;
 
   return cached_node;
+}
+
+function Vec2f32 
+ui_text_dimensions(String8 text, f32 pixel_height)
+{
+  Vec2f32 result = r_text_dimensions(text, pixel_height);
+  result.y = Clamp(result.y, pixel_height, F32_MAX);
+  return result;
 }
 
 // Node tree
@@ -881,7 +1058,7 @@ ui_print_tree_impl(UI_Node *node, u32 depth)
 
   UI_Node_Cache *cache = ui_get_cached_node(node->hash);
   printf("NODE("S_FMT"), Bounds: {TL: %.2f, %.2f - S: %.2f, %.2f} Clip: {TL: %.2f, %.2f - S: %.2f, %.2f} Text: {TL: %.2f, %.2f - S: %.2f, %.2f}\n",
-    S_ARG(node->string_clean),
+    S_ARG(node->string),
     node->bounds.top_left.x, node->bounds.top_left.y,
     node->bounds.size.x,     node->bounds.size.y,
     node->clip.top_left.x,   node->clip.top_left.y,
