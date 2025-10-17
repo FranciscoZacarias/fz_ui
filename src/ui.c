@@ -161,8 +161,9 @@ function void ui_end()
   r_draw_text(vec2f32(600, 170), 32, BLACK(1), Sf(ui_context.frame_arena, "mouse delta: %.2f,%.2f", g_input.mouse_current.delta.x, g_input.mouse_current.delta.y), 0);
   r_draw_text(vec2f32(600, 200), 32, BLACK(1), Sf(ui_context.frame_arena, "mouse: %.2f,%.2f", g_input.mouse_current.screen_space.x, g_input.mouse_current.screen_space.y), 0);
   r_draw_text(vec2f32(600, 230), 32, BLACK(1), Sf(ui_context.frame_arena, "Frame: %d", g_frame_counter), 0);
+  r_draw_text(vec2f32(600, 260), 32, BLACK(1), Sf(ui_context.frame_arena, "Text size: %u", ui_context.text_pixel_height), 0);
 
-  if (input_is_key_clicked(&g_input, Keyboard_Key_K)) ui_print_tree(ui_context.root);
+  if (input_is_key_clicked(&g_input, Keyboard_Key_T)) ui_print_tree(ui_context.root);
 
   // Reset
   ui_context.hash_hot = 0;
@@ -294,9 +295,9 @@ ui_window_begin(String8 text)
   {
     ui_node_color_scheme(ui_context.color_scheme.title_bar)
     ui_child_layout_kind(UI_Alignment_Kind_X)
-    ui_padding_fixed(4)
+    ui_padding_fixed(2)
     ui_size_kind(UI_Size_Kind_Relative)
-    ui_size_relative_x(1) ui_size_relative_y(0.1)
+    ui_size_relative_x(1) ui_size_relative_y(0.08)
     {
       UI_Node_Flags title_bar_flags = UI_Node_Flags_Mouse_Clickable |
                                       UI_Node_Flags_Hoverable       |
@@ -366,7 +367,7 @@ ui_button(String8 text)
     ui_node_color_scheme(ui_context.color_scheme.button)
     ui_child_layout_kind(UI_Alignment_Kind_X)
     ui_padding_fixed(0)
-    ui_size_fixed(20,ui_context.default_widget_height)
+    ui_size_fixed(20, ui_context.text_pixel_height - ui_context.default_widget_height)
     {
       UI_Node_Flags button_flags = UI_Node_Flags_Mouse_Clickable |
                                    UI_Node_Flags_Hoverable       |
@@ -388,7 +389,7 @@ ui_label(String8 text)
   {
     ui_node_color_scheme(ui_context.color_scheme.window)
     ui_padding_fixed(0)
-    ui_size_fixed(5,5)
+    ui_size_fixed(5, ui_context.text_pixel_height - ui_context.default_widget_height)
     {
       UI_Node_Flags button_flags = UI_Node_Flags_Text_Display  |
                                    UI_Node_Flags_Text_Center_Y |
@@ -406,26 +407,26 @@ ui_checkbox(String8 text, b32* value)
 {
   String8 row_checkbox_text = Sf(ui_context.frame_arena, ""S_FMT"##row_checkbox_label", S_ARG(text));
   String8 label_text        = Sf(ui_context.frame_arena, ""S_FMT"##checkbox_label", S_ARG(text));
-  Vec2f32 label_text_dimensions = r_text_dimensions(label_text, ui_context.text_pixel_height);
 
   UI_Signal checkbox_signal = (UI_Signal){0};
-  //ui_size_fixed(label_text_dimensions.x, ui_context.default_widget_height)
-  ui_size_fixed(label_text_dimensions.x,label_text_dimensions.y)
-  ui_row(row_checkbox_text, 30)
+  
+  ui_padding_fixed(0)
+  ui_row(row_checkbox_text, ui_context.text_pixel_height + ui_context.default_widget_height)
   {
     // Checkbox
-    ui_node_color_scheme(ui_context.color_scheme.button)
-    ui_padding_fixed(0)
-    ui_size_fixed(10,10)
-    {
-      UI_Node_Flags button_flags = UI_Node_Flags_Mouse_Clickable |
-                                   UI_Node_Flags_Hoverable;
-      checkbox_signal.node = ui_node_from_string(text, button_flags);
-      ui_fill_signals_from_node(&checkbox_signal);
-    }
+  //  ui_node_color_scheme(ui_context.color_scheme.button)
+  //  ui_padding_fixed(0)
+  //  ui_size_fixed(ui_context.default_widget_height + 10, ui_context.default_widget_height + 20)
+  //  {
+  //    UI_Node_Flags button_flags = UI_Node_Flags_Mouse_Clickable |
+  //                                 UI_Node_Flags_Hoverable;
+  //    checkbox_signal.node = ui_node_from_string(text, button_flags);
+  //    ui_fill_signals_from_node(&checkbox_signal);
+  //  }
 
-    // Checkbox label
-    ui_label(label_text);
+  //  // Checkbox label
+  //  ui_size_relative_y(1)
+  //  ui_label(label_text);
   }
 
   return checkbox_signal;
@@ -494,9 +495,15 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
       size_y = (parent->bounds.size.y * ui_stack_size_relative_y_top());
       if (HasFlags(node->flags, UI_Node_Flags_Text_Display))
       {
-        f32 text_dimension_factor = (0.08f * Clamp(ui_context.text_pixel_height, 14, 100));
-        text_dimension_factor = Clamp(text_dimension_factor, 1, 10);
-        size_y *= text_dimension_factor;
+        u32 font_min = 2;
+        u32 font_max = 100;
+        f32 node_scale_factor = 0.08;
+        f32 min_node_height = 20;
+
+        f32 text_dimension_factor = (node_scale_factor * Clamp(ui_context.text_pixel_height, font_min, font_max));
+        text_dimension_factor = Clamp(text_dimension_factor, 0.2, 10);
+
+        size_y = Clamp(size_y * text_dimension_factor, ui_context.text_pixel_height + ui_stack_padding_fixed_top(), (ui_context.text_pixel_height*1.5) + ui_stack_padding_fixed_top());
       }
     } break;
 
