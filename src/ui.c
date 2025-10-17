@@ -616,23 +616,6 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
       case UI_Size_Kind_Relative:
       {
         size_y = ui_calculate_relative_y_size_from_node(parent);
-
-#if 0
-        size_y = (parent->bounds.size.y * ui_stack_size_relative_y_top());
-
-        // if size is relative, we make it relative to the text height
-        {
-          u32 font_min = 2;
-          u32 font_max = 100;
-          f32 node_scale_factor = 0.08;
-          f32 min_node_height = 20;
-
-          f32 text_dimension_factor = (node_scale_factor * Clamp(ui_context.text_pixel_height, font_min, font_max));
-          text_dimension_factor = Clamp(text_dimension_factor, 0.2, 10);
-
-          size_y = Clamp(size_y * text_dimension_factor, ui_context.text_pixel_height + ui_stack_padding_fixed_top(), (ui_context.text_pixel_height*1.5) + ui_stack_padding_fixed_top());
-        }
-#endif
       }
       break;
       case UI_Size_Kind_Fixed:
