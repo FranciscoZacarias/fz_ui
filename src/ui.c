@@ -300,7 +300,7 @@ ui_window_begin(String8 text)
     ui_node_color_scheme(ui_context.color_scheme.window)
     ui_child_layout_kind(UI_Alignment_Kind_Y)
     {
-      UI_Node_Flags window_flags = 0;
+      UI_Node_Flags window_flags = UI_Node_Flags_Resize_X|UI_Node_Flags_Resize_Y;
       String8 window_text = Sf(ui_context.frame_arena, ""S_FMT"##_window_", S_ARG(text));
       window_signal.node = ui_node_from_string(window_text, window_flags);
       ui_stack_parent_push(window_signal.node);
@@ -561,7 +561,6 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   node->string_bounds.top_left   = vec2f32(0,0);
 
   UI_Node_Cache* cached_node = ui_get_cached_node(node->hash);
-  vec2f32_print(cached_node->accumulated_drag_offset, "acc");
   ui_add_node_child(parent, node);
 
   // Bounds & Clip
@@ -778,6 +777,21 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
     // Resize
     if (HasFlags(node->flags, UI_Node_Flags_Resize_X))
     {
+      local_persist f32 resize_box_padding = 5.0f;
+      Vec2f32 node_top_left_screen = vec2f32_add(node->bounds.top_left, cached_node->accumulated_drag_offset);
+      Vec2f32 node_top_left = vec2f32_add(node_top_left_screen, vec2f32(node->bounds.size.x, 0));
+      Rectf32 resize_box;
+      resize_box.top_left = vec2f32(node_top_left.x - resize_box_padding, node_top_left.y - resize_box_padding);
+      resize_box.size     = vec2f32(resize_box_padding*2, node->bounds.size.y + (resize_box_padding*2));
+
+      r_draw_box(resize_box.top_left, resize_box.size, PURPLE(1), node->depth);
+
+      if (ui_is_mouse_in_rect(resize_box))
+      {
+        cached_node->accumulated_resize_offset = vec2f32_add(cached_node->accumulated_resize_offset, g_input.mouse_current.delta);
+      }
+
+      vec2f32_print(cached_node->accumulated_resize_offset, "resize");
     }
   }
 
@@ -912,9 +926,16 @@ ui_is_mouse_in_node(UI_Node* node)
   Rectf32 bounds = node->bounds;
   bounds.top_left = vec2f32_add(node->bounds.top_left, cached_node->accumulated_drag_offset);
 
+  b32 result = ui_is_mouse_in_rect(bounds);
+  return result;
+}
+
+function b32
+ui_is_mouse_in_rect(Rectf32 rect)
+{
   Vec2f32 mouse = g_input.mouse_current.screen_space;
-  b32 result = (mouse.x >= bounds.top_left.x && mouse.x <= bounds.top_left.x + bounds.size.x &&
-                mouse.y >= bounds.top_left.y && mouse.y <= bounds.top_left.y + bounds.size.y);
+  b32 result = (mouse.x >= rect.top_left.x && mouse.x <= rect.top_left.x + rect.size.x &&
+                mouse.y >= rect.top_left.y && mouse.y <= rect.top_left.y + rect.size.y);
   return result;
 }
 

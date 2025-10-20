@@ -88,6 +88,7 @@ struct UI_Node_Cache
   u64 hash;
 
   Vec2f32 accumulated_drag_offset; /* How much it has been offseted in total */
+  Vec2f32 accumulated_resize_offset; /* How much it as been resized in total */
 
   f32 hover_t;
   f32 active_t;
@@ -204,6 +205,7 @@ function String8        ui_clean_string(Arena* arena, String8 string);
 function f32            ui_calculate_relative_y_size_from_node(UI_Node* node);
 function Rectf32        ui_clamp_rect(Rectf32 parent, Rectf32 child);
 function b32            ui_is_mouse_in_node(UI_Node* node);
+function b32            ui_is_mouse_in_rect(Rectf32 rect);
 function UI_Node_Cache* ui_get_cached_node(u64 hash);
 
 // Widget tree
