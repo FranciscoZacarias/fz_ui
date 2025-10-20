@@ -15,6 +15,8 @@ enum
   UI_Node_Flags_Text_Center_X = (1 << 4), /* If text is displayed, centers the text horizontally in the node */
   UI_Node_Flags_Text_Center_Y = (1 << 5), /* If text is displayed, centers the text vertically in the node */
   UI_Node_Flags_Size_Wrap_Around_Text = (1 << 6), /* Wraps the size of the node around the text with. If fixed size is provided, it is used as padding. */
+  UI_Node_Flags_Resize_X = (1 << 7), /* Node can be resized on X axis */
+  UI_Node_Flags_Resize_Y = (1 << 8), /* Node can be resized on Y axis */
 };
 
 typedef u32 UI_Signal_Flags;

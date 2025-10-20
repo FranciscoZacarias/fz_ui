@@ -774,6 +774,11 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
         node->local_drag_offset = g_input.mouse_current.delta;
       }
     }
+
+    // Resize
+    if (HasFlags(node->flags, UI_Node_Flags_Resize_X))
+    {
+    }
   }
 
   return node;

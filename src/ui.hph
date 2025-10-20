@@ -21,6 +21,9 @@
   { Text_Center_Y `If text is displayed, centers the text vertically in the node`                                                }
 
   { Size_Wrap_Around_Text     `Wraps the size of the node around the text with. If fixed size is provided, it is used as padding.`                          }
+
+  { Resize_X `Node can be resized on X axis` }
+  { Resize_Y `Node can be resized on Y axis` }
 }
 
 @table UI_Signal_Flags_Table (name documentation)
