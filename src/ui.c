@@ -548,9 +548,6 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
     ui_context.root         = node;
   }
 
-  UI_Node_Cache* cached_node = ui_get_cached_node(node->hash);
-  ui_add_node_child(parent, node);
-
   node->hash              = parent->hash ^ string8_hash(string);
   node->local_drag_offset = vec2f32(0,0);
   node->flags             = flags;
@@ -562,6 +559,10 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
   node->string_clean      = ui_clean_string(ui_context.frame_arena, string);
   node->string_bounds.size = r_text_dimensions(node->string_clean, ui_context.text_pixel_height);
   node->string_bounds.top_left   = vec2f32(0,0);
+
+  UI_Node_Cache* cached_node = ui_get_cached_node(node->hash);
+  vec2f32_print(cached_node->accumulated_drag_offset, "acc");
+  ui_add_node_child(parent, node);
 
   // Bounds & Clip
   // -------------
