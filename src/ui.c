@@ -790,8 +790,6 @@ ui_node_from_string(String8 string, UI_Node_Flags flags)
       {
         cached_node->accumulated_resize_offset = vec2f32_add(cached_node->accumulated_resize_offset, g_input.mouse_current.delta);
       }
-
-      vec2f32_print(cached_node->accumulated_resize_offset, "resize");
     }
   }
 
