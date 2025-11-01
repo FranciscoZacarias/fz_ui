@@ -7,22 +7,64 @@
   @output_path `../src/`
 }
 
-// NOTE(fz): Keep as first generator
+// Header file
+// -----------
+
+@table UI_Node_Flags_Table (name documentation)
+{
+  { Mouse_Clickable `Makes this node emit a signal when clicked` }
+  { Draggable       `Makes this node emit a signal when dragged` }
+  { Hoverable       `Makes this node emit a signal when hovered` }
+
+  { Text_Display  `The UI_Node will display the text on the cursor's position and skip the cursor relative to UI_Alignment_Kind` }
+  { Text_Center_X `If text is displayed, centers the text horizontally in the node`                                              }
+  { Text_Center_Y `If text is displayed, centers the text vertically in the node`                                                }
+
+  { Size_Wrap_Around_Text     `Wraps the size of the node around the text with. If fixed size is provided, it is used as padding.`                          }
+
+  { Resize_X `Node can be resized on X axis` }
+  { Resize_Y `Node can be resized on Y axis` }
+}
+
+@table UI_Signal_Flags_Table (name documentation)
+{
+  { Left_Down      `Emits signal if LMB is down` }
+  { Middle_Down    `Emits build signal if MMB is down` }
+  { Right_Down     `Emits signal if RMB is down` }
+
+  { Left_Clicked   `Emits signal if LMB is clicked` }
+  { Middle_Clicked `Emits signal if MMB is clicked` }
+  { Right_Clicked  `Emits signal if RMB is clicked` }
+
+  { Mouse_Hovered  `Emits signal if cursor is hovering` }
+}
+
+@table UI_Size_Kind_Table (kind documentation)
+{
+  { Relative `Sets the side of the node to be done relative to parent (0.0 to 1.0)`      }
+  { Fixed    `Sets the side of the node to be fixed (within parent's clip space)`        }
+  { Copy_X   `Will set X value as the absolute value calculated in Y. Don't set size X.` }
+  { Copy_Y   `Will set Y value as the absolute value calculated in X. Don't set size Y.` }
+}
+
+@table UI_Alignment_Kind_Table (kind documentation)
+{
+  { X `After a node is placed, the cursor is moved horizontally by the width of the node` }
+  { Y `After a node is placed, the cursor is moved vertically by the height of the node`  }
+}
+
+@table UI_Layout_Kind_Table (kind documentation)
+{
+  { Row          `Layout with fixed height and 100% relative width` }
+  { Row_Fixed    `Row layout with fixed width`                      }
+  { Column       `Layout with fixed width and 100% relative height` }
+  { Column_Fixed `Column layout with fixed height`                  }
+}
+
 @generate @h_file
 {
   `#ifndef UI_HEPHAESTUS_H\n#define UI_HEPHAESTUS_H\n\n`
-  `/*\n\n@Hephaestus generated code $(@time_now)\n\n*/\n\n`
-}
-
-@table
-UI_Node_Flags_Table
-  (name documentation)
-{
-  { Mouse_Clickable           `TODO(fz): Add documentation` }
-  { Draggable                 `TODO(fz): Add documentation` }
-  { Hoverable                 `TODO(fz): Add documentation` }
-
-  { Display_Text              `TODO(fz): Add documentation` }
+  `/*\n@Hephaestus generated code\n*/\n\n`
 }
 @generate @h_file
 {
@@ -31,19 +73,6 @@ UI_Node_Flags_Table
   @foreach(UI_Node_Flags_Table) `  UI_Node_Flags_$(name) = (1 << $(@index)), /* $(documentation) */\n`
   `};\n\n`
 }
-
-@table
-UI_Signal_Flags_Table
-  (name documentation)
-{
-  { Left_Down      `TODO(fz): Add documentation` }
-  { Middle_Down    `TODO(fz): Add documentation` }
-  { Right_Down     `TODO(fz): Add documentation` }
-  { Left_Clicked   `TODO(fz): Add documentation` }
-  { Middle_Clicked `TODO(fz): Add documentation` }
-  { Right_Clicked  `TODO(fz): Add documentation` }
-  { Mouse_Hovered  `TODO(fz): Add documentation` }
-}
 @generate @h_file
 {
   `typedef u32 UI_Signal_Flags;\n`
@@ -51,12 +80,15 @@ UI_Signal_Flags_Table
   @foreach(UI_Signal_Flags_Table) `  UI_Signal_Flags_$(name) = (1 << $(@index)), /* $(documentation) */\n`
   `};\n\n`
 }
-
-@table UI_Alignment_Kind_Table (kind documentation)
+@generate @h_file
 {
-  { X        `TODO(fz): Add documentation` }
-  { Y        `TODO(fz): Add documentation` }
-  { Floating `TODO(fz): Add documentation` }
+  `typedef enum\n{\n  UI_Size_Kind_None = 0,\n`
+  @foreach(UI_Size_Kind_Table) `  UI_Size_Kind_$(kind), /* $(documentation) */ \n`
+  `} UI_Size_Kind;\n`
+  `const char* ui_size_kind_table_string[] = { "UI_Size_Kind_None",`
+  @foreach(UI_Size_Kind_Table) ` "UI_Size_Kind_$(kind)",`
+  ` };\n`
+  `#define ui_size_kind_not_handled(arena, kind) emit_fatal(Sf(arena, "Unhandled UI_Size_Kind kind: %s", ui_size_kind_table_string[kind]));\n\n`
 }
 @generate @h_file
 {
@@ -68,54 +100,53 @@ UI_Signal_Flags_Table
   ` };\n`
   `#define ui_alignment_kind_not_handled(arena, kind) emit_fatal(Sf(arena, "Unhandled UI_Alignment_Kind kind: %s", ui_alignment_kind_table_string[kind]));\n\n`
 }
-
-@table UI_Width_Kind_Table (kind documentation)
-{
-  { Fill  `TODO(fz): Add documentation` }
-  { Fixed `TODO(fz): Add documentation` }
-}
 @generate @h_file
 {
-  `typedef enum\n{\n  UI_Width_Kind_None = 0,\n`
-  @foreach(UI_Width_Kind_Table) `  UI_Width_Kind_$(kind), /* $(documentation) */ \n`
-  `} UI_Width_Kind;\n`
-  `const char* ui_width_kind_table_string[] = { "UI_Width_Kind_None",`
-  @foreach(UI_Width_Kind_Table) ` "UI_Width_Kind_$(kind)",`
+  `typedef enum\n{\n  UI_Layout_Kind_None = 0,\n`
+  @foreach(UI_Layout_Kind_Table) `  UI_Layout_Kind_$(kind), /* $(documentation) */ \n`
+  `} UI_Layout_Kind;\n`
+  `const char* ui_layout_kind_table_string[] = { "UI_Layout_Kind_None",`
+  @foreach(UI_Layout_Kind_Table) ` "UI_Layout_Kind_$(kind)",`
   ` };\n`
-  `#define ui_width_kind_not_handled(arena, kind) emit_fatal(Sf(arena, "Unhandled UI_Width_Kind kind: %s", ui_width_kind_table_string[kind]));\n\n`
+  `#define ui_layout_kind_not_handled(arena, kind) emit_fatal(Sf(arena, "Unhandled UI_Layout_Kind kind: %s", ui_layout_kind_table_string[kind]));\n\n`
 }
 
-@table UI_Height_Kind_Table (kind documentation)
-{
-  { Fill  `TODO(fz): Add documentation` }
-  { Fixed `TODO(fz): Add documentation` }
-}
 @generate @h_file
 {
-  `typedef enum\n{\n  UI_Height_Kind_None = 0,\n`
-  @foreach(UI_Height_Kind_Table) `  UI_Height_Kind_$(kind), /* $(documentation) */ \n`
-  `} UI_Height_Kind;\n`
-  `const char* ui_height_kind_table_string[] = { "UI_Height_Kind_None",`
-  @foreach(UI_Height_Kind_Table) ` "UI_Height_Kind_$(kind)",`
-  ` };\n`
-  `#define ui_height_kind_not_handled(arena, kind) emit_fatal(Sf(arena, "Unhandled UI_Height_Kind kind: %s", ui_height_kind_table_string[kind]));\n\n`
+  `\n#endif `
+  `// UI_HEPHAESTUS_H`
 }
 
+// Implementation file
+// -------------------
 @table // Defines stacks for different types
 Stack_Table
   (name_upper               name_lower                 type                   default_value                     max debug_bottom_expected)
 {
   { Parent                  parent                     UI_Node*               &ui_node_nil_sentinel             32  1 }
+  
   { Top_Left                top_left                   Vec2f32               `vec2f32(0.0f, 0.0f)`              32  0 }
-  // TODO(fz): Test
-  { Size_X                  size_x                     f32                    g_os_window.dimensions.x          32  0 }
-  // TODO(fz): Test
-  { Size_Y                  size_y                     f32                    g_os_window.dimensions.y          32  0 }
-  { Alignment_Kind          alignment_kind             UI_Alignment_Kind      UI_Alignment_Kind_Y               32  0 }
-  // TODO(fz): Test
-  { Width_Kind              width_kind                 UI_Width_Kind          UI_Width_Kind_Fill                32  0 }
-  // TODO(fz): Test
-  { Height_Kind             height_kind                UI_Height_Kind         UI_Height_Kind_Fill               32  0 }
+  
+  { Size_Kind_X             size_kind_x                UI_Size_Kind           UI_Size_Kind_Fixed                32  0 }
+  { Size_Kind_Y             size_kind_y                UI_Size_Kind           UI_Size_Kind_Fixed                32  0 }
+
+  { Size_Fixed_X            size_fixed_x               f32                    g_os_window.dimensions.x          32  0 }
+  { Size_Fixed_Y            size_fixed_y               f32                    g_os_window.dimensions.y          32  0 }
+
+  { Size_Relative_X         size_relative_x            f32                    1                                 32  0 }
+  { Size_Relative_Y         size_relative_y            f32                    1                                 32  0 }
+
+  { Padding_Fixed           padding_fixed              f32                    0                                 32  0 }
+  { Padding_Fixed_Top       padding_fixed_top          f32                    0                                 32  0 }
+  { Padding_Fixed_Bot       padding_fixed_bot          f32                    0                                 32  0 }
+  { Padding_Fixed_Left      padding_fixed_left         f32                    0                                 32  0 }
+  { Padding_Fixed_Right     padding_fixed_right        f32                    0                                 32  0 }
+
+  { Layout_Kind             layout_kind                f32                    UI_Layout_Kind_Row                32  0 }
+  
+  { Child_Layout_Kind       child_layout_kind          UI_Alignment_Kind      UI_Alignment_Kind_Y               32  0 }
+  { Resizable               resizable                  b32                    false                             32  0 }
+  
   { Node_Color_Scheme       node_color_scheme          UI_Node_Color_Scheme   ui_context.color_scheme.window    32  0 }
 }
 @generate @h_file
@@ -150,11 +181,4 @@ function $(type) ui_stack_$(name_lower)_top() { return ui_stack_top($(name_lower
 function b32  ui_stack_$(name_lower)_is_at_bottom() { return ui_stack_is_at_bottom($(name_lower)); }
 function void ui_stack_$(name_lower)_assert_top_at(u32 at) { ui_stack_assert_top_at($(name_lower), at); }
 #define ui_$(name_lower)(val) DeferLoop(ui_stack_$(name_lower)_push(val), ui_stack_$(name_lower)_pop())\n\n`
-}
-
-// NOTE(fz): Keep as last generator
-@generate @h_file
-{
-  `\n#endif `
-  `// UI_HEPHAESTUS_H`
 }

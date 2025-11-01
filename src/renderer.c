@@ -29,7 +29,7 @@ r_init()
     // 2D Line
     {
       Render_Batch_Kind batch_kind = Render_Batch_Line;
-      u32 max_instances     = 256;
+      u32 max_instances     = Thousand(1);
       u32 vertex_shader     = g_renderer.shaders.v_line;
       u32 fragment_shader   = g_renderer.shaders.f_color;
 
@@ -781,6 +781,11 @@ r_create_fallback_texture()
 function Vec2f32
 r_text_dimensions(String8 text, f32 pixel_height)
 {
+  if (text.size <= 0)
+  {
+    return vec2f32(0,0);
+  }
+
   Font* font = g_renderer.selected_font;
   f32 scale = pixel_height / font->height;
   f32 max_width = 0.0f;

@@ -1,0 +1,208 @@
+
+@config
+{
+  @output_file_name `math`
+  @output_path `../base/math/`
+}
+
+@table Vector_Types_Table (type)     { { u32 } { u64 } { s32 } { s64 } { f32 } { f64 } }
+@table Matrix_Types_Table (type)     { { u32 } { u64 } { s32 } { s64 } { f32 } { f64 } }
+@table Quaternion_Types_Table (type) { { u32 } { u64 } { s32 } { s64 } { f32 } { f64 } }
+@table Rect_Types_Table (type)       { { u32 } { u64 } { s32 } { s64 } { f32 } { f64 } }
+@table Transform_Types_Table (type)  { { u32 } { u64 } { s32 } { s64 } { f32 } { f64 } }
+
+@generate @h_file
+{
+  `#ifndef MATH_HEPHAESTUS_H\n#define UI_HEPHAESTUS_H\n\n`
+  `/*\n@Hephaestus generated code\n*/\n\n`
+}
+
+// Typedef Vectors
+@generate @h_file
+{
+  `// Vector 2 types\n`
+  `// --------------\n`
+  @foreach(Vector_Types_Table) `typedef union Vec2$(type) { $(type) data[2]; struct { $(type) x, y; }; } Vec2$(type);
+#define vec2$(type)(x,y) (vec2$(type)){(x),(y)}
+#define vec2$(type)_zero() vec2f32(0,0)\n`
+  
+  `\n`
+
+  
+  `// Vector 3 types\n`
+  `// --------------\n`
+  @foreach(Vector_Types_Table) `typedef union Vec3$(type) { $(type) data[3]; struct { $(type) x, y, z; }; } Vec3$(type);
+#define vec3$(type)(x,y,z) (vec3$(type)){(x),(y),(z)}
+#define vec3$(type)_zero() vec3f32(0,0)\n`
+
+  `\n`
+
+  `// Vector 4 types\n`
+  `// --------------\n`
+  @foreach(Vector_Types_Table) `typedef union Vec4$(type) { $(type) data[4]; struct { $(type) x, y, z, w; }; } Vec4$(type);
+#define vec4$(type)(x,y,z,w) (vec4$(type)){(x),(y),(z),(w)}
+#define vec4$(type)_zero() vec4f32(0,0)\n`
+  `\n`
+}
+
+// Typedef Matrices
+@generate @h_file
+{
+  `// Matrix4 types\n`
+  `// --------------\n`
+  `/*
+  Column major:
+  Type m0, m4, m8,  m12,
+       m1, m5, m9,  m13,
+       m2, m6, m10, m14,
+       m3, m7, m11, m15;
+*/\n`
+  @foreach(Matrix_Types_Table) `typedef union Mat4$(type) { $(type) data[4][4]; struct { $(type) m0, m4, m8, m12, m1, m5, m9, m13, m2, m6, m10, m14, m3, m7, m11, m15; }; } Mat4$(type);
+#define mat4$(type)(diagonal) (Mat4$(type)) {(diagonal),0.0f,0.0f,0.0f,0.0f,(diagonal),0.0f,0.0f,0.0f,0.0f,(diagonal),0.0f,0.0f,0.0f,0.0f,(diagonal)}
+#define mat4$(type)_identity() mat4$(type)(1.0f)\n`
+  `\n`
+}
+
+
+// Typedef Quaternions
+@generate @h_file
+{
+  `// Quaternion types\n`
+  `// ----------------\n`
+  @foreach(Quaternion_Types_Table) `typedef union Quat$(type) { $(type) data[2]; struct { $(type) x, y, z, w; }; } Quat$(type);
+#define quat$(type)(x,y,z,w) (vec2$(type)){(x),(y),(z),(w)}
+#define quat$(type)_identity() quat$(type)(0.0f,0.0f,0.0f,1.0f)\n`
+  `\n`
+}
+
+// Typedef Transforms
+@generate @h_file
+{
+  `// Transform 2 types\n`
+  `// -----------------\n`
+  @foreach(Transform_Types_Table) `typedef struct Transform2$(type) { Vec2$(type) translation; f32 rotation; Vec2$(type) scale; } Transform$(type);\n`
+  `\n`
+  
+  `// Transform 3 types\n`
+  `// -----------------\n`
+  @foreach(Transform_Types_Table) `typedef struct Transform3$(type) { Vec3$(type) translation; Quatf32 rotation; Vec3$(type) scale; } Transform$(type);\n`
+  `\n`
+}
+
+// Typedef Rects
+@generate @h_file
+{
+  `// Rects types\n`
+  `// -----------\n`
+  @foreach(Rect_Types_Table) `typedef struct Rect$(type) { Vec2$(type) top_left; Vec2$(type) size; } Rect$(type);
+#define rect$(type)(top_left,size) ((Rect$(type)){top_left,size})\n`
+  `\n`
+}
+
+// Vector 2
+// --------
+@generate @h_file
+{
+  @foreach(Vector_Types_Table) `// Vec2$(type)
+function Vec2$(type) vec2$(type)_add(Vec2$(type) a, Vec2$(type) b);
+function Vec2$(type) vec2$(type)_subtract(Vec2$(type) a, Vec2$(type) b);
+function Vec2$(type) vec2$(type)_multiply(Vec2$(type) a, Vec2$(type) b);
+function Vec2$(type) vec2$(type)_divide(Vec2$(type) a, Vec2$(type) b);
+function Vec2$(type) vec2$(type)_scale(Vec2$(type) vector, f32 scalar);
+function Vec2$(type) vec2$(type)_negate(Vec2$(type) vector);
+function Vec2$(type) vec2$(type)_rotate(Vec2$(type) vector, f32 radians);
+function Vec2$(type) vec2$(type)_normalize(Vec2$(type) vector);
+function Vec2$(type) vec2$(type)_linear_interpolate(Vec2$(type) a, Vec2$(type) b, f32 t);
+function Vec2$(type) vec2$(type)_clamp(Vec2$(type) vector, Vec2$(type) minimum, Vec2$(type) maximum);
+function Vec2$(type) vec2$(type)_absolute(Vec2$(type) vector);
+function Vec2$(type) vec2$(type)_perpendicular(Vec2$(type) vector);
+function Vec2$(type) vec2$(type)_reflect(Vec2$(type) incident, Vec2$(type) normal);
+function Vec2$(type) vec2$(type)_project(Vec2$(type) vector, Vec2$(type) onto);
+function Vec2$(type) vec2$(type)_snap_to_grid(Vec2$(type) vector, f32 grid_size);
+function f32 vec2$(type)_dot_product(Vec2$(type) a, Vec2$(type) b);
+function f32 vec2$(type)_cross_product(Vec2$(type) a, Vec2$(type) b);
+function f32 vec2$(type)_length(Vec2$(type) vector);
+function f32 vec2$(type)_length_squared(Vec2$(type) vector);
+function f32 vec2$(type)_distance(Vec2$(type) a, Vec2$(type) b);
+function f32 vec2$(type)_distance_squared(Vec2$(type) a, Vec2$(type) b);
+function f32 vec2$(type)_angle_between(Vec2$(type) a, Vec2$(type) b);
+function f32 vec2$(type)_signed_angle_between(Vec2$(type) a, Vec2$(type) b);
+\n`
+}
+
+// Vector 3
+// --------
+@generate @h_file
+{
+  `// Vector3\n`
+  `// -------`
+  @foreach(Vector_Types_Table) `// Vec3$(type)
+function Vec3$(type) vec3$(type)_add(Vec3$(type) a, Vec3$(type) b);
+function Vec3$(type) vec3$(type)_subtract(Vec3$(type) a, Vec3$(type) b);
+function Vec3$(type) vec3$(type)_multiply(Vec3$(type) a, Vec3$(type) b);
+function Vec3$(type) vec3$(type)_divide(Vec3$(type) a, Vec3$(type) b);
+function Vec3$(type) vec3$(type)_scale(Vec3$(type) vector, f32 scalar);
+function Vec3$(type) vec3$(type)_negate(Vec3$(type) vector);
+function Vec3$(type) vec3$(type)_normalize(Vec3$(type) vector);
+function Vec3$(type) vec3$(type)_linear_interpolate(Vec3$(type) a, Vec3$(type) b, f32 t);
+function Vec3$(type) vec3$(type)_clamp(Vec3$(type) vector, Vec3$(type) minimum, Vec3$(type) maximum);
+function Vec3$(type) vec3$(type)_absolute(Vec3$(type) vector);
+function Vec3$(type) vec3$(type)_reflect(Vec3$(type) incident, Vec3$(type) normal);
+function Vec3$(type) vec3$(type)_project(Vec3$(type) vector, Vec3$(type) onto);
+function Vec3$(type) vec3$(type)_snap_to_grid(Vec3$(type) vector, f32 grid_size);
+function Vec3$(type) vec3$(type)_cross_product(Vec3$(type) a, Vec3$(type) b);
+function Vec3$(type) vec3$(type)_rotate_axis_angle(Vec3$(type) vector, Vec3$(type) axis, f32 radians);
+function Vec3$(type) vec3$(type)_from_to_rotation(Vec3$(type) from, Vec3$(type) to);
+function Vec3$(type) vec3$(type)_normal_from_triangle(Vec3$(type) a, Vec3$(type) b, Vec3$(type) c);
+function f32 vec3$(type)_dot_product(Vec3$(type) a, Vec3$(type) b);
+function f32 vec3$(type)_length(Vec3$(type) vector);
+function f32 vec3$(type)_length_squared(Vec3$(type) vector);
+function f32 vec3$(type)_distance(Vec3$(type) a, Vec3$(type) b);
+function f32 vec3$(type)_distance_squared(Vec3$(type) a, Vec3$(type) b);
+function f32 vec3$(type)_angle_between(Vec3$(type) a, Vec3$(type) b);
+\n`
+}
+
+// Vector 4
+// --------
+@generate @h_file
+{
+  `// Vector4\n`
+  `// -------`
+  @foreach(Vector_Types_Table) `// Vec4$(type)
+function Vec4$(type) vector4_add(Vec4$(type) a, Vec4$(type) b);
+function Vec4$(type) vector4_subtract(Vec4$(type) a, Vec4$(type) b);
+function Vec4$(type) vector4_multiply(Vec4$(type) a, Vec4$(type) b);
+function Vec4$(type) vector4_divide(Vec4$(type) a, Vec4$(type) b);
+function Vec4$(type) vector4_scale(Vec4$(type) vector, f32 scalar);
+function Vec4$(type) vector4_negate(Vec4$(type) vector);
+function Vec4$(type) vector4_normalize(Vec4$(type) vector);
+function Vec4$(type) vector4_linear_interpolate(Vec4$(type) a, Vec4$(type) b, f32 t);
+function Vec4$(type) vector4_minimum(Vec4$(type) a, Vec4$(type) b);
+function Vec4$(type) vector4_maximum(Vec4$(type) a, Vec4$(type) b);
+function Vec4$(type) vector4_clamp(Vec4$(type) vector, Vec4$(type) minimum, Vec4$(type) maximum);
+function Vec4$(type) vector4_absolute(Vec4$(type) vector);
+function Vec4$(type) vector4_reflect(Vec4$(type) incident, Vec4$(type) normal);
+function Vec4$(type) vector4_project(Vec4$(type) vector, Vec4$(type) onto);
+function Vec4$(type) vector4_snap_to_grid(Vec4$(type) vector, f32 grid_size);
+function Vec4$(type) vector4_homogenize(Vec4$(type) vector);
+function f32 vector4_dot_product(Vec4$(type) a, Vec4$(type) b);
+function f32 vector4_length(Vec4$(type) vector);
+function f32 vector4_length_squared(Vec4$(type) vector);
+function f32 vector4_distance(Vec4$(type) a, Vec4$(type) b);
+function f32 vector4_distance_squared(Vec4$(type) a, Vec4$(type) b);
+function f32 vector4_angle_between(Vec4$(type) a, Vec4$(type) b);
+function f32 vector4_min_component(Vec4$(type) vector);
+function f32 vector4_max_component(Vec4$(type) vector);
+\n`
+
+@generate @h_file
+{
+  `\n#endif `
+  `// UI_HEPHAESTUS_H`
+}
+
+@generate @c_file
+{
+  
+}

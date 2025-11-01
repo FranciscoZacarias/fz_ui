@@ -1126,7 +1126,20 @@ _win32_window_create(HINSTANCE hInstance, s32 width, s32 height, String8 title)
   DWORD style   = WS_OVERLAPPEDWINDOW;
 
   Scratch scratch = scratch_begin(0, 0);
-  HWND result = CreateWindowExA(exstyle, wc.lpszClassName, cstring_from_string8(scratch.arena, title), style, CW_USEDEFAULT, CW_USEDEFAULT, width, height, NULL, NULL, wc.hInstance, NULL);
+  HWND result = CreateWindowExA(
+    exstyle,
+    wc.lpszClassName,
+    cstring_from_string8(scratch.arena, title),
+    style,
+    CW_USEDEFAULT,
+    CW_USEDEFAULT,
+    width,
+    height,
+    NULL,
+    NULL,
+    wc.hInstance,
+    NULL
+  );
   if (!result)
   {
     win32_check_error();

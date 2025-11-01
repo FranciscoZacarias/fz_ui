@@ -42,8 +42,6 @@ global UI_Color_Scheme ui_color_scheme_high_contrast;
 typedef struct UI_Node UI_Node;
 struct UI_Node
 {
-  u64 hash;
-
   // Node tree
   UI_Node* first; /* First child */
   UI_Node* last;  /* Last child */
@@ -51,25 +49,36 @@ struct UI_Node
   UI_Node* previous; /* Previous child, before current node */
   UI_Node* parent;   /* Parent of current node */
 
+  u64 hash;
+
   // Node Settings
   Rectf32 bounds;  /* Container rectangle drawing bounds - Absolute values */
   Rectf32 clip;    /* Clipping rectangle for children - Absolute values */
   Vec2f32 cursor;  /* Next position to draw - Relative to node->clip */
-  UI_Alignment_Kind alignment_kind;
+
+  f32 padding_left;
+  f32 padding_right;
+  f32 padding_top;
+  f32 padding_bottom;
+
+  UI_Size_Kind size_kind; /* If this node's size is set relative to parent or with a fixed size */
+  UI_Alignment_Kind alignment_kind; /* Where the cursor will shift to */
+  b32 resizable; /* Is this node resizable */
+
   f32 depth; /* Keeps track of that's in front. Smaller number means closer to the camera. 1 is root */
-  UI_Node_Flags flags;
+  UI_Node_Flags flags; /* Behaviour for this node */
   Vec2f32 local_drag_offset; /* How much it was offseted this frame */
 
   // Style
   UI_Node_Color_Scheme node_color_scheme;
   Color target_background_color;
   Color target_text_color;
+  b32   checked; /* For checkboxes, if they are selected and should draw selection marker */
 
   // String stuff
   String8 string;
-  String8 string_clean;
-  Vec2f32 string_top_left;
-  Vec2f32 string_dimensions;
+  String8 string_clean; /* String with everything after ## stripped */
+  Rectf32 string_bounds;
   f32 text_pixel_height;
 };
 
@@ -79,12 +88,13 @@ struct UI_Node_Cache
   u64 hash;
 
   Vec2f32 accumulated_drag_offset; /* How much it has been offseted in total */
+  Vec2f32 accumulated_resize_offset; /* How much it as been resized in total */
 
   f32 hover_t;
   f32 active_t;
 };
 
-#define UI_MAX_CACHED_NODES 16
+#define UI_MAX_CACHED_NODES 64
 global UI_Node_Cache ui_cached_nodes[UI_MAX_CACHED_NODES];
 global u32 ui_cached_nodes_count = 0;
 
@@ -119,6 +129,8 @@ struct UI_Context
   b32 is_initialized; /* Has ui_init been called */
   b32 is_working;     /* If true, ui_begin() was last called. If false, ui_end() was last called */
 
+  f32 default_widget_height;
+
   UI_Config_Stacks;
 
   // Debug
@@ -127,7 +139,6 @@ struct UI_Context
     b32 show_bounds : 1;
     b32 show_clip   : 1;
     b32 show_cursor : 1;
-    b32 print_widget_tree: 1;
     b32 show_text_borders: 1;
   } debug;
 };
@@ -137,7 +148,6 @@ global u32 debug_color_index = 0;
 // Used as a bottom value for UI_Node stack, since bottom value is a pointer.
 read_only global UI_Node ui_node_nil_sentinel =
 {
-  .hash     = 0,
   .first    = &ui_node_nil_sentinel,
   .last     = &ui_node_nil_sentinel,
   .next     = &ui_node_nil_sentinel,
@@ -154,28 +164,52 @@ function void ui_end();
 
 // UI Widgets
 // -------------------
+
+// Windows
 #define  ui_window(text) DeferLoop(ui_window_begin((text)), ui_window_end())
 function void ui_window_begin(String8 text);
 function void ui_window_end();
 
+// Row/columns
+#define  ui_row(text,fixed_height)                      DeferLoop(ui_layout_begin(UI_Layout_Kind_Row,         (0),          (fixed_height),(text)), ui_layout_end())
+#define  ui_row_fixed(text,fixed_width,fixed_height)    DeferLoop(ui_layout_begin(UI_Layout_Kind_Row_Fixed,   (fixed_width),(fixed_height),(text)), ui_layout_end())
+#define  ui_column(text,fixed_width)                    DeferLoop(ui_layout_begin(UI_Layout_Kind_Column,      (fixed_width),0,             (text)), ui_layout_end())
+#define  ui_column_fixed(text,fixed_width,fixed_height) DeferLoop(ui_layout_begin(UI_Layout_Kind_Column_Fixed,(fixed_width),(fixed_height),(text)), ui_layout_end())
+function void ui_layout_begin(UI_Layout_Kind layout_kind, f32 width, f32 height, String8 text);
+function void ui_layout_end();
+
+// Widgets
+function UI_Signal ui_button(String8 text);
+function UI_Signal ui_label(String8 text);
+function UI_Signal ui_label_custom(String8 text, UI_Node_Flags custom_flags);
+function UI_Signal ui_checkbox(String8 text, b32* value);
+
+// Signal utils
+// ------------
+#define ui_clicked(signal) HasFlags(signal.flags, UI_Signal_Flags_Left_Clicked)
+
 // Builder code
 // -------------------
-
 function UI_Node*  ui_node_from_string(String8 string, UI_Node_Flags flags);
 function void      ui_fill_signals_from_node(UI_Signal* signal); /* Signal in argument must contain the node already attached to it */
 function b32       ui_find_first_drag_offset(UI_Node* widget_root, Vec2f32* out_offset);
 function void      ui_apply_drag_offset(UI_Node* widget_root, Vec2f32 offset);
 
+#define ui_size_fixed(x,y) ui_size_fixed_x((x)) ui_size_fixed_y((y))
+#define ui_size_relative(x,y) ui_size_relative_x((x)) ui_size_relative_y((y))
+
 // Helper
-function void           ui_render_widget(UI_Node* widget_root);
+function void           ui_render_ui_tree(UI_Node* widget_root);
 function void           ui_debug_draw_node(UI_Node* widget, f32 depth);
 function String8        ui_clean_string(Arena* arena, String8 string);
+function f32            ui_calculate_relative_y_size_from_node(UI_Node* node);
 function Rectf32        ui_clamp_rect(Rectf32 parent, Rectf32 child);
 function b32            ui_is_mouse_in_node(UI_Node* node);
+function b32            ui_is_mouse_in_rect(Rectf32 rect);
 function UI_Node_Cache* ui_get_cached_node(u64 hash);
 
 // Widget tree
-function void ui_add_widget_child(UI_Node *parent, UI_Node *child);
+function void ui_add_node_child(UI_Node *parent, UI_Node *child);
 function void ui_update_tree_nodes(UI_Node* node);
 #define  ui_print_tree(root) ui_print_tree_impl(root, 0)
 function void ui_print_tree_impl(UI_Node* node, u32 depth);

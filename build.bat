@@ -11,8 +11,9 @@ REM Args
 set arg=%1
 if "%arg%"==""       set arg=ui
 if /I "%arg%"=="all" goto build_all
-if /I "%arg%"=="hph" goto build_hephaestus
 if /I "%arg%"=="ui"  goto build_ui
+if /I "%arg%"=="hph" goto build_hephaestus
+if /I "%arg%"=="hph_fz_std"  goto build_hephaestus_fz_std
 goto end
 
 REM Targets
@@ -22,8 +23,13 @@ call "%~f0" ui
 goto end
 
 :build_hephaestus
-echo Running Hephaestus...
-bin\hephaestus.exe --input "../src/ui.hph"
+echo Running Hephaestus on ../../../src/ui.hph ...
+src\fz_std\bin\hephaestus.exe --input "../../../src/ui.hph"
+goto end
+
+:build_hephaestus_fz_std
+echo Running Hephaestus on ../base/math/math.hph ...
+src\fz_std\bin\hephaestus.exe --input "../base/math/math.hph"
 goto end
 
 :build_ui

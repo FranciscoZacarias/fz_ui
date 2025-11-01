@@ -24,6 +24,5 @@ global OS_Timer g_frame_timer   = {0};
 global f32      g_fps           = 0.0f;
 
 function void input_update();
-function void simulation();
 
 #endif // MAIN_H
