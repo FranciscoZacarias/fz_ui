@@ -5,17 +5,15 @@ A rough prototype for an immediate mode UI in C. This was my second iteration of
 
 > A UI window with some buttons and checkboxes
 
-[](/assets/readme/fz_ui.PNG)
+![](/assets/readme/fz_ui.PNG)
 
-> fz_ui window
-A UI window with debug enabled. While keeping in mind that every quad is a node with optional text, here you can see:
+> A window with debug boundaries enabled
 
-Node boundries and clip quad. In most nodes here, the clip is slithgly smaller due to padding added.
-Buttons, Labels and checkboxes.
-Each node's cursor (defined with a small X), that shows where the next child of this node would've been drawn.
-Vertical and horizontal layouts.
-fz_ui window boundries
+![](/assets/readme/fz_ui_boundries.PNG)
 
+> Small persistant cross-frame data is stored in order apply cross frame animations
+
+![](/assets/readme/fz_ui_transitions.gif)
 
 The following code is how you define this window in the application space:
 
